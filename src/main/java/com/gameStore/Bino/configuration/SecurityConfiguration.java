@@ -26,7 +26,7 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         //Everything that I have in here are authentication related methods
-                        .requestMatchers("/api/v1/auth/**"
+                        .requestMatchers("/api/v2/auth/**"
                         ).permitAll()
                         .requestMatchers("/games/**").permitAll()
                         .anyRequest()
