@@ -9,6 +9,6 @@ import lombok.Data;
 @AllArgsConstructor
 @Builder
 public class AuthenticationResponse {
-    @JsonProperty
+    @JsonProperty("access_token")
     private String token;
 }

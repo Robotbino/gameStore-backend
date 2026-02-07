@@ -12,11 +12,8 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequest {
-
-        private String title;
-        private String genre;
-        private BigDecimal price;
-        private String description;
-        private String heroImage;
-        private Double rating;
+        private String firstName;
+        private String lastName;
+        private String email;
+        private String password;
 }
