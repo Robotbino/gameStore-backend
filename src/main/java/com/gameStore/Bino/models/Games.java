@@ -20,14 +20,12 @@ public class Games {
 @Id
 @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
-
     @Column(nullable = false)
     private String title;
-
+    @Column
     private String genre;
     @Column(nullable = false)
     private BigDecimal price;
-
     @Column
     @Builder.Default
     private Double rating = 0.0;
@@ -35,9 +33,10 @@ public class Games {
     private String description;
     @Column(name = "image_url")
     private String imageUrl;
-
     @Column(name = "hero_image")
     private String heroImage;
+
+
 
 
     public String toString()
@@ -46,7 +45,10 @@ public class Games {
                 "id ="+ id +
                 ", title='" + title + '\'' +
                 ", price='" + price + '\'' +
+                ", genre='" + genre + '\'' +
                 ", description='" + description + '\'' +
+                ", rating='" + rating + '\'' +
+                ", heroImage='" + heroImage + '\'' +
                 ", imageUrl='" + imageUrl+ '\'' +
                 '}';
     }
