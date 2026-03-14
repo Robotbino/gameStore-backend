@@ -14,7 +14,7 @@ import java.util.List;
 public class GamesControllers {
 
 @Autowired
-private  GamesService gamesService;
+private GamesService gamesService;
 
     @PostMapping("/add")
     public ResponseEntity<Games> addGame(@RequestBody Games game)
@@ -34,6 +34,12 @@ private  GamesService gamesService;
     public ResponseEntity<Games> getGameById(@PathVariable("id") Long id){
         Games games = gamesService.getGameById(id);
         return new ResponseEntity<>(games, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteGame(@PathVariable("id") Long id) {
+        gamesService.deleteGames(id);           // ← calls the service above
+        return ResponseEntity.noContent().build();
     }
 
 }

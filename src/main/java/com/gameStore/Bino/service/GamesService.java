@@ -42,7 +42,6 @@ public class GamesService {
     //Delete Game records
     @Transactional
     public void deleteGames(Long id){
-
         if(!gamesRepository.existsById(id)){
             throw new RuntimeException("Game not found with id: " + id);
         }
