@@ -1,15 +1,14 @@
 package com.gameStore.Bino.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,11 +34,24 @@ public class Purchases {
 
     @Override
     public String toString(){
-        return "purchases{"+
-            "id ="+ id +
-            ", user Id='" + user+ '\'' +
-            ", game Id='" + game + '\'' +
-            ", purchase Date='" + purchaseDate + '\'' +
+        return "Purchases{"+
+            "id=" + id +
+            ", userId=" + (user != null ? user.getId() : null) +
+            ", gameId=" + (game != null ? game.getId() : null) +
+            ", purchaseDate=" + purchaseDate +
             '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Purchases purchases = (Purchases) o;
+        return id != null && Objects.equals(id, purchases.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

@@ -17,7 +17,7 @@ public class GamesControllers {
 private  GamesService gamesService;
 
     @PostMapping("/add")
-    public ResponseEntity<Games> addEmployee(@RequestBody Games game)
+    public ResponseEntity<Games> addGame(@RequestBody Games game)
     {
         Games newGame = gamesService.addGame(game);
         return new ResponseEntity<>(newGame, HttpStatus.CREATED);
@@ -31,8 +31,8 @@ private  GamesService gamesService;
     }
 
     @GetMapping("find/{id}")
-    public ResponseEntity<Games> getEmployeeById(@PathVariable("id") Long id){
-        Games games = gamesService.findGamesById(id);
+    public ResponseEntity<Games> getGameById(@PathVariable("id") Long id){
+        Games games = gamesService.getGameById(id);
         return new ResponseEntity<>(games, HttpStatus.OK);
     }
 

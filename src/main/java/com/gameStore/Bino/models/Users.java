@@ -1,10 +1,7 @@
 package com.gameStore.Bino.models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,8 +9,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -23,9 +22,15 @@ public class Users implements UserDetails{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(unique = true, nullable = false)
     private String userName;
+
+    @Column(unique = true, nullable = false)
     private String email;
-    private Double points;
+
+    @Builder.Default
+    private Integer points = 0;
 
     @Column(nullable = false)
     private String password;
@@ -34,15 +39,17 @@ public class Users implements UserDetails{
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private Role role = Role.USER;
+
     @Column(name = "is_enabled")
-    private boolean enabled = true;  // Rename to 'enabled'
+    @Builder.Default
+    private boolean enabled = true;
 
     // ---------------------------------------------------------------
     // Relationship: One User -> Many Purchases
     // mappedBy = "user" means the Purchase entity owns the FK column.
     // CascadeType.ALL: if you delete a user, their purchases go too.
     // ---------------------------------------------------------------
-    @OneToMany(mappedBy = "users", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Purchases> purchases = new ArrayList<>();
 
@@ -79,7 +86,30 @@ public class Users implements UserDetails{
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return this.enabled;
+    }
+
+    @Override
+    public String toString() {
+        return "Users{" +
+                "id=" + id +
+                ", userName='" + userName + '\'' +
+                ", email='" + email + '\'' +
+                ", points=" + points +
+                ", role=" + role +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Users users = (Users) o;
+        return id != null && Objects.equals(id, users.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }
-
