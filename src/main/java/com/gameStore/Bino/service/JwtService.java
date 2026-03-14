@@ -16,13 +16,16 @@ import java.util.function.Function;
 @Service
 public class JwtService {
     private static final String My_Secret_Key="1da87d4eeb304e6967f0c2050f8e27bb8a7083d09490c2fbea1f3fe19105ac79";
+
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
+
     public String generateToken(UserDetails userDetails)
     {
         return generateToken(new HashMap<>(), userDetails);
     }
+
     public String generateToken(
             Map<String, Object> extraClaims,
             UserDetails userDetail

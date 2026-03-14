@@ -5,7 +5,7 @@ import com.gameStore.Bino.authentication.AuthenticationResponse;
 import com.gameStore.Bino.authentication.RegisterRequest;
 import com.gameStore.Bino.models.AuthUsers;
 import com.gameStore.Bino.models.Role;
-import com.gameStore.Bino.repositories.AuthRepo;
+import com.gameStore.Bino.repositories.UserRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final AuthRepo repository;
+    private final UserRepo repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;

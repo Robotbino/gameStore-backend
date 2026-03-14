@@ -17,8 +17,8 @@ import java.util.List;
 @Entity
 @Table(name = "games")
 public class Games {
-@Id
-@GeneratedValue(strategy = GenerationType.AUTO)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     @Column(nullable = false)
     private String title;
@@ -37,19 +37,23 @@ public class Games {
     private String heroImage;
 
 
+    // ---------------------------------------------------------------
+    // Relationship: One Game -> Many Purchases
+    // A game can appear in many purchase records.
+    // ---------------------------------------------------------------
+    @OneToMany(mappedBy = "games")
+    @Builder.Default
+    private List<Purchases> purchases = new ArrayList<>();
 
-
-    public String toString()
-    {
-        return "Games{"+
-                "id ="+ id +
+    @Override
+    public String toString() {
+        // Exclude 'purchases' to avoid infinite recursion with Lombok's @Data
+        return "Game{" +
+                "id=" + id +
                 ", title='" + title + '\'' +
-                ", price='" + price + '\'' +
                 ", genre='" + genre + '\'' +
-                ", description='" + description + '\'' +
-                ", rating='" + rating + '\'' +
-                ", heroImage='" + heroImage + '\'' +
-                ", imageUrl='" + imageUrl+ '\'' +
+                ", price=" + price +
+                ", rating=" + rating +
                 '}';
     }
 }
