@@ -42,4 +42,9 @@ private GamesService gamesService;
         return ResponseEntity.noContent().build();
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<Games> getGameById(@PathVariable("id") Long id,@RequestBody Games game){
+        Games games = gamesService.updateGame(id,game);
+        return new ResponseEntity<>(games, HttpStatus.OK);
+    }
 }
