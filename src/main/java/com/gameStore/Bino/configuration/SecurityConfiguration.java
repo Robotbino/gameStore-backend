@@ -29,6 +29,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v2/auth/**"
                         ).permitAll()
                         .requestMatchers("/games/**").permitAll()
+                        .requestMatchers("/users/**").permitAll()
                         .anyRequest()
                         .authenticated()
                 )

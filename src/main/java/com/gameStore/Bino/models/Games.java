@@ -75,4 +75,5 @@ public class Games {
     public int hashCode() {
         return getClass().hashCode();
     }
+
 }

@@ -31,7 +31,8 @@ private GamesService gamesService;
     }
 
     @GetMapping("find/{id}")
-    public ResponseEntity<Games> getGameById(@PathVariable("id") Long id){
+    public ResponseEntity<Games>getGameById(@PathVariable("id") Long id)
+    {
         Games games = gamesService.getGameById(id);
         return new ResponseEntity<>(games, HttpStatus.OK);
     }
@@ -43,7 +44,7 @@ private GamesService gamesService;
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Games> getGameById(@PathVariable("id") Long id,@RequestBody Games game){
+    public ResponseEntity<Games> updateGame(@PathVariable("id") Long id,@RequestBody Games game){
         Games games = gamesService.updateGame(id,game);
         return new ResponseEntity<>(games, HttpStatus.OK);
     }

@@ -19,6 +19,7 @@ public class GamesService {
     {
         return gamesRepository.findAll();
     }
+
     //Get game by id
     public Games getGameById(Long id) {
         return gamesRepository.findById(id)
@@ -32,6 +33,7 @@ public class GamesService {
     public List<Games> getGamesByGenre(String genre) {
         return gamesRepository.findByGenre(genre);
     }
+
     //Write operations
     //Add a game
     public Games addGame(Games game)

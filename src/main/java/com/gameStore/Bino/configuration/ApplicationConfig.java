@@ -1,7 +1,7 @@
 package com.gameStore.Bino.configuration;
 
 
-import com.gameStore.Bino.repositories.UserRepo;
+import com.gameStore.Bino.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @RequiredArgsConstructor
 public class ApplicationConfig {
 
-    private final UserRepo repository;
+    private final UserRepository repository;
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> repository.findByEmail(username)
