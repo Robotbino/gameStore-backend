@@ -7,11 +7,10 @@ import com.gameStore.Bino.service.UsersService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-@Controller
+@RestController
 @RequestMapping("/users")
 public class UsersController {
     @Autowired
@@ -25,7 +24,7 @@ public class UsersController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteUser(@PathVariable("id") Integer id) {
         usersService.deleteUser(id);           // ← calls the service above
         return ResponseEntity.noContent().build();
     }
@@ -38,9 +37,9 @@ public class UsersController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Users> updateUser(@PathVariable("id")Long id,@RequestBody Users users) {
+    public ResponseEntity<Users> updateUser(@PathVariable("id")Integer id,@RequestBody Users users) {
         Users user = usersService.updateUser(id, users);
-        return new ResponseEntity<>(users, HttpStatus.OK);
+        return new ResponseEntity<>(user, HttpStatus.OK);
     }
 
 }

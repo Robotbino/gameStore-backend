@@ -1,5 +1,7 @@
 package com.gameStore.Bino.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,7 +25,9 @@ public class Games {
     @Column(nullable = false)
     private String title;
 
+    //Stored as a comma-separated string; the frontend may send it as an array
     @Column
+    @JsonDeserialize(using = GenreDeserializer.class)
     private String genre;
 
     @Column(nullable = false)
@@ -49,6 +53,7 @@ public class Games {
     // ---------------------------------------------------------------
     @OneToMany(mappedBy = "game")
     @Builder.Default
+    @JsonIgnore
     private List<Purchases> purchases = new ArrayList<>();
 
     @Override

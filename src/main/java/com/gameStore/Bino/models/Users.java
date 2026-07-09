@@ -1,5 +1,7 @@
 package com.gameStore.Bino.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,7 +34,9 @@ public class Users implements UserDetails{
     @Builder.Default
     private Integer points = 0;
 
+    //Accepted on incoming requests but never serialized into responses
     @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
 
@@ -51,14 +55,23 @@ public class Users implements UserDetails{
     // ---------------------------------------------------------------
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @JsonIgnore
     private List<Purchases> purchases = new ArrayList<>();
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
+    //Lombok skips this getter because getUsername() below matches case-insensitively,
+    //so declare it explicitly for the userName field (also puts userName in JSON responses)
+    public String getUserName() {
+        return userName;
+    }
+
     @Override
+    @JsonIgnore
     public String getUsername() {
         // Spring Security uses this for authentication lookups.
         // We authenticate by email, so return email here.
@@ -70,16 +83,19 @@ public class Users implements UserDetails{
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonExpired() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isAccountNonLocked() {
         return true;
     }
 
     @Override
+    @JsonIgnore
     public boolean isCredentialsNonExpired() {
         return true;
     }

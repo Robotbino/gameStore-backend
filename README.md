@@ -20,6 +20,8 @@ REST API for a game store application built with Spring Boot. Supports user regi
 - Automatic role assignment on registration: the account whose email matches the `admin.email` property becomes `ADMIN`; everyone else gets `USER`.
 - Duplicate email registration is rejected.
 - JWT secret and expiration are configurable through `application.properties` / environment.
+- Role-based access control: browsing the catalog is public, but managing games and users requires an `ADMIN` token (see the endpoint tables below).
+- Consistent JSON error responses (`{"message": ...}`) with proper status codes — 404 for missing records, 401 for bad credentials, 400 for validation errors.
 
 ### Games
 - Full CRUD: create, list all, find by id, update, and delete games.
@@ -47,24 +49,26 @@ REST API for a game store application built with Spring Boot. Supports user regi
 
 ### Games — `/games`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/games/add` | Add a new game |
-| GET | `/games/all` | Get all games |
-| GET | `/games/find/{id}` | Get a game by id |
-| PUT | `/games/{id}` | Update a game |
-| DELETE | `/games/{id}` | Delete a game |
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/games/all` | Public | Get all games |
+| GET | `/games/find/{id}` | Public | Get a game by id |
+| POST | `/games/add` | ADMIN | Add a new game |
+| PUT | `/games/{id}` | ADMIN | Update a game |
+| DELETE | `/games/{id}` | ADMIN | Delete a game |
 
-### Users — `/users`
+> The `genre` field is stored as a comma-separated string but also accepts a JSON array (e.g. `["Action","RPG"]`) on create/update.
+
+### Users — `/users` (all ADMIN-only)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/users/add` | Add a new user |
 | GET | `/users/all` | Get all users |
-| PUT | `/users/{id}` | Update a user |
+| PUT | `/users/{id}` | Update a user (password optional — omit to keep the current one) |
 | DELETE | `/users/{id}` | Delete a user |
 
-> **Note:** `/games/**` and `/users/**` are currently `permitAll` in the security config for development. Locking these down by role is on the roadmap.
+> **Auth note:** requests without a valid token receive `401`; requests with a valid non-ADMIN token on an admin route receive `403`. Passwords are never returned in any response.
 
 ## Getting Started
 
@@ -107,7 +111,7 @@ curl -X POST http://localhost:8181/api/v2/auth/authenticate \
   -d '{"email": "bino@example.com", "password": "secret"}'
 ```
 
-Both return `{"token": "<jwt>"}` — send it on protected requests as `Authorization: Bearer <jwt>`.
+Both return `{"access_token": "<jwt>"}` — send it on protected requests as `Authorization: Bearer <jwt>`.
 
 ## Project Structure
 
@@ -116,6 +120,7 @@ src/main/java/com/gameStore/Bino/
 ├── authentication/     # Register/login request & response DTOs
 ├── configuration/      # Security filter chain, JWT filter, CORS, app beans
 ├── controllers/        # Auth, Games, and Users REST controllers
+├── exceptions/         # Global exception handler + ResourceNotFoundException
 ├── models/             # Games, Users, Purchases entities + Role enum
 ├── repositories/       # Spring Data JPA repositories
 └── service/            # Auth, JWT, Games, and Users business logic
@@ -124,6 +129,7 @@ src/main/java/com/gameStore/Bino/
 ## Roadmap
 
 - [ ] Purchase endpoints (buy a game, list a user's purchases)
-- [ ] Role-based restrictions on games/users endpoints (e.g. ADMIN-only game management)
-- [ ] Validation and proper error responses (replace `RuntimeException`)
+- [x] Role-based restrictions on games/users endpoints (ADMIN-only game/user management)
+- [x] Proper error responses (JSON `{"message": ...}` with correct status codes)
+- [ ] Bean Validation on request payloads
 - [ ] Tests

@@ -4,12 +4,15 @@ import com.gameStore.Bino.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -28,10 +31,18 @@ public class SecurityConfiguration {
                         //Everything that I have in here are authentication related methods
                         .requestMatchers("/api/v2/auth/**"
                         ).permitAll()
-                        .requestMatchers("/games/**").permitAll()
-                        .requestMatchers("/users/**").permitAll()
+                        //Boot forwards error responses to /error; securing it rewrites 403s into 401s
+                        .requestMatchers("/error").permitAll()
+                        //Browsing the catalog is public; managing it is admin-only
+                        .requestMatchers(HttpMethod.GET, "/games/**").permitAll()
+                        .requestMatchers("/games/**").hasRole("ADMIN")
+                        .requestMatchers("/users/**").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated()
+                )
+                //Return 401 (not 403) for unauthenticated requests so the frontend redirects to login
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

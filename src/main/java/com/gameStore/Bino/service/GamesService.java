@@ -1,5 +1,6 @@
 package com.gameStore.Bino.service;
 
+import com.gameStore.Bino.exceptions.ResourceNotFoundException;
 import com.gameStore.Bino.models.Games;
 import com.gameStore.Bino.repositories.GamesRepository;
 import jakarta.transaction.Transactional;
@@ -23,7 +24,7 @@ public class GamesService {
     //Get game by id
     public Games getGameById(Long id) {
         return gamesRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Game not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Game not found with id: " + id));
     }
     //Search Game by title
     public List<Games> searchGames(String keyword) {
@@ -45,7 +46,7 @@ public class GamesService {
     @Transactional
     public void deleteGames(Long id){
         if(!gamesRepository.existsById(id)){
-            throw new RuntimeException("Game not found with id: " + id);
+            throw new ResourceNotFoundException("Game not found with id: " + id);
         }
         gamesRepository.deleteById(id);
     }
