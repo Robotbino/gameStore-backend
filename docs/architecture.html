@@ -1,0 +1,421 @@
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Store — Architecture</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  :root {
+    /* neutrals — biased cool/indigo, not pure grey */
+    --bg:        #0d1016;
+    --panel:     #151a24;
+    --panel-2:   #1b2130;
+    --line:      #262d3d;
+    --ink:       #d6dbe7;
+    --ink-soft:  #98a1b5;
+    --ink-faint: #6b7488;
+    /* accents */
+    --accent:    #6d5efc;  /* indigo — the product's voice */
+    --accent-dim:#3a3570;
+    --new:       #34d399;  /* emerald — additions in the extended state */
+    --new-dim:   #1f5745;
+    --auth:      #f5a623;  /* amber — the JWT / auth path */
+    --danger:    #f0637a;
+    --radius: 14px;
+    --maxw: 1080px;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --display: "Sora", system-ui, sans-serif;
+    --body: "Public Sans", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, rgba(52,211,153,.09), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  /* ── Header ── */
+  header {
+    border-bottom: 1px solid var(--line);
+    padding: 64px 0 40px;
+    position: relative;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    line-height: 1.05;
+    letter-spacing: -.02em;
+    text-wrap: balance;
+    margin: 0 0 18px;
+  }
+  h1 .sub { color: var(--ink-soft); font-weight: 500; }
+  .lede {
+    max-width: 60ch;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+    margin: 0 0 26px;
+  }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink);
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 5px 12px;
+  }
+  .chip b { color: var(--accent); font-weight: 500; }
+
+  /* ── Sections ── */
+  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  .kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex; align-items: center; gap: 12px;
+    margin: 0 0 8px;
+  }
+  .kicker::before {
+    content: ""; width: 26px; height: 1px; background: var(--accent);
+  }
+  h2 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    letter-spacing: -.015em;
+    margin: 0 0 10px;
+  }
+  .section-lede { color: var(--ink-soft); max-width: 62ch; margin: 0 0 34px; }
+
+  /* ── Feature cards ── */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .card {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 24px 22px 26px;
+    display: flex; flex-direction: column; gap: 12px;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--new));
+    opacity: .85;
+  }
+  .card .num {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
+    letter-spacing: .1em;
+  }
+  .card h3 {
+    font-family: var(--display); font-weight: 600; font-size: 1.12rem;
+    margin: 0; letter-spacing: -.01em;
+  }
+  .card p { margin: 0; color: var(--ink-soft); font-size: .94rem; }
+  .card .meta {
+    margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap;
+    padding-top: 6px;
+  }
+  .tag {
+    font-family: var(--mono); font-size: 11px; padding: 3px 9px;
+    border-radius: 6px; border: 1px solid var(--line); color: var(--ink-soft);
+  }
+  .tag.effort { color: var(--new); border-color: var(--new-dim); }
+  .tag.win    { color: var(--accent); border-color: var(--accent-dim); }
+
+  /* ── Diagram blocks ── */
+  .diagram-shell {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 10px;
+    overflow-x: auto;
+  }
+  .diagram-shell .mermaid { text-align: center; min-width: 640px; }
+  .caption {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
+    margin: 14px 2px 0;
+  }
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 18px; margin: 22px 0 0;
+    font-size: 13px; color: var(--ink-soft);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.15); }
+  .sw-base { background: var(--panel-2); }
+  .sw-new  { background: var(--new-dim); border-color: var(--new); }
+  .sw-chg  { background: var(--accent-dim); border-color: var(--accent); }
+  .sw-auth { background: #4a3a12; border-color: var(--auth); }
+
+  footer { padding: 40px 0 72px; color: var(--ink-faint); font-size: 13px; }
+  footer code { font-family: var(--mono); color: var(--ink-soft); }
+
+  @media (max-width: 760px) {
+    .cards { grid-template-columns: 1fr; }
+    section { padding: 44px 0; }
+  }
+</style>
+
+<header>
+  <div class="wrap">
+    <p class="eyebrow">Full-Stack Architecture Brief</p>
+    <h1>Game Store <span class="sub">— React + Spring Boot commerce platform</span></h1>
+    <p class="lede">
+      A stateless, JWT-secured e-commerce stack: a TypeScript React SPA talking to a
+      Spring Boot REST API over role-based access control, persisted in MySQL via JPA/Hibernate.
+      Below: the system as it stands today, and precisely where three lean MVP features plug in.
+    </p>
+    <div class="stack">
+      <span class="chip">React · <b>Vite</b> · TypeScript</span>
+      <span class="chip">Chakra UI</span>
+      <span class="chip">Spring Boot <b>:8181</b></span>
+      <span class="chip">Spring Security · <b>JWT</b></span>
+      <span class="chip">JPA / Hibernate</span>
+      <span class="chip">MySQL</span>
+    </div>
+  </div>
+</header>
+
+<section id="features">
+  <div class="wrap">
+    <p class="kicker">The Increment</p>
+    <h2>Three low-effort, high-signal features</h2>
+    <p class="section-lede">
+      Each plugs into scaffolding that already exists — axios interceptors, a
+      <code>GlobalExceptionHandler</code>, the shared <code>GameGrid</code>, and existing
+      entity fields — so nothing here touches the schema, the auth model, or the timeline.
+    </p>
+    <div class="cards">
+      <article class="card">
+        <span class="num">01 / UX POLISH</span>
+        <h3>Skeleton loaders</h3>
+        <p>
+          Swap the plain <em>“Loading games…”</em> text for shimmer cards that mirror
+          <code>GameCard</code>’s layout while <code>isLoading</code> is true. Kills layout
+          shift and signals perceived-performance maturity on first paint.
+        </p>
+        <div class="meta">
+          <span class="tag effort">~1–2 hrs</span>
+          <span class="tag">Frontend only</span>
+          <span class="tag win">Front-end craft</span>
+        </div>
+      </article>
+      <article class="card">
+        <span class="num">02 / DATA FLOW</span>
+        <h3>Server-side search &amp; sort</h3>
+        <p>
+          Replace the client-side full-catalog filter with a Spring Data derived query —
+          <code>findByTitleContainingIgnoreCase</code> behind <code>GET /games/search</code>
+          plus a <code>Sort</code> dropdown (price · rating · title).
+        </p>
+        <div class="meta">
+          <span class="tag effort">~2–3 hrs</span>
+          <span class="tag">Full-stack</span>
+          <span class="tag win">Java / Spring depth</span>
+        </div>
+      </article>
+      <article class="card">
+        <span class="num">03 / RESILIENCE</span>
+        <h3>Global error handling</h3>
+        <p>
+          Extend the axios response interceptor to raise a toast on 5xx / network failure,
+          wrap the router in an <code>ErrorBoundary</code>, and return a consistent error JSON
+          shape from <code>GlobalExceptionHandler</code>.
+        </p>
+        <div class="meta">
+          <span class="tag effort">~2 hrs</span>
+          <span class="tag">Full-stack</span>
+          <span class="tag win">Production readiness</span>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="current">
+  <div class="wrap">
+    <p class="kicker">Diagram A</p>
+    <h2>Current state</h2>
+    <p class="section-lede">
+      The React SPA authenticates against <code>/api/v2/auth/**</code>, stores the signed JWT in
+      <code>localStorage</code>, and attaches it as a Bearer token on every request. The
+      <code>JWTAuthenticationFilter</code> validates it ahead of a stateless
+      <code>SecurityFilterChain</code> that enforces role-based access before controllers,
+      services, and JPA repositories reach MySQL.
+    </p>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart TB
+  subgraph Client["React SPA — Vite · TypeScript · Chakra UI"]
+    direction TB
+    UI["Pages &amp; Components<br/>Browse · GameDetails · Library · Admin"]
+    Ctx["AuthContext<br/>decodes JWT · exposes role"]
+    Axios["axios instance<br/>request + response interceptors"]
+    LS[("localStorage<br/>JWT token")]
+    UI --> Ctx
+    UI --> Axios
+    Ctx <--> LS
+    Axios -->|reads Bearer token| LS
+  end
+
+  subgraph API["Spring Boot REST API :8181"]
+    direction TB
+    Filter["JWTAuthenticationFilter"]
+    Chain["SecurityFilterChain<br/>stateless · role-based"]
+    AuthC["/api/v2/auth/**<br/>public"]
+    GamesC["/games<br/>GET public · writes ADMIN"]
+    UsersC["/users<br/>ADMIN only"]
+    Svc["Service layer"]
+    Repo["JPA Repositories · Hibernate"]
+    Filter --> Chain
+    Chain --> AuthC
+    Chain --> GamesC
+    Chain --> UsersC
+    AuthC --> Svc
+    GamesC --> Svc
+    UsersC --> Svc
+    Svc --> Repo
+  end
+
+  DB[("MySQL<br/>games · users · purchases")]
+
+  Axios -->|"HTTP · Authorization: Bearer JWT"| Filter
+  AuthC -.->|issues signed JWT| Axios
+  Repo --> DB
+
+  classDef auth stroke:#f5a623,stroke-width:2px;
+  class Filter,AuthC auth;
+      </pre>
+    </div>
+    <p class="caption">A · existing request path — auth boundary highlighted in amber.</p>
+  </div>
+</section>
+
+<section id="extended">
+  <div class="wrap">
+    <p class="kicker">Diagram B</p>
+    <h2>Extended state</h2>
+    <p class="section-lede">
+      The same backbone, with the three features overlaid. <span style="color:var(--new)">Green</span>
+      nodes are net-new; <span style="color:var(--accent)">indigo</span> nodes are existing pieces
+      that gain responsibility. Note the search path now terminates at the database instead of
+      the browser.
+    </p>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart TB
+  subgraph Client["React SPA — Vite · TypeScript · Chakra UI"]
+    direction TB
+    UI["Pages &amp; Components"]
+    Skel["Skeleton loaders<br/>shimmer while isLoading"]:::new
+    Boundary["ErrorBoundary<br/>fallback UI on render crash"]:::new
+    Toast["Toast system<br/>global error surface"]:::new
+    SortUI["Sort control<br/>price · rating · title"]:::new
+    Ctx["AuthContext"]
+    Axios["axios interceptors<br/>401 redirect + 5xx toast"]:::changed
+    LS[("localStorage<br/>JWT token")]
+    Boundary --> UI
+    UI --> Skel
+    UI --> SortUI
+    UI --> Ctx
+    UI --> Axios
+    Axios --> Toast
+    Ctx <--> LS
+    Axios -->|reads Bearer token| LS
+  end
+
+  subgraph API["Spring Boot REST API :8181"]
+    direction TB
+    Filter["JWTAuthenticationFilter"]
+    Chain["SecurityFilterChain<br/>stateless · role-based"]
+    AuthC["/api/v2/auth/**"]
+    GamesC["/games — GET public · writes ADMIN"]
+    SearchC["/games/search?keyword=&amp;sort=<br/>derived query + Sort"]:::new
+    UsersC["/users — ADMIN only"]
+    Svc["Service layer"]
+    Repo["JPA Repositories · Hibernate<br/>findByTitleContainingIgnoreCase"]:::changed
+    GEH["GlobalExceptionHandler<br/>consistent error JSON"]:::changed
+    Filter --> Chain
+    Chain --> AuthC
+    Chain --> GamesC
+    Chain --> SearchC
+    Chain --> UsersC
+    AuthC --> Svc
+    GamesC --> Svc
+    SearchC --> Svc
+    UsersC --> Svc
+    Svc --> Repo
+    Svc -.->|throws| GEH
+  end
+
+  DB[("MySQL<br/>games · users · purchases")]
+
+  Axios -->|"HTTP · Bearer JWT"| Filter
+  SortUI -->|"query params"| Axios
+  AuthC -.->|issues signed JWT| Axios
+  GEH -.->|"error JSON → toast"| Toast
+  Repo --> DB
+
+  classDef new stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
+  classDef changed stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
+      </pre>
+    </div>
+    <p class="caption">B · extended request path — new nodes in green, expanded nodes in indigo.</p>
+
+    <div class="legend">
+      <span><span class="swatch sw-base"></span> Existing component</span>
+      <span><span class="swatch sw-new"></span> New (this increment)</span>
+      <span><span class="swatch sw-chg"></span> Existing, gains responsibility</span>
+      <span><span class="swatch sw-auth"></span> Auth / JWT boundary</span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Generated architecture brief · open in any browser · diagrams rendered client-side via
+    <code>Mermaid.js</code>. Save alongside the repo as <code>docs/architecture.html</code>.
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    securityLevel: "loose",
+    theme: "base",
+    themeVariables: {
+      background: "#151a24",
+      primaryColor: "#1b2130",
+      primaryBorderColor: "#262d3d",
+      primaryTextColor: "#d6dbe7",
+      lineColor: "#5b647a",
+      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+      fontSize: "14px",
+      clusterBkg: "#12151d",
+      clusterBorder: "#2d3547"
+    }
+  });
+</script>
