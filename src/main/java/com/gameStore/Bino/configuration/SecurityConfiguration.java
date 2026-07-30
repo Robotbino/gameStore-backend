@@ -27,6 +27,23 @@ public class SecurityConfiguration {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
+                // ============================================================
+                // TODO 5 — route lockdown. Rules are evaluated IN ORDER,
+                // first match wins — so /users/me must come before /users/**.
+                // Target state:
+                //   1. /api/v2/auth/**               -> permitAll (keep)
+                //   2. GET /games/**                 -> permitAll (browsing needs no login)
+                //   3. other methods on /games/**    -> hasRole("ADMIN")  (add/update/delete)
+                //   4. /users/me                     -> authenticated()
+                //   5. remaining /users/**           -> hasRole("ADMIN")
+                //   6. anyRequest()                  -> authenticated()
+                // hint: requestMatchers(HttpMethod.GET, "/games/**")
+                //       import org.springframework.http.HttpMethod
+                //
+                // QUIZ Q4: hasRole("ADMIN") only works because of one line you
+                // wrote in Users.java. Which line, and what does hasRole prefix
+                // to the string you give it?
+                // ============================================================
                 .authorizeHttpRequests(auth -> auth
                         //Everything that I have in here are authentication related methods
                         .requestMatchers("/api/v2/auth/**"

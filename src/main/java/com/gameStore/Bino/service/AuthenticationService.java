@@ -3,6 +3,7 @@ package com.gameStore.Bino.service;
 import com.gameStore.Bino.authentication.AuthenticationRequest;
 import com.gameStore.Bino.authentication.AuthenticationResponse;
 import com.gameStore.Bino.authentication.RegisterRequest;
+import com.gameStore.Bino.exceptions.EmailAlreadyExistsException;
 import com.gameStore.Bino.models.Role;
 import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.repositories.UserRepository;
@@ -34,7 +35,7 @@ public class AuthenticationService {
     public AuthenticationResponse register(RegisterRequest request){
 
         if (repository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use");
+            throw new EmailAlreadyExistsException("Email already in use");
         }
         //Compares inserted email against the adminEmail
         Role role = request.getEmail().equalsIgnoreCase(adminEmail)

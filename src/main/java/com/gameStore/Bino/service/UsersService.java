@@ -21,12 +21,13 @@ public class UsersService {
         return userRepository.findAll();
     }
 
+    // id params are Integer now — must match JpaRepository<Users, Integer>
     public Users findUserByID(Integer id){
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: "+ id));
     }
-    //Search Game by title
-    public List<Users> searchGames(String keyword) {
+    //Search Users by username (comment said "Game" — copy-paste ghost)
+    public List<Users> searchUsers(String keyword) {
         return userRepository.findByUserNameContainingIgnoreCase(keyword);
     }
 
@@ -58,11 +59,13 @@ public class UsersService {
         existing.setUserName(updatedUser.getUserName());
         existing.setEmail(updatedUser.getEmail());
         existing.setPoints(updatedUser.getPoints());
-        //The frontend omits the password on edits; only replace it when a new one is provided
+        existing.setRole(updatedUser.getRole());
+
+        // The frontend omits the password on edits; only replace it when a new one
+        // is provided, otherwise the stored hash would be wiped on a normal edit.
         if(updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()){
             existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
-        existing.setRole(updatedUser.getRole());
 
         return userRepository.save(existing);
     }

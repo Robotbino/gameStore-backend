@@ -28,6 +28,10 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
+		<!-- Overrides the 1.18.34 managed by spring-boot-starter-parent 3.3.4.
+		     Not required to build, just current; the annotationProcessorPaths
+		     entry below is what actually keeps Lombok working on modern JDKs. -->
+		<lombok.version>1.18.46</lombok.version>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -51,7 +55,6 @@
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.34</version>
 			<scope>provided</scope>
 			<optional>true</optional>
 		</dependency>
@@ -75,6 +78,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<!-- In-memory DB so tests never need a running MySQL or real credentials.
+		     Configured in src/test/resources/application.properties. -->
+		<dependency>
+			<groupId>com.h2database</groupId>
+			<artifactId>h2</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.security</groupId>
 			<artifactId>spring-security-test</artifactId>
@@ -84,6 +94,23 @@
 
 	<build>
 		<plugins>
+			<!-- JDK 23 stopped running annotation processors it merely finds on the
+			     classpath, so Lombok has to be named on an explicit processor path.
+			     Without this the build "succeeds" at finding lombok.jar but never
+			     generates accessors, and every @Data class fails to compile. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<annotationProcessorPaths>
+						<path>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
+						</path>
+					</annotationProcessorPaths>
+				</configuration>
+			</plugin>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
