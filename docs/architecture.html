@@ -1,30 +1,37 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Game Store — Architecture</title>
+<title>Game Store — Backend Architecture</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
 <style>
   :root {
-    /* neutrals — biased cool/indigo, not pure grey */
     --bg:        #0d1016;
     --panel:     #151a24;
     --panel-2:   #1b2130;
+    --panel-3:   #212838;
     --line:      #262d3d;
+    --line-2:    #333c52;
     --ink:       #d6dbe7;
     --ink-soft:  #98a1b5;
     --ink-faint: #6b7488;
-    /* accents */
-    --accent:    #6d5efc;  /* indigo — the product's voice */
+    --accent:    #6d5efc;   /* indigo — the app's voice */
+    --accent-2:  #8b7dff;
     --accent-dim:#3a3570;
-    --new:       #34d399;  /* emerald — additions in the extended state */
+    --spring:    #6db33f;   /* Spring green — the framework */
+    --spring-dim:#2c4a1c;
+    --new:       #34d399;
     --new-dim:   #1f5745;
-    --auth:      #f5a623;  /* amber — the JWT / auth path */
+    --auth:      #f5a623;   /* amber — the JWT / auth path */
+    --auth-dim:  #4a3a12;
     --danger:    #f0637a;
+    --danger-dim:#4a1d27;
+    --info:      #60a5fa;
     --radius: 14px;
-    --maxw: 1080px;
+    --radius-sm: 8px;
+    --maxw: 1140px;
     --mono: "JetBrains Mono", ui-monospace, monospace;
     --display: "Sora", system-ui, sans-serif;
     --body: "Public Sans", system-ui, sans-serif;
@@ -36,7 +43,7 @@
     margin: 0;
     background:
       radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
-      radial-gradient(760px 420px at 6% 108%, rgba(52,211,153,.09), transparent 55%),
+      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
       var(--bg);
     color: var(--ink);
     font-family: var(--body);
@@ -45,11 +52,46 @@
   }
   .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
 
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .9em;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 1px 6px;
+    border-radius: 5px;
+    color: var(--ink);
+  }
+
+  /* ── Sticky nav ── */
+  .subnav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13,16,22,.82);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .subnav-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 10px 24px;
+    display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+  }
+  .subnav-inner::-webkit-scrollbar { display: none; }
+  .subnav a {
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 8px 12px; border-radius: 8px;
+    white-space: nowrap;
+    text-decoration: none;
+  }
+  .subnav a:hover { color: var(--ink); background: var(--panel-2); }
+
   /* ── Header ── */
-  header {
+  header.hero {
     border-bottom: 1px solid var(--line);
     padding: 64px 0 40px;
-    position: relative;
   }
   .eyebrow {
     font-family: var(--mono);
@@ -70,7 +112,7 @@
   }
   h1 .sub { color: var(--ink-soft); font-weight: 500; }
   .lede {
-    max-width: 60ch;
+    max-width: 62ch;
     color: var(--ink-soft);
     font-size: 1.05rem;
     margin: 0 0 26px;
@@ -87,8 +129,28 @@
   }
   .chip b { color: var(--accent); font-weight: 500; }
 
+  .kpis {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 14px; margin: 34px 0 0;
+  }
+  .kpi {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+  }
+  .kpi .k {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .kpi .v {
+    font-family: var(--display); font-weight: 600; font-size: 1.35rem;
+    color: var(--ink); margin-top: 4px;
+  }
+  .kpi .v small { color: var(--ink-soft); font-weight: 500; font-size: .8rem; }
+
   /* ── Sections ── */
-  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
   .kicker {
     font-family: var(--mono);
     font-size: 12px;
@@ -108,49 +170,18 @@
     letter-spacing: -.015em;
     margin: 0 0 10px;
   }
-  .section-lede { color: var(--ink-soft); max-width: 62ch; margin: 0 0 34px; }
-
-  /* ── Feature cards ── */
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
-  .card {
-    background: linear-gradient(180deg, var(--panel), var(--panel-2));
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    padding: 24px 22px 26px;
-    display: flex; flex-direction: column; gap: 12px;
-    position: relative; overflow: hidden;
+  h3 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 1.05rem; margin: 0 0 8px; letter-spacing: -.01em;
   }
-  .card::before {
-    content: ""; position: absolute; inset: 0 0 auto 0; height: 3px;
-    background: linear-gradient(90deg, var(--accent), var(--new));
-    opacity: .85;
-  }
-  .card .num {
-    font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
-    letter-spacing: .1em;
-  }
-  .card h3 {
-    font-family: var(--display); font-weight: 600; font-size: 1.12rem;
-    margin: 0; letter-spacing: -.01em;
-  }
-  .card p { margin: 0; color: var(--ink-soft); font-size: .94rem; }
-  .card .meta {
-    margin-top: auto; display: flex; gap: 8px; flex-wrap: wrap;
-    padding-top: 6px;
-  }
-  .tag {
-    font-family: var(--mono); font-size: 11px; padding: 3px 9px;
-    border-radius: 6px; border: 1px solid var(--line); color: var(--ink-soft);
-  }
-  .tag.effort { color: var(--new); border-color: var(--new-dim); }
-  .tag.win    { color: var(--accent); border-color: var(--accent-dim); }
+  .section-lede { color: var(--ink-soft); max-width: 66ch; margin: 0 0 30px; }
 
   /* ── Diagram blocks ── */
   .diagram-shell {
     background: var(--panel);
     border: 1px solid var(--line);
     border-radius: var(--radius);
-    padding: 10px;
+    padding: 14px;
     overflow-x: auto;
   }
   .diagram-shell .mermaid { text-align: center; min-width: 640px; }
@@ -167,236 +198,1345 @@
   .sw-base { background: var(--panel-2); }
   .sw-new  { background: var(--new-dim); border-color: var(--new); }
   .sw-chg  { background: var(--accent-dim); border-color: var(--accent); }
-  .sw-auth { background: #4a3a12; border-color: var(--auth); }
+  .sw-auth { background: var(--auth-dim); border-color: var(--auth); }
+  .sw-danger { background: var(--danger-dim); border-color: var(--danger); }
+
+  /* ── Interactive Layer Explorer ── */
+  .layer-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 20px;
+  }
+  .layer-btn {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--line-2);
+    border-radius: var(--radius);
+    padding: 18px 18px;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit; color: inherit;
+    transition: border-color .15s, background .15s, transform .15s;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .layer-btn:hover { background: var(--panel-2); transform: translateY(-1px); }
+  .layer-btn.active {
+    background: var(--panel-2);
+    border-left-color: var(--accent);
+  }
+  .layer-btn .label {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .layer-btn.active .label { color: var(--accent); }
+  .layer-btn .title {
+    font-family: var(--display); font-weight: 600; font-size: 1.02rem;
+  }
+  .layer-btn .hint { color: var(--ink-soft); font-size: .85rem; }
+
+  .layer-detail {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px 24px;
+    min-height: 200px;
+  }
+  .layer-detail[hidden] { display: none; }
+  .layer-detail h3 {
+    font-family: var(--display); font-size: 1.1rem; margin: 0 0 10px;
+    color: var(--accent-2);
+  }
+  .layer-detail p { color: var(--ink-soft); margin: 0 0 14px; }
+  .layer-detail .files {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+  }
+  .file-row {
+    font-family: var(--mono); font-size: 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex; align-items: center; gap: 10px;
+    color: var(--ink-soft);
+  }
+  .file-row .path { color: var(--ink); }
+  .file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; }
+
+  /* ── Filter pipeline (custom visual) ── */
+  .pipeline {
+    display: flex; align-items: stretch; gap: 0;
+    overflow-x: auto; padding: 6px 2px 10px;
+  }
+  .stage {
+    flex: 1 0 155px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 14px;
+    position: relative;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .stage + .stage { margin-left: 26px; }
+  .stage + .stage::before {
+    content: "→";
+    position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+    color: var(--ink-faint); font-family: var(--mono); font-size: 18px;
+  }
+  .stage .s-n {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .stage .s-t { font-family: var(--display); font-weight: 600; font-size: .95rem; }
+  .stage .s-d { color: var(--ink-soft); font-size: .82rem; }
+  .stage.cors   { border-left: 3px solid var(--spring); }
+  .stage.jwt    { border-left: 3px solid var(--auth); }
+  .stage.authz  { border-left: 3px solid var(--auth); }
+  .stage.disp   { border-left: 3px solid var(--accent); }
+  .stage.ctrl   { border-left: 3px solid var(--accent); }
+
+  /* ── Tabs (Flow walkthroughs) ── */
+  .tabs {
+    display: flex; flex-wrap: wrap; gap: 4px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 6px;
+    margin-bottom: 18px;
+  }
+  .tab {
+    flex: 1 1 auto;
+    background: transparent; border: 0; cursor: pointer;
+    font-family: var(--mono); font-size: 12px; letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: background .15s, color .15s;
+    text-align: center;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: var(--panel-2);
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--line-2);
+  }
+  .tab .step { color: var(--accent); font-weight: 600; margin-right: 6px; }
+
+  .flow-panel[hidden] { display: none; }
+  .flow-panel {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 18px;
+  }
+  .flow-panel > .diagram-shell { margin: 0; }
+
+  .steps {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 6px;
+    max-height: 660px;
+    overflow-y: auto;
+  }
+  .step-item {
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px 14px;
+    margin: 6px;
+  }
+  .step-item + .step-item { margin-top: 8px; }
+  .step-item .n {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    color: var(--accent); text-transform: uppercase;
+  }
+  .step-item .title {
+    font-family: var(--display); font-weight: 600; font-size: 1rem;
+    margin: 4px 0 6px;
+  }
+  .step-item .body { color: var(--ink-soft); font-size: .92rem; margin: 0 0 8px; }
+  .step-item pre {
+    margin: 8px 0 0;
+    background: #0a0d13;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: var(--mono); font-size: 12px; line-height: 1.5;
+    color: var(--ink);
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .step-item pre .k { color: #c792ea; }
+  .step-item pre .s { color: #7dd3fc; }
+  .step-item pre .n2 { color: #f0abfc; }
+  .step-item pre .c { color: var(--ink-faint); font-style: italic; }
+  .step-item pre .an { color: var(--spring); }
+  .step-item .file {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    margin-top: 6px;
+  }
+
+  .step-item.auth   { border-left-color: var(--auth); }
+  .step-item.auth .n { color: var(--auth); }
+  .step-item.data   { border-left-color: var(--new); }
+  .step-item.data .n { color: var(--new); }
+  .step-item.error  { border-left-color: var(--danger); }
+  .step-item.error .n { color: var(--danger); }
+
+  /* ── JWT anatomy ── */
+  .jwt-anatomy {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+  }
+  .req-block {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+    overflow-x: auto;
+  }
+  .req-block h4 {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint);
+    margin: 0 0 12px;
+  }
+  .req-block pre {
+    margin: 0;
+    font-family: var(--mono); font-size: 12.5px; line-height: 1.6;
+    background: transparent;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .jwt-h { color: var(--danger); }
+  .jwt-p { color: var(--auth); }
+  .jwt-s { color: var(--spring); }
+  .anno {
+    border-bottom: 1px dashed var(--accent);
+    cursor: help;
+    position: relative;
+  }
+  .anno[data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 0; top: calc(100% + 8px);
+    background: #0a0d13;
+    color: var(--ink);
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-family: var(--body);
+    font-size: 12px; line-height: 1.5;
+    width: max-content; max-width: 320px;
+    z-index: 30;
+    box-shadow: 0 10px 24px rgba(0,0,0,.5);
+    white-space: normal;
+  }
+  .anno.auth  { border-color: var(--auth); }
+  .anno.data  { border-color: var(--spring); }
+  .anno.err   { border-color: var(--danger); }
+
+  /* ── Generic tables (authz, endpoints, exceptions, config) ── */
+  .table-shell {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  table.grid {
+    width: 100%; border-collapse: collapse;
+    font-size: 13.5px;
+    min-width: 640px;
+  }
+  table.grid th {
+    text-align: left;
+    font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+    padding: 12px 16px;
+    background: var(--panel-2);
+    border-bottom: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  table.grid td {
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--line);
+    color: var(--ink-soft);
+    vertical-align: top;
+  }
+  table.grid tr:last-child td { border-bottom: 0; }
+  table.grid td.mono, table.grid td .mono { font-family: var(--mono); font-size: 12.5px; color: var(--ink); }
+  .pill {
+    font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+    padding: 2px 8px; border-radius: 999px; letter-spacing: .03em;
+    display: inline-block; white-space: nowrap;
+  }
+  .pill.get    { color: #7dd3fc; border: 1px solid #24506b; background: #0e2536; }
+  .pill.post   { color: var(--new); border: 1px solid var(--new-dim); background: #0f2019; }
+  .pill.put    { color: var(--auth); border: 1px solid var(--auth-dim); background: #241c0c; }
+  .pill.del    { color: var(--danger); border: 1px solid var(--danger-dim); background: #2a1015; }
+  .pill.public { color: var(--spring); border: 1px solid var(--spring-dim); background: #14200c; }
+  .pill.authn  { color: var(--accent-2); border: 1px solid var(--accent-dim); background: #17152b; }
+  .pill.admin  { color: var(--auth); border: 1px solid var(--auth-dim); background: #241c0c; }
+  .pill.s200 { color:#7dd3fc; border:1px solid #24506b; background:#0e2536; }
+  .pill.s201 { color: var(--new); border:1px solid var(--new-dim); background:#0f2019; }
+  .pill.s204 { color: var(--ink-soft); border:1px solid var(--line-2); background: var(--panel-2); }
+  .pill.s400 { color: var(--auth); border:1px solid var(--auth-dim); background:#241c0c; }
+  .pill.s401 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
+  .pill.s403 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
+  .pill.s404 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
+
+  /* ── Data model cards ── */
+  .entities {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;
+    margin-top: 20px;
+  }
+  .entity {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .entity h4 {
+    font-family: var(--display); font-weight: 600; font-size: 1rem;
+    margin: 0 0 4px; letter-spacing: -.01em;
+  }
+  .entity h4 .cls { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); font-weight: 400; }
+  .entity .desc { color: var(--ink-soft); font-size: .85rem; margin: 0 0 12px; }
+  .entity table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+  .entity td { padding: 4px 0; border-top: 1px solid var(--line); color: var(--ink-soft); }
+  .entity tr:first-child td { border-top: 0; }
+  .entity td.name { color: var(--ink); }
+  .entity td.type { color: var(--accent-2); text-align: right; }
+
+  /* ── Failure envelope ── */
+  .failure-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
+    margin-top: 20px;
+  }
+  .failure {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--danger);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .failure h4 { font-family: var(--display); font-size: .98rem; margin: 0 0 4px; color: var(--ink); }
+  .failure .code { font-family: var(--mono); font-size: 11px; color: var(--danger); letter-spacing: .06em; }
+  .failure p { color: var(--ink-soft); font-size: .9rem; margin: 8px 0 0; }
+  .failure.warn { border-left-color: var(--auth); }
+  .failure.warn .code { color: var(--auth); }
+  .failure.info { border-left-color: var(--info); }
+  .failure.info .code { color: var(--info); }
+
+  /* ── Accordion ── */
+  details.acc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin: 8px 0;
+  }
+  details.acc[open] { background: var(--panel-2); }
+  details.acc summary {
+    cursor: pointer;
+    font-family: var(--display); font-weight: 600;
+    color: var(--ink);
+    list-style: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  details.acc summary::before {
+    content: "+"; font-family: var(--mono); color: var(--accent);
+    font-size: 18px; line-height: 1;
+  }
+  details.acc[open] summary::before { content: "−"; }
+  details.acc .content { color: var(--ink-soft); margin-top: 10px; padding-left: 28px; }
+  details.acc .content code { font-size: .85em; }
 
   footer { padding: 40px 0 72px; color: var(--ink-faint); font-size: 13px; }
   footer code { font-family: var(--mono); color: var(--ink-soft); }
 
-  @media (max-width: 760px) {
-    .cards { grid-template-columns: 1fr; }
+  @media (max-width: 900px) {
+    .layer-grid { grid-template-columns: 1fr 1fr; }
+    .entities, .failure-grid { grid-template-columns: 1fr; }
+    .flow-panel { grid-template-columns: 1fr; }
+    .jwt-anatomy { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
     section { padding: 44px 0; }
   }
 </style>
 
-<header>
+<nav class="subnav">
+  <div class="subnav-inner">
+    <a href="#overview">Overview</a>
+    <a href="#layers">Layers</a>
+    <a href="#lifecycle">Request Lifecycle</a>
+    <a href="#flows">Flows</a>
+    <a href="#security">Security Model</a>
+    <a href="#jwt">JWT Anatomy</a>
+    <a href="#model">Data Model</a>
+    <a href="#errors">Error Mapping</a>
+    <a href="#api">API Surface</a>
+    <a href="#config">Config</a>
+  </div>
+</nav>
+
+<header class="hero">
   <div class="wrap">
-    <p class="eyebrow">Full-Stack Architecture Brief</p>
-    <h1>Game Store <span class="sub">— React + Spring Boot commerce platform</span></h1>
+    <p class="eyebrow">Backend Architecture Brief</p>
+    <h1>Game Store API <span class="sub">— Spring Boot · Spring Security · JPA</span></h1>
     <p class="lede">
-      A stateless, JWT-secured e-commerce stack: a TypeScript React SPA talking to a
-      Spring Boot REST API over role-based access control, persisted in MySQL via JPA/Hibernate.
-      Below: the system as it stands today, and precisely where three lean MVP features plug in.
+      A stateless, JWT-secured REST API. Every request runs a filter gauntlet before it reaches a
+      controller; controllers stay thin and delegate to services; services own the business rules and
+      talk to MySQL through Spring Data repositories. This document walks the server top-to-bottom —
+      the filter chain, the request lifecycle, the security model, the JWT, and the data model — with
+      interactive layers, sequence diagrams, and traceable code paths.
     </p>
     <div class="stack">
-      <span class="chip">React · <b>Vite</b> · TypeScript</span>
-      <span class="chip">Chakra UI</span>
       <span class="chip">Spring Boot <b>:8181</b></span>
-      <span class="chip">Spring Security · <b>JWT</b></span>
+      <span class="chip">Spring Security <b>6</b></span>
+      <span class="chip">JWT · <b>HS256</b></span>
       <span class="chip">JPA / Hibernate</span>
-      <span class="chip">MySQL</span>
+      <span class="chip">MySQL <b>:3306</b></span>
+      <span class="chip">Lombok</span>
+      <span class="chip">Java 17 records</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi">
+        <div class="k">Session</div>
+        <div class="v">Stateless <small>no HTTP session</small></div>
+      </div>
+      <div class="kpi">
+        <div class="k">Auth</div>
+        <div class="v">JWT <small>HS256 · 24h TTL</small></div>
+      </div>
+      <div class="kpi">
+        <div class="k">Access Control</div>
+        <div class="v">RBAC <small>USER · ADMIN</small></div>
+      </div>
+      <div class="kpi">
+        <div class="k">Persistence</div>
+        <div class="v">3 entities <small>Hibernate · MySQL</small></div>
+      </div>
     </div>
   </div>
 </header>
 
-<section id="features">
+<!-- ─────────────────────────── OVERVIEW ─────────────────────────── -->
+<section id="overview">
   <div class="wrap">
-    <p class="kicker">The Increment</p>
-    <h2>Three low-effort, high-signal features</h2>
+    <p class="kicker">§ 1 · System Overview</p>
+    <h2>The API on one page</h2>
     <p class="section-lede">
-      Each plugs into scaffolding that already exists — axios interceptors, a
-      <code>GlobalExceptionHandler</code>, the shared <code>GameGrid</code>, and existing
-      entity fields — so nothing here touches the schema, the auth model, or the timeline.
-    </p>
-    <div class="cards">
-      <article class="card">
-        <span class="num">01 / UX POLISH</span>
-        <h3>Skeleton loaders</h3>
-        <p>
-          Swap the plain <em>“Loading games…”</em> text for shimmer cards that mirror
-          <code>GameCard</code>’s layout while <code>isLoading</code> is true. Kills layout
-          shift and signals perceived-performance maturity on first paint.
-        </p>
-        <div class="meta">
-          <span class="tag effort">~1–2 hrs</span>
-          <span class="tag">Frontend only</span>
-          <span class="tag win">Front-end craft</span>
-        </div>
-      </article>
-      <article class="card">
-        <span class="num">02 / DATA FLOW</span>
-        <h3>Server-side search &amp; sort</h3>
-        <p>
-          Replace the client-side full-catalog filter with a Spring Data derived query —
-          <code>findByTitleContainingIgnoreCase</code> behind <code>GET /games/search</code>
-          plus a <code>Sort</code> dropdown (price · rating · title).
-        </p>
-        <div class="meta">
-          <span class="tag effort">~2–3 hrs</span>
-          <span class="tag">Full-stack</span>
-          <span class="tag win">Java / Spring depth</span>
-        </div>
-      </article>
-      <article class="card">
-        <span class="num">03 / RESILIENCE</span>
-        <h3>Global error handling</h3>
-        <p>
-          Extend the axios response interceptor to raise a toast on 5xx / network failure,
-          wrap the router in an <code>ErrorBoundary</code>, and return a consistent error JSON
-          shape from <code>GlobalExceptionHandler</code>.
-        </p>
-        <div class="meta">
-          <span class="tag effort">~2 hrs</span>
-          <span class="tag">Full-stack</span>
-          <span class="tag win">Production readiness</span>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<section id="current">
-  <div class="wrap">
-    <p class="kicker">Diagram A</p>
-    <h2>Current state</h2>
-    <p class="section-lede">
-      The React SPA authenticates against <code>/api/v2/auth/**</code>, stores the signed JWT in
-      <code>localStorage</code>, and attaches it as a Bearer token on every request. The
-      <code>JWTAuthenticationFilter</code> validates it ahead of a stateless
-      <code>SecurityFilterChain</code> that enforces role-based access before controllers,
-      services, and JPA repositories reach MySQL.
+      A request enters through the servlet filter chain, gets authenticated and authorized, then is
+      dispatched to a controller. From there it flows down through a service to a repository, and
+      Hibernate turns the call into SQL. Amber marks the auth boundary; Spring-green marks framework
+      machinery you configure but don't hand-write.
     </p>
     <div class="diagram-shell">
       <pre class="mermaid">
 flowchart TB
-  subgraph Client["React SPA — Vite · TypeScript · Chakra UI"]
+  Client["🌐 React SPA :5173<br/>Authorization: Bearer JWT"]
+
+  subgraph Boot["⚙️ Spring Boot Application :8181"]
     direction TB
-    UI["Pages &amp; Components<br/>Browse · GameDetails · Library · Admin"]
-    Ctx["AuthContext<br/>decodes JWT · exposes role"]
-    Axios["axios instance<br/>request + response interceptors"]
-    LS[("localStorage<br/>JWT token")]
-    UI --> Ctx
-    UI --> Axios
-    Ctx <--> LS
-    Axios -->|reads Bearer token| LS
+
+    subgraph FilterChain["Servlet Filter Chain"]
+      direction TB
+      Cors["CorsFilter<br/>HIGHEST_PRECEDENCE"]:::spring
+      JwtF["JWTAuthenticationFilter<br/>token → SecurityContext"]:::auth
+      Authz["SecurityFilterChain<br/>authorizeHttpRequests · role rules"]:::auth
+      Cors --> JwtF --> Authz
+    end
+
+    Disp["DispatcherServlet<br/>routes to @RestController"]:::spring
+
+    subgraph Web["Controllers (@RestController)"]
+      direction TB
+      AuthC["AuthenticationController<br/>/api/v2/auth/**"]
+      GamesC["GamesControllers<br/>/games/**"]
+      UsersC["UsersController<br/>/users/**"]
+    end
+
+    subgraph Svc["Services (@Service)"]
+      direction TB
+      AuthS["AuthenticationService"]
+      GamesS["GamesService"]
+      UsersS["UsersService"]
+      JwtS["JwtService"]
+    end
+
+    subgraph Data["Repositories (Spring Data JPA)"]
+      direction TB
+      Repos["UserRepository · GamesRepository<br/>PurchaseRepository"]
+    end
+
+    Authz --> Disp
+    Disp --> AuthC & GamesC & UsersC
+    AuthC --> AuthS
+    GamesC --> GamesS
+    UsersC --> UsersS
+    AuthS --> JwtS
+    AuthS --> Repos
+    GamesS --> Repos
+    UsersS --> Repos
   end
 
-  subgraph API["Spring Boot REST API :8181"]
-    direction TB
-    Filter["JWTAuthenticationFilter"]
-    Chain["SecurityFilterChain<br/>stateless · role-based"]
-    AuthC["/api/v2/auth/**<br/>public"]
-    GamesC["/games<br/>GET public · writes ADMIN"]
-    UsersC["/users<br/>ADMIN only"]
-    Svc["Service layer"]
-    Repo["JPA Repositories · Hibernate"]
-    Filter --> Chain
-    Chain --> AuthC
-    Chain --> GamesC
-    Chain --> UsersC
-    AuthC --> Svc
-    GamesC --> Svc
-    UsersC --> Svc
-    Svc --> Repo
-  end
+  DB[("🗄️ MySQL · gamestore_db<br/>users · games · purchases")]
 
-  DB[("MySQL<br/>games · users · purchases")]
-
-  Axios -->|"HTTP · Authorization: Bearer JWT"| Filter
-  AuthC -.->|issues signed JWT| Axios
-  Repo --> DB
+  Client -->|HTTP/JSON| Cors
+  AuthC -.->|signed JWT| Client
+  Repos -->|Hibernate SQL| DB
 
   classDef auth stroke:#f5a623,stroke-width:2px;
-  class Filter,AuthC auth;
+  classDef spring stroke:#6db33f,stroke-width:2px;
       </pre>
     </div>
-    <p class="caption">A · existing request path — auth boundary highlighted in amber.</p>
+    <p class="caption">Diagram 1 · the request path — amber is the auth boundary, green is Spring framework machinery.</p>
   </div>
 </section>
 
-<section id="extended">
+<!-- ─────────────────────────── LAYERS ─────────────────────────── -->
+<section id="layers">
   <div class="wrap">
-    <p class="kicker">Diagram B</p>
-    <h2>Extended state</h2>
+    <p class="kicker">§ 2 · Interactive Layer Explorer</p>
+    <h2>What lives where</h2>
     <p class="section-lede">
-      The same backbone, with the three features overlaid. <span style="color:var(--new)">Green</span>
-      nodes are net-new; <span style="color:var(--accent)">indigo</span> nodes are existing pieces
-      that gain responsibility. Note the search path now terminates at the database instead of
-      the browser.
+      Click a layer to see the classes inside it and the job each one does. A request passes through
+      them top to bottom: the security layer decides <em>if</em> you may proceed, controllers decide
+      <em>what</em> was asked, services decide <em>how</em> to do it, and repositories decide
+      <em>where</em> the data lives.
     </p>
-    <div class="diagram-shell">
-      <pre class="mermaid">
-flowchart TB
-  subgraph Client["React SPA — Vite · TypeScript · Chakra UI"]
-    direction TB
-    UI["Pages &amp; Components"]
-    Skel["Skeleton loaders<br/>shimmer while isLoading"]:::new
-    Boundary["ErrorBoundary<br/>fallback UI on render crash"]:::new
-    Toast["Toast system<br/>global error surface"]:::new
-    SortUI["Sort control<br/>price · rating · title"]:::new
-    Ctx["AuthContext"]
-    Axios["axios interceptors<br/>401 redirect + 5xx toast"]:::changed
-    LS[("localStorage<br/>JWT token")]
-    Boundary --> UI
-    UI --> Skel
-    UI --> SortUI
-    UI --> Ctx
-    UI --> Axios
-    Axios --> Toast
-    Ctx <--> LS
-    Axios -->|reads Bearer token| LS
-  end
 
-  subgraph API["Spring Boot REST API :8181"]
-    direction TB
-    Filter["JWTAuthenticationFilter"]
-    Chain["SecurityFilterChain<br/>stateless · role-based"]
-    AuthC["/api/v2/auth/**"]
-    GamesC["/games — GET public · writes ADMIN"]
-    SearchC["/games/search?keyword=&amp;sort=<br/>derived query + Sort"]:::new
-    UsersC["/users — ADMIN only"]
-    Svc["Service layer"]
-    Repo["JPA Repositories · Hibernate<br/>findByTitleContainingIgnoreCase"]:::changed
-    GEH["GlobalExceptionHandler<br/>consistent error JSON"]:::changed
-    Filter --> Chain
-    Chain --> AuthC
-    Chain --> GamesC
-    Chain --> SearchC
-    Chain --> UsersC
-    AuthC --> Svc
-    GamesC --> Svc
-    SearchC --> Svc
-    UsersC --> Svc
-    Svc --> Repo
-    Svc -.->|throws| GEH
-  end
-
-  DB[("MySQL<br/>games · users · purchases")]
-
-  Axios -->|"HTTP · Bearer JWT"| Filter
-  SortUI -->|"query params"| Axios
-  AuthC -.->|issues signed JWT| Axios
-  GEH -.->|"error JSON → toast"| Toast
-  Repo --> DB
-
-  classDef new stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
-  classDef changed stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
-      </pre>
+    <div class="layer-grid" role="tablist" aria-label="Architecture layers">
+      <button class="layer-btn active" data-layer="sec" role="tab" aria-selected="true">
+        <span class="label">Layer 0 · Edge</span>
+        <span class="title">Security &amp; Config</span>
+        <span class="hint">CORS, filter chain, JWT, auth provider.</span>
+      </button>
+      <button class="layer-btn" data-layer="web" role="tab" aria-selected="false">
+        <span class="label">Layer 1 · Web</span>
+        <span class="title">Controllers</span>
+        <span class="hint">HTTP in, DTO/entity out. No logic.</span>
+      </button>
+      <button class="layer-btn" data-layer="svc" role="tab" aria-selected="false">
+        <span class="label">Layer 2 · Domain</span>
+        <span class="title">Services</span>
+        <span class="hint">Business rules, transactions, hashing.</span>
+      </button>
+      <button class="layer-btn" data-layer="data" role="tab" aria-selected="false">
+        <span class="label">Layer 3 · Persistence</span>
+        <span class="title">Repositories &amp; Entities</span>
+        <span class="hint">Derived queries, JPA mappings, MySQL.</span>
+      </button>
     </div>
-    <p class="caption">B · extended request path — new nodes in green, expanded nodes in indigo.</p>
+
+    <div class="layer-detail" id="layer-sec">
+      <h3>Layer 0 — Security &amp; Configuration (the edge)</h3>
+      <p>
+        Nothing reaches a controller until this layer says so. <code>CorsFilter</code> runs first (it
+        must, or the browser's preflight fails), then <code>JWTAuthenticationFilter</code> tries to
+        establish <em>who</em> you are, then <code>SecurityConfiguration</code>'s rules decide
+        <em>whether</em> you're allowed. <code>ApplicationConfig</code> wires the pieces that verify
+        passwords.
+      </p>
+      <div class="files">
+        <div class="file-row"><span class="path">SecurityConfiguration.java</span><span class="role">filter chain · role rules · 401 entry point</span></div>
+        <div class="file-row"><span class="path">JWTAuthenticationFilter.java</span><span class="role">Bearer token → SecurityContext</span></div>
+        <div class="file-row"><span class="path">ApplicationConfig.java</span><span class="role">UserDetailsService · DaoAuthProvider · BCrypt</span></div>
+        <div class="file-row"><span class="path">CorsConfig.java</span><span class="role">allowlist origin :5173</span></div>
+        <div class="file-row"><span class="path">JwtService.java</span><span class="role">sign · verify · read claims</span></div>
+      </div>
+    </div>
+
+    <div class="layer-detail" id="layer-web" hidden>
+      <h3>Layer 1 — Controllers (the web edge)</h3>
+      <p>
+        Three <code>@RestController</code>s. Each is deliberately thin: bind the request body, call one
+        service method, wrap the result in a <code>ResponseEntity</code> with the right status. No
+        business logic lives here — that keeps the HTTP concern separate from the domain concern.
+      </p>
+      <div class="files">
+        <div class="file-row"><span class="path">AuthenticationController.java</span><span class="role">POST register · authenticate</span></div>
+        <div class="file-row"><span class="path">GamesControllers.java</span><span class="role">catalog CRUD</span></div>
+        <div class="file-row"><span class="path">UsersController.java</span><span class="role">admin user ops</span></div>
+        <div class="file-row"><span class="path">authentication/*Request.java</span><span class="role">inbound payloads</span></div>
+        <div class="file-row"><span class="path">AuthenticationResponse.java</span><span class="role">{ access_token }</span></div>
+        <div class="file-row"><span class="path">dto/UserResponse.java</span><span class="role">record · hides password hash</span></div>
+      </div>
+    </div>
+
+    <div class="layer-detail" id="layer-svc" hidden>
+      <h3>Layer 2 — Services (the domain)</h3>
+      <p>
+        Where decisions happen. <code>AuthenticationService</code> assigns roles and signs tokens;
+        <code>UsersService</code> enforces unique email/username and hashes passwords;
+        <code>GamesService</code> throws <code>ResourceNotFoundException</code> on a missing id.
+        Write methods that must be all-or-nothing are marked <code>@Transactional</code>.
+      </p>
+      <div class="files">
+        <div class="file-row"><span class="path">AuthenticationService.java</span><span class="role">register · authenticate · role rule</span></div>
+        <div class="file-row"><span class="path">GamesService.java</span><span class="role">CRUD · search · genre filter</span></div>
+        <div class="file-row"><span class="path">UsersService.java</span><span class="role">uniqueness · password hashing</span></div>
+        <div class="file-row"><span class="path">JwtService.java</span><span class="role">token lifecycle</span></div>
+      </div>
+    </div>
+
+    <div class="layer-detail" id="layer-data" hidden>
+      <h3>Layer 3 — Repositories &amp; Entities (persistence)</h3>
+      <p>
+        Repositories are interfaces — Spring Data generates the implementation at runtime. Extending
+        <code>JpaRepository</code> gives CRUD for free; a method name like
+        <code>findByTitleContainingIgnoreCase</code> becomes a <code>LIKE</code> query with no SQL
+        written by hand. Entities are plain classes annotated with JPA mappings; Hibernate keeps the
+        schema in sync (<code>ddl-auto=update</code>).
+      </p>
+      <div class="files">
+        <div class="file-row"><span class="path">UserRepository.java</span><span class="role">findByEmail · existsBy…</span></div>
+        <div class="file-row"><span class="path">GamesRepository.java</span><span class="role">findByGenre · title search</span></div>
+        <div class="file-row"><span class="path">PurchaseRepository.java</span><span class="role">by user / game · existsByUserAndGame</span></div>
+        <div class="file-row"><span class="path">models/Users.java</span><span class="role">@Entity · implements UserDetails</span></div>
+        <div class="file-row"><span class="path">models/Games.java</span><span class="role">@Entity · genre deserializer</span></div>
+        <div class="file-row"><span class="path">models/Purchases.java</span><span class="role">@Entity · join table</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── LIFECYCLE ─────────────────────────── -->
+<section id="lifecycle">
+  <div class="wrap">
+    <p class="kicker">§ 3 · Request Lifecycle</p>
+    <h2>The filter gauntlet, in order</h2>
+    <p class="section-lede">
+      Order is everything in Spring Security — rules and filters are evaluated first-match-wins, top to
+      bottom. This is the exact sequence every non-preflight request runs before your controller code
+      executes.
+    </p>
+
+    <div class="table-shell" style="padding: 18px 16px 8px;">
+      <div class="pipeline">
+        <div class="stage cors">
+          <span class="s-n">Stage 1 · Framework</span>
+          <span class="s-t">CorsFilter</span>
+          <span class="s-d">Registered at <code>HIGHEST_PRECEDENCE</code> so preflight <code>OPTIONS</code> is answered before anything else. Only <code>:5173</code> is allowed.</span>
+        </div>
+        <div class="stage jwt">
+          <span class="s-n">Stage 2 · Auth</span>
+          <span class="s-t">JWTAuthenticationFilter</span>
+          <span class="s-d">Skips <code>/api/v2/auth/**</code>. Otherwise reads the Bearer token, validates it, and puts an <code>Authentication</code> in the SecurityContext. Bad token → stays anonymous.</span>
+        </div>
+        <div class="stage authz">
+          <span class="s-n">Stage 3 · Authorize</span>
+          <span class="s-t">authorizeHttpRequests</span>
+          <span class="s-d">Matches the path/method against the ordered rule list. No/anon auth on a protected route → <code>401</code>; wrong role → <code>403</code>.</span>
+        </div>
+        <div class="stage disp">
+          <span class="s-n">Stage 4 · Dispatch</span>
+          <span class="s-t">DispatcherServlet</span>
+          <span class="s-d">Maps the URL to a handler method, deserializes the JSON body into a request object (Jackson), binds path variables.</span>
+        </div>
+        <div class="stage ctrl">
+          <span class="s-n">Stage 5 · Handle</span>
+          <span class="s-t">@RestController</span>
+          <span class="s-d">Your code runs: delegate to a service, return a <code>ResponseEntity</code>. Jackson serializes the result back to JSON.</span>
+        </div>
+      </div>
+    </div>
+
+    <details class="acc" style="margin-top:20px;">
+      <summary>Why <code>JWTAuthenticationFilter</code> runs <em>before</em> <code>UsernamePasswordAuthenticationFilter</code></summary>
+      <div class="content">
+        <code>addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)</code> slots the
+        token filter ahead of the form-login filter. By the time authorization runs, the SecurityContext
+        is already populated from the JWT — so there's no server-side session to look up. That's what
+        makes the API <em>stateless</em>: the token is the entire proof of identity, re-presented on
+        every request.
+      </div>
+    </details>
+    <details class="acc">
+      <summary>Why unauthenticated requests get <code>401</code>, not the Spring default <code>403</code></summary>
+      <div class="content">
+        <code>exceptionHandling(...).authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))</code>
+        overrides the default. A <code>401</code> tells the React app "your session is gone — redirect to
+        login", which its axios interceptor keys on. <code>/error</code> is left <code>permitAll</code>
+        so Boot's internal error forward isn't itself rewritten into a <code>401</code>.
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─────────────────────────── FLOWS ─────────────────────────── -->
+<section id="flows">
+  <div class="wrap">
+    <p class="kicker">§ 4 · Data Flow Walkthroughs</p>
+    <h2>How the code handles a request</h2>
+    <p class="section-lede">
+      Four end-to-end journeys, each pairing the sequence diagram with the code path. Every step names
+      the file it happens in. Amber steps cross the auth boundary; green steps touch the database; red
+      steps raise or map an error.
+    </p>
+
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-flow="register"><span class="step">A</span>Register</button>
+      <button class="tab" data-flow="auth"><span class="step">B</span>Authenticate</button>
+      <button class="tab" data-flow="read"><span class="step">C</span>Validated read</button>
+      <button class="tab" data-flow="write"><span class="step">D</span>Admin write</button>
+    </div>
+
+    <!-- FLOW A: REGISTER -->
+    <div class="flow-panel" data-flow-panel="register">
+      <div class="diagram-shell">
+        <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant Ctrl as AuthenticationController
+  participant Svc as AuthenticationService
+  participant Repo as UserRepository
+  participant Enc as BCryptPasswordEncoder
+  participant JWT as JwtService
+  participant DB as MySQL
+
+  C->>Ctrl: POST /api/v2/auth/register
+  Ctrl->>Svc: register(request)
+  Svc->>Repo: existsByEmail(email)?
+  Repo->>DB: SELECT 1 … WHERE email=?
+  DB-->>Repo: false
+  Svc->>Svc: email == admin.email ? ADMIN : USER
+  Svc->>Enc: encode(rawPassword)
+  Enc-->>Svc: bcrypt hash
+  Svc->>Repo: save(newUser)
+  Repo->>DB: INSERT INTO users …
+  Svc->>JWT: generateToken({role}, user)
+  JWT-->>Svc: signed JWT
+  Svc-->>Ctrl: AuthenticationResponse
+  Ctrl-->>C: 200 { access_token }
+        </pre>
+      </div>
+      <div class="steps">
+        <div class="step-item">
+          <div class="n">Step 1 · Controller</div>
+          <div class="title">Bind body, delegate</div>
+          <p class="body">The controller does nothing but hand the deserialized <code>RegisterRequest</code> to the service and wrap the result.</p>
+          <pre><span class="an">@PostMapping</span>(<span class="s">"/register"</span>)
+<span class="k">public</span> ResponseEntity&lt;AuthenticationResponse&gt; register(
+    <span class="an">@RequestBody</span> RegisterRequest request) {
+  <span class="k">return</span> ResponseEntity.ok(service.register(request));
+}</pre>
+          <div class="file">controllers/AuthenticationController.java:21</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 2 · Uniqueness guard</div>
+          <div class="title">existsByEmail → maybe throw</div>
+          <p class="body">A duplicate email throws <code>EmailAlreadyExistsException</code>, which the global handler turns into a <code>400</code>. The whole method is <code>@Transactional</code>, so a later failure rolls the insert back.</p>
+          <pre><span class="k">if</span> (repository.existsByEmail(request.getEmail()))
+  <span class="k">throw new</span> EmailAlreadyExistsException(<span class="s">"Email already in use"</span>);</pre>
+          <div class="file">service/AuthenticationService.java:37</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 3 · Role assignment</div>
+          <div class="title">The admin-email rule</div>
+          <p class="body">Role isn't taken from the request (that would let anyone self-promote). It's derived: register with the configured <code>admin.email</code> and you're <code>ADMIN</code>; everyone else is <code>USER</code>.</p>
+          <pre>Role role = request.getEmail().equalsIgnoreCase(adminEmail)
+    ? Role.ADMIN : Role.USER;</pre>
+          <div class="file">service/AuthenticationService.java:41</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 4 · Hash, never store plaintext</div>
+          <div class="title">BCrypt on the way in</div>
+          <p class="body">The raw password is hashed before the entity is built. The column is also <code>@JsonProperty(WRITE_ONLY)</code>, so the hash can be written from JSON but never serialized back out.</p>
+          <pre>.password(passwordEncoder.encode(request.getPassword()))</pre>
+          <div class="file">service/AuthenticationService.java:49</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 5 · Persist + sign</div>
+          <div class="title">save() then generateToken()</div>
+          <p class="body">The user is saved, then a JWT is signed with the role as an extra claim so the frontend can read it without another round trip. The response carries only the token.</p>
+          <pre>claims.put(<span class="s">"role"</span>, role.name());
+<span class="k">var</span> jwt = jwtService.generateToken(claims, newUser);</pre>
+          <div class="file">service/AuthenticationService.java:55</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW B: AUTHENTICATE -->
+    <div class="flow-panel" data-flow-panel="auth" hidden>
+      <div class="diagram-shell">
+        <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant Ctrl as AuthenticationController
+  participant Svc as AuthenticationService
+  participant AM as AuthenticationManager
+  participant Prov as DaoAuthenticationProvider
+  participant UDS as UserDetailsService
+  participant JWT as JwtService
+  participant DB as MySQL
+
+  C->>Ctrl: POST /api/v2/auth/authenticate
+  Ctrl->>Svc: authenticate(request)
+  Svc->>AM: authenticate(email, password)
+  AM->>Prov: delegate
+  Prov->>UDS: loadUserByUsername(email)
+  UDS->>DB: findByEmail(email)
+  DB-->>UDS: Users (UserDetails)
+  Prov->>Prov: BCrypt.matches(raw, hash)?
+  alt password mismatch
+    Prov-->>C: 401 (BadCredentialsException)
+  else ok
+    Prov-->>Svc: authenticated
+    Svc->>DB: findByEmail → role claim
+    Svc->>JWT: generateToken({role}, user)
+    JWT-->>Svc: signed JWT
+    Svc-->>Ctrl: AuthenticationResponse
+    Ctrl-->>C: 200 { access_token }
+  end
+        </pre>
+      </div>
+      <div class="steps">
+        <div class="step-item auth">
+          <div class="n">Step 1 · Delegate to Spring</div>
+          <div class="title">AuthenticationManager.authenticate()</div>
+          <p class="body">Rather than compare passwords by hand, the service hands an unauthenticated token to Spring's manager, which routes it to the <code>DaoAuthenticationProvider</code> wired in <code>ApplicationConfig</code>.</p>
+          <pre>authenticationManager.authenticate(
+  <span class="k">new</span> UsernamePasswordAuthenticationToken(
+    request.getEmail(), request.getPassword()));</pre>
+          <div class="file">service/AuthenticationService.java:66</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 2 · Load the user</div>
+          <div class="title">UserDetailsService → findByEmail</div>
+          <p class="body">The provider looks the user up by email (our username is the email — see <code>Users.getUsername()</code>). No row → <code>UsernameNotFoundException</code>.</p>
+          <pre><span class="k">return</span> username -&gt; repository.findByEmail(username)
+  .orElseThrow(() -&gt; <span class="k">new</span> UsernameNotFoundException(<span class="s">"User not found"</span>));</pre>
+          <div class="file">configuration/ApplicationConfig.java:23</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 3 · Verify the hash</div>
+          <div class="title">BCrypt.matches — one-way</div>
+          <p class="body">The provider re-hashes the submitted password with the stored salt and compares. Plaintext is never decrypted because bcrypt can't be reversed; a mismatch raises <code>BadCredentialsException</code> → mapped to <code>401</code>.</p>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 4 · Mint the token</div>
+          <div class="title">generateToken with role claim</div>
+          <p class="body">On success the service re-reads the user to embed the current role, signs a fresh 24-hour JWT, and returns it. No session is created — the token is the whole proof.</p>
+          <div class="file">service/AuthenticationService.java:79</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW C: VALIDATED READ -->
+    <div class="flow-panel" data-flow-panel="read" hidden>
+      <div class="diagram-shell">
+        <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant C as Client
+  participant F as JWTAuthenticationFilter
+  participant JWT as JwtService
+  participant UDS as UserDetailsService
+  participant SC as SecurityContext
+  participant Authz as authorizeHttpRequests
+  participant Ctrl as GamesControllers
+  participant Svc as GamesService
+  participant DB as MySQL
+
+  C->>F: GET /games/all + Bearer JWT
+  F->>F: path contains /api/v2/auth ? no
+  F->>JWT: extractUsername(jwt)
+  JWT-->>F: email (or JwtException)
+  F->>UDS: loadUserByUsername(email)
+  F->>JWT: isTokenValid(jwt, userDetails)?
+  JWT-->>F: true
+  F->>SC: setAuthentication(authToken)
+  F->>Authz: continue chain
+  Authz->>Authz: GET /games/** → permitAll
+  Authz->>Ctrl: dispatch
+  Ctrl->>Svc: findAllGames()
+  Svc->>DB: SELECT * FROM games
+  DB-->>Svc: rows → List&lt;Games&gt;
+  Svc-->>Ctrl: List&lt;Games&gt;
+  Ctrl-->>C: 200 [ …games ]
+        </pre>
+      </div>
+      <div class="steps">
+        <div class="step-item auth">
+          <div class="n">Step 1 · Extract &amp; verify</div>
+          <div class="title">Filter reads the Bearer token</div>
+          <p class="body">The filter pulls the token after <code>"Bearer "</code>, extracts the subject (email), and validates signature + expiry. A malformed or expired token throws inside the try/catch and the request simply continues <em>unauthenticated</em>.</p>
+          <pre><span class="k">final</span> String jwt = authHeader.substring(<span class="n2">7</span>);
+<span class="k">final</span> String userEmail = jwtService.extractUsername(jwt);</pre>
+          <div class="file">configuration/JWTAuthenticationFilter.java:53</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 2 · Populate the context</div>
+          <div class="title">SecurityContextHolder.setAuthentication</div>
+          <p class="body">Only if the context is still empty (guarding against re-auth) does the filter build a <code>UsernamePasswordAuthenticationToken</code> carrying the user's authorities and set it. From here the request "is" that user.</p>
+          <pre>SecurityContextHolder.getContext()
+  .setAuthentication(authToken);</pre>
+          <div class="file">configuration/JWTAuthenticationFilter.java:69</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 3 · Authorize the path</div>
+          <div class="title">GET /games/** → permitAll</div>
+          <p class="body">Browsing the catalog needs no login at all — the rule list permits every <code>GET</code> under <code>/games</code>. (Writes fall through to the next rule, which requires ADMIN.)</p>
+          <div class="file">configuration/SecurityConfiguration.java:54</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 4 · Service → repository</div>
+          <div class="title">findAllGames()</div>
+          <p class="body">The service is a straight pass-through to <code>gamesRepository.findAll()</code>; Hibernate emits one SELECT and maps each row to a <code>Games</code> entity.</p>
+          <pre><span class="k">public</span> List&lt;Games&gt; findAllGames() {
+  <span class="k">return</span> gamesRepository.findAll();
+}</pre>
+          <div class="file">service/GamesService.java:19</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 5 · Serialize out</div>
+          <div class="title">Jackson → JSON array</div>
+          <p class="body">The controller returns the list with <code>200 OK</code>. Each game's <code>purchases</code> collection is <code>@JsonIgnore</code>d, so the response stays flat and can't recurse into the join table.</p>
+          <div class="file">controllers/GamesControllers.java:26</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOW D: ADMIN WRITE -->
+    <div class="flow-panel" data-flow-panel="write" hidden>
+      <div class="diagram-shell">
+        <pre class="mermaid">
+sequenceDiagram
+  autonumber
+  participant A as Admin
+  participant F as JWTAuthenticationFilter
+  participant Authz as authorizeHttpRequests
+  participant Ctrl as GamesControllers
+  participant Svc as GamesService
+  participant Repo as GamesRepository
+  participant DB as MySQL
+
+  A->>F: POST /games/add + Bearer JWT
+  F->>F: validate → set Authentication (ROLE_ADMIN)
+  F->>Authz: continue chain
+  Authz->>Authz: POST /games/** → hasRole("ADMIN")
+  alt role = USER
+    Authz-->>A: 403 Forbidden
+  else role = ADMIN
+    Authz->>Ctrl: dispatch
+    Ctrl->>Svc: addGame(game)
+    Svc->>Repo: save(game)
+    Repo->>DB: INSERT INTO games …
+    DB-->>Repo: generated id
+    Repo-->>Svc: Games (with id)
+    Svc-->>Ctrl: Games
+    Ctrl-->>A: 201 CREATED { …game }
+  end
+        </pre>
+      </div>
+      <div class="steps">
+        <div class="step-item auth">
+          <div class="n">Step 1 · The authority string</div>
+          <div class="title">Why hasRole("ADMIN") works</div>
+          <p class="body">The rule checks for authority <code>ROLE_ADMIN</code>. That prefix isn't magic — it comes from the entity itself: <code>getAuthorities()</code> returns <code>"ROLE_" + role.name()</code>. <code>hasRole("ADMIN")</code> prepends <code>ROLE_</code> for you, so the two meet in the middle.</p>
+          <pre><span class="k">return</span> List.of(
+  <span class="k">new</span> SimpleGrantedAuthority(<span class="s">"ROLE_"</span> + role.name()));</pre>
+          <div class="file">models/Users.java:63</div>
+        </div>
+
+        <div class="step-item auth">
+          <div class="n">Step 2 · Order matters</div>
+          <div class="title">First matching rule wins</div>
+          <p class="body">A <code>POST</code> doesn't match the <code>GET /games/**</code> permitAll rule above it, so it falls through to <code>requestMatchers("/games/**").hasRole("ADMIN")</code>. A logged-in USER hitting this gets <code>403</code> before any controller code runs.</p>
+          <pre>.requestMatchers(HttpMethod.GET, <span class="s">"/games/**"</span>).permitAll()
+.requestMatchers(<span class="s">"/games/**"</span>).hasRole(<span class="s">"ADMIN"</span>)</pre>
+          <div class="file">configuration/SecurityConfiguration.java:54</div>
+        </div>
+
+        <div class="step-item data">
+          <div class="n">Step 3 · Persist, get id back</div>
+          <div class="title">repository.save(game)</div>
+          <p class="body"><code>@GeneratedValue(IDENTITY)</code> means MySQL assigns the id on INSERT; Hibernate reads it back onto the same entity instance, so the controller can return a fully-populated object.</p>
+          <pre><span class="k">public</span> Games addGame(Games game) {
+  <span class="k">return</span> gamesRepository.save(game);
+}</pre>
+          <div class="file">service/GamesService.java:40</div>
+        </div>
+
+        <div class="step-item">
+          <div class="n">Step 4 · 201, not 200</div>
+          <div class="title">ResponseEntity with CREATED</div>
+          <p class="body">A create returns <code>201 CREATED</code> with the new resource in the body — the controller sets the status explicitly rather than defaulting to <code>200</code>.</p>
+          <pre><span class="k">return new</span> ResponseEntity&lt;&gt;(newGame, HttpStatus.CREATED);</pre>
+          <div class="file">controllers/GamesControllers.java:19</div>
+        </div>
+      </div>
+    </div>
 
     <div class="legend">
-      <span><span class="swatch sw-base"></span> Existing component</span>
-      <span><span class="swatch sw-new"></span> New (this increment)</span>
-      <span><span class="swatch sw-chg"></span> Existing, gains responsibility</span>
-      <span><span class="swatch sw-auth"></span> Auth / JWT boundary</span>
+      <span><span class="swatch sw-base"></span> Regular step</span>
+      <span><span class="swatch sw-auth"></span> Auth boundary</span>
+      <span><span class="swatch sw-new"></span> Data / DB step</span>
+      <span><span class="swatch sw-danger"></span> Error path</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── SECURITY MODEL ─────────────────────────── -->
+<section id="security">
+  <div class="wrap">
+    <p class="kicker">§ 5 · Security Model</p>
+    <h2>Who can call what</h2>
+    <p class="section-lede">
+      The whole access-control policy is one ordered list in <code>SecurityConfiguration</code>.
+      Rules are evaluated top to bottom, and the <em>first</em> one that matches the request's method
+      and path decides the outcome — so specific rules must come before general ones.
+    </p>
+
+    <div class="table-shell">
+      <table class="grid">
+        <thead>
+          <tr><th>#</th><th>Matcher</th><th>Requirement</th><th>Rationale</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">1</td>
+            <td class="mono">/api/v2/auth/**</td>
+            <td><span class="pill public">permitAll</span></td>
+            <td>You can't hold a token before you log in — auth endpoints must be open.</td>
+          </tr>
+          <tr>
+            <td class="mono">2</td>
+            <td class="mono">/error</td>
+            <td><span class="pill public">permitAll</span></td>
+            <td>Boot forwards errors to <code>/error</code>; securing it would rewrite 403s into 401s.</td>
+          </tr>
+          <tr>
+            <td class="mono">3</td>
+            <td class="mono">GET /games/**</td>
+            <td><span class="pill public">permitAll</span></td>
+            <td>Browsing the catalog is public; no login required to look.</td>
+          </tr>
+          <tr>
+            <td class="mono">4</td>
+            <td class="mono">/games/** <span class="pill post">POST</span><span class="pill put">PUT</span><span class="pill del">DEL</span></td>
+            <td><span class="pill admin">hasRole ADMIN</span></td>
+            <td>Managing the catalog (add/update/delete) is admin-only.</td>
+          </tr>
+          <tr>
+            <td class="mono">5</td>
+            <td class="mono">/users/**</td>
+            <td><span class="pill admin">hasRole ADMIN</span></td>
+            <td>All user administration is admin-only.</td>
+          </tr>
+          <tr>
+            <td class="mono">6</td>
+            <td class="mono">anyRequest()</td>
+            <td><span class="pill authn">authenticated</span></td>
+            <td>The default-deny backstop: anything not listed still needs a valid token.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <details class="acc" style="margin-top:20px;">
+      <summary>401 vs 403 — the difference that matters to the frontend</summary>
+      <div class="content">
+        <strong>401 Unauthorized</strong> = "I don't know who you are" (no/invalid token) → the React
+        axios interceptor wipes the token and redirects to <code>/login</code>.
+        <strong>403 Forbidden</strong> = "I know who you are, but you may not do this" (a USER hitting an
+        ADMIN route) → the app shows a permission error without logging you out. Same status codes the
+        frontend doc's failure catalog keys on.
+      </div>
+    </details>
+    <details class="acc">
+      <summary>Stateless by design — <code>SessionCreationPolicy.STATELESS</code></summary>
+      <div class="content">
+        Spring is told never to create or use an <code>HttpSession</code>. Every request must re-prove
+        identity with its JWT. That means no server-side session store to scale or invalidate — but also
+        that a token is valid until it expires (24h here), since there's nothing to revoke server-side.
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─────────────────────────── JWT ANATOMY ─────────────────────────── -->
+<section id="jwt">
+  <div class="wrap">
+    <p class="kicker">§ 6 · JWT Anatomy</p>
+    <h2>What's inside the token</h2>
+    <p class="section-lede">
+      A JWT is three Base64URL segments joined by dots: <span class="jwt-h">header</span>.<span class="jwt-p">payload</span>.<span class="jwt-s">signature</span>.
+      The first two are just encoded JSON — readable by anyone. The signature is what can't be forged.
+      Hover any <span class="anno" data-tip="Like this — hover the dashed parts below.">underlined part</span> for detail.
+    </p>
+
+    <div class="jwt-anatomy">
+      <div class="req-block">
+        <h4>The wire format (one string)</h4>
+<pre><span class="jwt-h anno" data-tip="Base64URL-encoded {alg:HS256, typ:JWT}. Signed with a symmetric secret, not a keypair.">eyJhbGciOiJIUzI1NiJ9</span>.<span class="jwt-p anno" data-tip="The claims — Base64URL, NOT encrypted. Never put secrets here; anyone can read it.">eyJyb2xlIjoiQURNSU4iLCJzdWIi…</span>.<span class="jwt-s anno" data-tip="HMAC-SHA256 of header.payload using jwt.secret. Change one byte of the payload and this no longer matches.">4pcPyMD09olPSyXn…</span></pre>
+      </div>
+
+      <div class="req-block">
+        <h4>Decoded payload (claims)</h4>
+<pre>{
+  <span class="anno data" data-tip="Custom claim added in AuthenticationService: claims.put('role', role.name()). Lets the frontend read the role without a /me call.">"role"</span>: "ADMIN",
+  <span class="anno auth" data-tip="Subject = the user's email. JwtService.extractUsername reads this; the filter loads the user by it.">"sub"</span>: "admin@gamestore.com",
+  <span class="anno" data-tip="Issued-at, set to System.currentTimeMillis() when the token is minted.">"iat"</span>: 1754000000,
+  <span class="anno err" data-tip="Expiry = iat + jwt.expiration (86400000ms = 24h). isTokenExpired() rejects the token after this.">"exp"</span>: 1754086400
+}</pre>
+      </div>
+    </div>
+
+    <div class="entities" style="margin-top:18px;">
+      <div class="entity">
+        <h4>Signing <span class="cls">JwtService.generateToken</span></h4>
+        <p class="desc">Builds claims → sets subject/iat/exp → <code>signWith(key, HS256)</code> → <code>compact()</code>. The key is the Base64-decoded <code>jwt.secret</code>.</p>
+      </div>
+      <div class="entity">
+        <h4>Verifying <span class="cls">JwtService.isTokenValid</span></h4>
+        <p class="desc">Subject must equal the loaded user's username <em>and</em> the token must not be expired. Parsing with the wrong key throws — caught by the filter.</p>
+      </div>
+      <div class="entity">
+        <h4>Secret <span class="cls">application.properties</span></h4>
+        <p class="desc"><code>jwt.secret</code> is injected from an environment variable — it is not hard-coded in the repo. Rotating it invalidates every existing token at once.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── DATA MODEL ─────────────────────────── -->
+<section id="model">
+  <div class="wrap">
+    <p class="kicker">§ 7 · Data Model</p>
+    <h2>Three entities, one join</h2>
+    <p class="section-lede">
+      A user makes many purchases; a game appears in many purchases. <code>Purchases</code> is the join
+      entity between them. <code>Users</code> pulls double duty — it's both a JPA <code>@Entity</code>
+      and Spring Security's <code>UserDetails</code>, which is why authentication can load a user
+      straight from the table.
+    </p>
+
+    <div class="diagram-shell">
+      <pre class="mermaid">
+erDiagram
+  USERS ||--o{ PURCHASES : "makes"
+  GAMES ||--o{ PURCHASES : "appears in"
+
+  USERS {
+    Integer id PK
+    String userName UK
+    String email UK
+    String password "bcrypt · WRITE_ONLY"
+    Integer points
+    Role role "USER | ADMIN"
+    boolean is_enabled
+  }
+  GAMES {
+    Long id PK
+    String title
+    String genre "comma-separated"
+    BigDecimal price
+    Double rating
+    String description "TEXT"
+    String image_url
+    String hero_image
+  }
+  PURCHASES {
+    Long id PK
+    Integer user_id FK
+    Long game_id FK
+    LocalDateTime purchase_date
+  }
+      </pre>
+    </div>
+
+    <div class="entities">
+      <div class="entity">
+        <h4>Users <span class="cls">implements UserDetails</span></h4>
+        <p class="desc">Identity + role. <code>getUsername()</code> returns the <em>email</em>; <code>getAuthorities()</code> returns <code>ROLE_ + role</code>. Password is write-only in JSON.</p>
+        <table>
+          <tr><td class="name">id</td><td class="type">Integer · PK</td></tr>
+          <tr><td class="name">email</td><td class="type">unique</td></tr>
+          <tr><td class="name">userName</td><td class="type">unique</td></tr>
+          <tr><td class="name">password</td><td class="type">bcrypt</td></tr>
+          <tr><td class="name">role</td><td class="type">enum</td></tr>
+          <tr><td class="name">points</td><td class="type">Integer</td></tr>
+        </table>
+      </div>
+      <div class="entity">
+        <h4>Games <span class="cls">@Entity</span></h4>
+        <p class="desc">Catalog item. <code>price</code> is <code>BigDecimal</code> (money, never a float). <code>genre</code> is one string; <code>GenreDeserializer</code> accepts an array or a string on input.</p>
+        <table>
+          <tr><td class="name">id</td><td class="type">Long · PK</td></tr>
+          <tr><td class="name">title</td><td class="type">String</td></tr>
+          <tr><td class="name">genre</td><td class="type">String</td></tr>
+          <tr><td class="name">price</td><td class="type">BigDecimal</td></tr>
+          <tr><td class="name">rating</td><td class="type">Double</td></tr>
+          <tr><td class="name">description</td><td class="type">TEXT</td></tr>
+        </table>
+      </div>
+      <div class="entity">
+        <h4>Purchases <span class="cls">@Entity</span></h4>
+        <p class="desc">Join table with two <code>@ManyToOne</code> (LAZY) links and a timestamp. <code>existsByUserAndGame</code> lets the domain prevent duplicate ownership.</p>
+        <table>
+          <tr><td class="name">id</td><td class="type">Long · PK</td></tr>
+          <tr><td class="name">user</td><td class="type">FK · Users</td></tr>
+          <tr><td class="name">game</td><td class="type">FK · Games</td></tr>
+          <tr><td class="name">purchaseDate</td><td class="type">timestamp</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <details class="acc" style="margin-top:20px;">
+      <summary>How the password hash stays out of every response</summary>
+      <div class="content">
+        Two independent guards. (1) On the entity, <code>@JsonProperty(access = WRITE_ONLY)</code> means
+        Jackson accepts <code>password</code> on input but omits it on output. (2) The
+        <code>UserResponse</code> record simply doesn't declare a password field — endpoints that map to
+        the DTO can't leak it even by accident. Same reason the <code>purchases</code> collections are
+        <code>@JsonIgnore</code>d: it breaks the entity ↔ entity serialization cycle.
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─────────────────────────── ERRORS ─────────────────────────── -->
+<section id="errors">
+  <div class="wrap">
+    <p class="kicker">§ 8 · Exception → HTTP Mapping</p>
+    <h2>One place turns exceptions into JSON</h2>
+    <p class="section-lede">
+      A <code>@RestControllerAdvice</code> catches exceptions thrown anywhere below the controllers and
+      renders each as a consistent <code>{ "message": … }</code> body with the right status — so services
+      can just <code>throw</code> and stay ignorant of HTTP.
+    </p>
+
+    <div class="table-shell">
+      <table class="grid">
+        <thead>
+          <tr><th>Thrown by the domain</th><th>Status</th><th>Response body</th><th>When</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">ResourceNotFoundException</td>
+            <td><span class="pill s404">404</span></td>
+            <td class="mono">{ message: "Game not found with id: 7" }</td>
+            <td>getGameById / update / delete on a missing id.</td>
+          </tr>
+          <tr>
+            <td class="mono">BadCredentialsException<br/>UsernameNotFoundException</td>
+            <td><span class="pill s401">401</span></td>
+            <td class="mono">{ message: "Invalid email or password" }</td>
+            <td>Login with a wrong password or unknown email. Deliberately vague — doesn't reveal which.</td>
+          </tr>
+          <tr>
+            <td class="mono">RuntimeException <span style="color:var(--ink-faint)">(catch-all)</span></td>
+            <td><span class="pill s400">400</span></td>
+            <td class="mono">{ message: exception.getMessage() }</td>
+            <td>e.g. duplicate email/username on user create. The backstop for anything unmapped.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="failure-grid">
+      <div class="failure info">
+        <span class="code">CONTRACT</span>
+        <h4>Every error has the same shape</h4>
+        <p>Always <code>{ "message": string }</code>. The frontend's <code>getApiErrorMessage()</code> reads exactly this field, so backend and frontend agree on one envelope.</p>
+      </div>
+      <div class="failure warn">
+        <span class="code">SECURITY</span>
+        <h4>Login errors are intentionally vague</h4>
+        <p>Bad password and unknown email both return the identical 401 message, so an attacker can't probe which emails are registered.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── API SURFACE ─────────────────────────── -->
+<section id="api">
+  <div class="wrap">
+    <p class="kicker">§ 9 · API Surface</p>
+    <h2>Every endpoint, with its guard</h2>
+    <p class="section-lede">
+      The complete route table the controllers expose today, and the access rule each one falls under.
+      Paths mirror the controllers exactly — including the non-RESTful <code>/add</code> and
+      <code>/find/{id}</code> shapes the frontend already targets.
+    </p>
+
+    <div class="table-shell">
+      <table class="grid">
+        <thead>
+          <tr><th>Method</th><th>Path</th><th>Access</th><th>Success</th><th>Handler</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/api/v2/auth/register</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">AuthenticationController.register</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/api/v2/auth/authenticate</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">…authenticate</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/games/all</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">GamesControllers.getAllGames</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/games/find/{id}</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">…getGameById</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/games/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addGame</td></tr>
+          <tr><td><span class="pill put">PUT</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateGame</td></tr>
+          <tr><td><span class="pill del">DELETE</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteGame</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/all</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getAllUsers</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/users/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addUser</td></tr>
+          <tr><td><span class="pill put">PUT</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateUser</td></tr>
+          <tr><td><span class="pill del">DELETE</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteUser</td></tr>
+          <tr style="opacity:.62"><td><span class="pill get">GET</span></td><td class="mono">/users/me</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s200">200</span></td><td class="mono">planned · returns UserResponse</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="caption">The dimmed row is scaffolded but not yet wired — the <code>UserResponse</code> DTO exists for it.</p>
+  </div>
+</section>
+
+<!-- ─────────────────────────── CONFIG ─────────────────────────── -->
+<section id="config">
+  <div class="wrap">
+    <p class="kicker">§ 10 · Configuration</p>
+    <h2>The knobs that define the runtime</h2>
+    <p class="section-lede">
+      Everything environment-specific lives in <code>application.properties</code>. Secrets
+      (<code>DB_PASSWORD</code>, <code>JWT_SECRET</code>) are injected from environment variables, never
+      committed.
+    </p>
+
+    <div class="table-shell">
+      <table class="grid">
+        <thead>
+          <tr><th>Setting</th><th>Value</th><th>Why it matters</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">server.port</td><td class="mono">8181</td><td>The origin the React app's axios base URL points at.</td></tr>
+          <tr><td class="mono">datasource.url</td><td class="mono">…/gamestore_db</td><td>MySQL on <code>:3306</code>; credentials from <code>DB_USERNAME</code>/<code>DB_PASSWORD</code>.</td></tr>
+          <tr><td class="mono">jpa.hibernate.ddl-auto</td><td class="mono">update</td><td>Hibernate evolves the schema to match the entities on startup — convenient in dev, not for prod.</td></tr>
+          <tr><td class="mono">jpa.show-sql</td><td class="mono">true</td><td>Every generated SQL statement is logged — how you see the queries the derived methods produce.</td></tr>
+          <tr><td class="mono">jwt.expiration</td><td class="mono">86400000</td><td>Token lifetime in ms = 24 hours.</td></tr>
+          <tr><td class="mono">jwt.secret</td><td class="mono">${JWT_SECRET}</td><td>HMAC key for signing/verifying. Env-injected; rotating it logs everyone out.</td></tr>
+          <tr><td class="mono">admin.email</td><td class="mono">admin@gamestore.com</td><td>Registering with this email grants ADMIN; everyone else is USER.</td></tr>
+          <tr><td class="mono">CORS allowedOrigins</td><td class="mono">localhost:5173</td><td>Only the Vite dev origin may call the API with credentials.</td></tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </section>
 
 <footer>
   <div class="wrap">
-    Generated architecture brief · open in any browser · diagrams rendered client-side via
+    Backend architecture brief · open in any browser · diagrams rendered client-side via
     <code>Mermaid.js</code>. Save alongside the repo as <code>docs/architecture.html</code>.
+    Companion to the frontend brief in the <code>GameStore</code> repo.
   </div>
 </footer>
 
@@ -415,7 +1555,58 @@ flowchart TB
       fontFamily: "'JetBrains Mono', ui-monospace, monospace",
       fontSize: "14px",
       clusterBkg: "#12151d",
-      clusterBorder: "#2d3547"
+      clusterBorder: "#2d3547",
+      actorBkg: "#1b2130",
+      actorBorder: "#3a3570",
+      actorTextColor: "#d6dbe7",
+      actorLineColor: "#5b647a",
+      signalColor: "#98a1b5",
+      signalTextColor: "#d6dbe7",
+      labelBoxBkgColor: "#1b2130",
+      labelBoxBorderColor: "#3a3570",
+      labelTextColor: "#d6dbe7",
+      noteBkgColor: "#1a1830",
+      noteBorderColor: "#6d5efc",
+      noteTextColor: "#d6dbe7"
     }
+  });
+
+  // ── Layer explorer ──────────────────────────────────────────────
+  const layerBtns = document.querySelectorAll(".layer-btn");
+  const layerDetails = {
+    sec:  document.getElementById("layer-sec"),
+    web:  document.getElementById("layer-web"),
+    svc:  document.getElementById("layer-svc"),
+    data: document.getElementById("layer-data"),
+  };
+  layerBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.dataset.layer;
+      layerBtns.forEach((b) => {
+        const active = b === btn;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-selected", active ? "true" : "false");
+      });
+      Object.entries(layerDetails).forEach(([k, el]) => {
+        if (el) el.hidden = k !== key;
+      });
+    });
+  });
+
+  // ── Flow tabs ───────────────────────────────────────────────────
+  const tabs = document.querySelectorAll(".tab");
+  const panels = document.querySelectorAll(".flow-panel");
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const key = tab.dataset.flow;
+      tabs.forEach((t) => t.classList.toggle("active", t === tab));
+      panels.forEach((p) => { p.hidden = p.dataset.flowPanel !== key; });
+      // Mermaid renders hidden diagrams at 0 width; re-run for the shown panel.
+      const active = document.querySelector(`.flow-panel[data-flow-panel="${key}"]`);
+      if (active && window.mermaid) {
+        const nodes = active.querySelectorAll(".mermaid");
+        try { window.mermaid.run({ nodes: Array.from(nodes) }); } catch (_) {}
+      }
+    });
   });
 </script>
