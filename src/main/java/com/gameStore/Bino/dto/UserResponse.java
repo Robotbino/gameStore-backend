@@ -19,14 +19,23 @@ public record UserResponse(
         String role,
         Integer points
 ) {
-    // TODO 0 — static factory (encapsulation, your 05 §1):
-    //   public static UserResponse from(Users user) { ... }
-    public static UserResponse from (Users users){
-        return new UserResponse(users.getId(),users.getUsername(), users.getEmail(),users.getRole().name(),users.getPoints());
-    };
-    // Map field by field. For role use user.getRole().name() — keeping it a
-    // String means API clients never depend on your enum.
-    //
+    /**
+     * NB: getUserName() (the entity field), NOT getUsername() — the latter is the
+     * UserDetails override and returns the EMAIL. Mixing them up puts the email in
+     * both fields and loses the real username entirely.
+     *
+     * role is mapped to String so API clients never depend on the Role enum.
+     */
+    public static UserResponse from(Users user) {
+        return new UserResponse(
+                user.getId(),
+                user.getUserName(),
+                user.getEmail(),
+                user.getRole().name(),
+                user.getPoints()
+        );
+    }
+
     // QUIZ Q3: why a static factory instead of a constructor overload that
     // takes Users? (hint: what does a named method document that `new` can't,
     // and what would the canonical constructor still allow either way?)

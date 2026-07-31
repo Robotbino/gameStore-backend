@@ -1,5 +1,6 @@
 package com.gameStore.Bino.service;
 
+import com.gameStore.Bino.exceptions.DuplicateResourceException;
 import com.gameStore.Bino.exceptions.ResourceNotFoundException;
 import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.repositories.UserRepository;
@@ -35,10 +36,10 @@ public class UsersService {
     public Users addUser(Users user)
     {
         if(userRepository.existsByEmail(user.getEmail())){
-            throw new RuntimeException("Email already in use");
+            throw new DuplicateResourceException("Email already in use");
         }
         if(userRepository.existsByUserName(user.getUserName())){
-            throw new RuntimeException("Username already in use");
+            throw new DuplicateResourceException("Username already in use");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
@@ -58,8 +59,14 @@ public class UsersService {
 
         existing.setUserName(updatedUser.getUserName());
         existing.setEmail(updatedUser.getEmail());
-        existing.setPoints(updatedUser.getPoints());
-        existing.setRole(updatedUser.getRole());
+        // points/role are optional on an edit — only overwrite when supplied, so an
+        // update that omits them doesn't null out the stored values.
+        if (updatedUser.getPoints() != null) {
+            existing.setPoints(updatedUser.getPoints());
+        }
+        if (updatedUser.getRole() != null) {
+            existing.setRole(updatedUser.getRole());
+        }
 
         // The frontend omits the password on edits; only replace it when a new one
         // is provided, otherwise the stored hash would be wiped on a normal edit.

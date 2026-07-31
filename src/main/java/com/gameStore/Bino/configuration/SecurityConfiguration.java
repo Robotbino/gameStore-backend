@@ -27,23 +27,16 @@ public class SecurityConfiguration {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                // ============================================================
-                // TODO 5 — route lockdown. Rules are evaluated IN ORDER,
-                // first match wins — so /users/me must come before /users/**.
-                // Target state:
-                //   1. /api/v2/auth/**               -> permitAll (keep)
-                //   2. GET /games/**                 -> permitAll (browsing needs no login)
-                //   3. other methods on /games/**    -> hasRole("ADMIN")  (add/update/delete)
-                //   4. /users/me                     -> authenticated()
-                //   5. remaining /users/**           -> hasRole("ADMIN")
-                //   6. anyRequest()                  -> authenticated()
-                // hint: requestMatchers(HttpMethod.GET, "/games/**")
-                //       import org.springframework.http.HttpMethod
+                // Rules are evaluated IN ORDER, first match wins. That ordering is load-
+                // bearing twice here: GET /games/** must precede the /games/** ADMIN rule,
+                // and /users/me must precede the /users/** ADMIN rule — otherwise the broad
+                // rule would swallow the specific one and a logged-in USER could never read
+                // their own record.
                 //
-                // QUIZ Q4: hasRole("ADMIN") only works because of one line you
-                // wrote in Users.java. Which line, and what does hasRole prefix
-                // to the string you give it?
-                // ============================================================
+                // QUIZ Q4: hasRole("ADMIN") checks for authority ROLE_ADMIN — it prepends
+                // "ROLE_" to the string you pass. That meets the string built on the other
+                // side by Users.getAuthorities(): "ROLE_" + role.name(). Use
+                // hasAuthority("ROLE_ADMIN") if you'd rather write the prefix yourself.
                 .authorizeHttpRequests(auth -> auth
                         //Everything that I have in here are authentication related methods
                         .requestMatchers("/api/v2/auth/**"
@@ -53,6 +46,9 @@ public class SecurityConfiguration {
                         //Browsing the catalog is public; managing it is admin-only
                         .requestMatchers(HttpMethod.GET, "/games/**").permitAll()
                         .requestMatchers("/games/**").hasRole("ADMIN")
+                        //Self-service: any authenticated user reads their own record.
+                        //MUST come before the /users/** ADMIN rule (first match wins).
+                        .requestMatchers("/users/me").authenticated()
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated()

@@ -483,6 +483,7 @@
   .pill.s401 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
   .pill.s403 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
   .pill.s404 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
+  .pill.s500 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
 
   /* ── Data model cards ── */
   .entities {
@@ -1235,12 +1236,18 @@ sequenceDiagram
           </tr>
           <tr>
             <td class="mono">5</td>
-            <td class="mono">/users/**</td>
-            <td><span class="pill admin">hasRole ADMIN</span></td>
-            <td>All user administration is admin-only.</td>
+            <td class="mono">/users/me</td>
+            <td><span class="pill authn">authenticated</span></td>
+            <td>Self-service: any logged-in user reads their own record. Must precede rule 6 — first match wins.</td>
           </tr>
           <tr>
             <td class="mono">6</td>
+            <td class="mono">/users/**</td>
+            <td><span class="pill admin">hasRole ADMIN</span></td>
+            <td>All other user administration is admin-only.</td>
+          </tr>
+          <tr>
+            <td class="mono">7</td>
             <td class="mono">anyRequest()</td>
             <td><span class="pill authn">authenticated</span></td>
             <td>The default-deny backstop: anything not listed still needs a valid token.</td>
@@ -1441,10 +1448,22 @@ erDiagram
             <td>Login with a wrong password or unknown email. Deliberately vague — doesn't reveal which.</td>
           </tr>
           <tr>
-            <td class="mono">RuntimeException <span style="color:var(--ink-faint)">(catch-all)</span></td>
+            <td class="mono">MethodArgumentNotValidException</td>
             <td><span class="pill s400">400</span></td>
-            <td class="mono">{ message: exception.getMessage() }</td>
-            <td>e.g. duplicate email/username on user create. The backstop for anything unmapped.</td>
+            <td class="mono">{ message: "Validation failed", errors: { field: reason } }</td>
+            <td>A <code>@Valid</code> request body fails a constraint. Keeps the message envelope, adds a per-field <code>errors</code> map.</td>
+          </tr>
+          <tr>
+            <td class="mono">DuplicateResourceException<br/>EmailAlreadyExistsException</td>
+            <td><span class="pill s400">400</span></td>
+            <td class="mono">{ message: "Email already in use" }</td>
+            <td>Duplicate email/username on register or user create. Kept at 400 (not 409) because the frontend keys on 400 for this case.</td>
+          </tr>
+          <tr>
+            <td class="mono">Exception <span style="color:var(--ink-faint)">(catch-all)</span></td>
+            <td><span class="pill s500">500</span></td>
+            <td class="mono">{ message: "An unexpected error occurred" }</td>
+            <td>The backstop for anything unmapped. Returns a generic message and logs the stack trace, so a server bug is never reported as the client's fault.</td>
           </tr>
         </tbody>
       </table>
@@ -1489,15 +1508,15 @@ erDiagram
           <tr><td><span class="pill post">POST</span></td><td class="mono">/games/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addGame</td></tr>
           <tr><td><span class="pill put">PUT</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateGame</td></tr>
           <tr><td><span class="pill del">DELETE</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteGame</td></tr>
-          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/all</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getAllUsers</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/me</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getMe</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/all</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getAllUsers → List&lt;UserResponse&gt;</td></tr>
           <tr><td><span class="pill post">POST</span></td><td class="mono">/users/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addUser</td></tr>
           <tr><td><span class="pill put">PUT</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateUser</td></tr>
           <tr><td><span class="pill del">DELETE</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteUser</td></tr>
-          <tr style="opacity:.62"><td><span class="pill get">GET</span></td><td class="mono">/users/me</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s200">200</span></td><td class="mono">planned · returns UserResponse</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="caption">The dimmed row is scaffolded but not yet wired — the <code>UserResponse</code> DTO exists for it.</p>
+    <p class="caption">Every <code>/users</code> response is mapped to the <code>UserResponse</code> DTO, so the password hash can't leak. <code>/users/me</code> is matched before <code>/users/**</code> in the security config (first-match-wins), so any authenticated user can read their own record while everything else stays ADMIN-only.</p>
   </div>
 </section>
 

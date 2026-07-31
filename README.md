@@ -21,7 +21,8 @@ REST API for a game store application built with Spring Boot. Supports user regi
 - Duplicate email registration is rejected.
 - JWT secret and expiration are configurable through `application.properties` / environment.
 - Role-based access control: browsing the catalog is public, but managing games and users requires an `ADMIN` token (see the endpoint tables below).
-- Consistent JSON error responses (`{"message": ...}`) with proper status codes — 404 for missing records, 401 for bad credentials, 400 for validation errors.
+- Consistent JSON error responses (`{"message": ...}`) with proper status codes — 404 for missing records, 401 for bad credentials, 400 for validation/duplicate errors (with a per-field `errors` map), and 500 (generic message, stack trace logged) as the backstop for anything unmapped.
+- Bean Validation (`@Valid`) on all request payloads via dedicated request DTOs (`RegisterRequest`, `AuthenticationRequest`, `GameRequest`, `CreateUserRequest`, `UpdateUserRequest`) — entities are never bound directly to request bodies.
 
 ### Games
 - Full CRUD: create, list all, find by id, update, and delete games.
@@ -59,16 +60,17 @@ REST API for a game store application built with Spring Boot. Supports user regi
 
 > The `genre` field is stored as a comma-separated string but also accepts a JSON array (e.g. `["Action","RPG"]`) on create/update.
 
-### Users — `/users` (all ADMIN-only)
+### Users — `/users`
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/users/add` | Add a new user |
-| GET | `/users/all` | Get all users |
-| PUT | `/users/{id}` | Update a user (password optional — omit to keep the current one) |
-| DELETE | `/users/{id}` | Delete a user |
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| GET | `/users/me` | Authenticated | Get the caller's own record (identified by the token) |
+| POST | `/users/add` | ADMIN | Add a new user |
+| GET | `/users/all` | ADMIN | Get all users |
+| PUT | `/users/{id}` | ADMIN | Update a user (password optional — omit to keep the current one) |
+| DELETE | `/users/{id}` | ADMIN | Delete a user |
 
-> **Auth note:** requests without a valid token receive `401`; requests with a valid non-ADMIN token on an admin route receive `403`. Passwords are never returned in any response.
+> **Auth note:** requests without a valid token receive `401`; requests with a valid non-ADMIN token on an admin route receive `403`. All `/users` responses are mapped to the `UserResponse` DTO, so a password is never returned. `/users/me` must be matched before `/users/**` in the security config (first-match-wins), or the ADMIN rule would swallow it.
 
 ## Getting Started
 
@@ -103,15 +105,26 @@ The API starts on **http://localhost:8181**.
 # Register
 curl -X POST http://localhost:8181/api/v2/auth/register \
   -H "Content-Type: application/json" \
-  -d '{"userName": "bino", "email": "bino@example.com", "password": "secret"}'
+  -d '{"userName": "bino", "email": "bino@example.com", "password": "secret12"}'
 
 # Log in
 curl -X POST http://localhost:8181/api/v2/auth/authenticate \
   -H "Content-Type: application/json" \
-  -d '{"email": "bino@example.com", "password": "secret"}'
+  -d '{"email": "bino@example.com", "password": "secret12"}'
 ```
 
 Both return `{"access_token": "<jwt>"}` — send it on protected requests as `Authorization: Bearer <jwt>`.
+
+> Passwords must be at least 8 characters (Bean Validation), so `"secret"` from an older version of this doc now returns `400`.
+
+### Running the tests
+
+```bash
+./mvnw test     # unit tests only (Surefire, *Tests)
+./mvnw verify   # unit + integration tests (Failsafe, *IT)
+```
+
+Integration tests run against an in-memory H2 database (`src/test/resources/application.properties`), so they need no MySQL and no real secrets. They cover the auth flow, RBAC (401 vs 403), the DTO contract (no password ever serialized), and validation failures.
 
 ## Project Structure
 
@@ -120,7 +133,8 @@ src/main/java/com/gameStore/Bino/
 ├── authentication/     # Register/login request & response DTOs
 ├── configuration/      # Security filter chain, JWT filter, CORS, app beans
 ├── controllers/        # Auth, Games, and Users REST controllers
-├── exceptions/         # Global exception handler + ResourceNotFoundException
+├── dto/                # Request/response DTOs (UserResponse, GameRequest, …)
+├── exceptions/         # Global exception handler + custom exceptions
 ├── models/             # Games, Users, Purchases entities + Role enum
 ├── repositories/       # Spring Data JPA repositories
 └── service/            # Auth, JWT, Games, and Users business logic
@@ -130,6 +144,7 @@ src/main/java/com/gameStore/Bino/
 
 - [ ] Purchase endpoints (buy a game, list a user's purchases)
 - [x] Role-based restrictions on games/users endpoints (ADMIN-only game/user management)
+- [x] Self-service `GET /users/me` returning a `UserResponse` DTO
 - [x] Proper error responses (JSON `{"message": ...}` with correct status codes)
-- [ ] Bean Validation on request payloads
-- [ ] Tests
+- [x] Bean Validation on request payloads (`@Valid` request DTOs; field-level `errors` on 400)
+- [x] Tests (H2 integration tests for auth, RBAC, DTO contract, and validation)

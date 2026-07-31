@@ -1,18 +1,26 @@
 package com.gameStore.Bino.controllers;
 
+import com.gameStore.Bino.dto.CreateUserRequest;
+import com.gameStore.Bino.dto.UpdateUserRequest;
 import com.gameStore.Bino.dto.UserResponse;
+import com.gameStore.Bino.models.Role;
 import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.service.UsersService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-// Was @Controller — it only worked because every handler returns ResponseEntity.
-// QUIZ Q1: what would a handler returning a plain List<Users> have done under @Controller?
+// @RestController = @Controller + @ResponseBody, so returns go through Jackson.
+// QUIZ Q1: under a plain @Controller (no @ResponseBody), a handler returning
+// List<Users> would have its return value treated as a VIEW NAME and handed to
+// the view resolver — no view "[Users{...}]" exists, so you'd get a 500, not JSON.
+// This class only ever returns ResponseEntity, which Spring serializes either way,
+// which is why it "worked" as @Controller before.
 @RestController
 @RequestMapping("/users")
 @RequiredArgsConstructor // DIP (your A9): constructor injection on a final field — same style as your services
@@ -20,51 +28,66 @@ public class UsersController {
 
     private final UsersService usersService;
 
-    // ============================================================
-    // TODO 1 — GET /users/me  (the point of Block 1)
-    // ============================================================
-    // Signature:
-    //   @GetMapping("/me")
-    //   public ResponseEntity<UserResponse> getMe(Authentication authentication)
+    // GET /users/me — the caller's own record, identified by the token, never a param.
+    // The principal IS a Users: ApplicationConfig.userDetailsService() returns the entity
+    // from findByEmail, and JWTAuthenticationFilter places it in the SecurityContext.
+    // @AuthenticationPrincipal injects it directly (no getPrincipal() cast needed).
     //
-    // Steps:
-    //   1. authentication.getPrincipal() returns Object — it's the UserDetails
-    //      your JWTAuthenticationFilter placed in the SecurityContext (you wrote
-    //      that setAuthentication(...) line). Cast it to Users.
-    //   2. Return 200 with UserResponse.from(...).
+    // QUIZ Q2: identity must come from the signed token, not a ?userId= param, because
+    // the token is the one part of the request the client can't forge. Reading the id
+    // from a query string is a textbook IDOR — anyone could read another user by changing
+    // the number.
     //
-    // QUIZ Q2: why must the current user come from the token and never from a
-    //          ?userId= param? (your plan answers this — one sentence, out loud)
+    // Note: this principal is a DETACHED entity (loaded outside a transaction), so
+    // UserResponse.from reads only scalar columns — touching user.getPurchases() here
+    // would throw LazyInitializationException.
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal Users user) {
+        return ResponseEntity.ok(UserResponse.from(user));
+    }
 
-    // TODO 2 — map entities -> DTOs here too. Your 05 §4: users.stream().map(...).toList()
-    // That single change stops the hash leak AND defuses the Jackson cycle.
-    // Path stays /all for now — the frontend calls it.
+    // Map entities -> DTOs at the controller edge. That single change stops the hash
+    // leak AND defuses the Jackson entity-cycle. Path stays /all — the frontend calls it.
     @GetMapping("/all")
-    public ResponseEntity<List<Users>> getAllUsers()
-    {
-        List<Users> users = usersService.findAllUsers();
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        List<UserResponse> users = usersService.findAllUsers().stream()
+                .map(UserResponse::from)
+                .toList();
         return new ResponseEntity<>(users, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable("id") Integer id) {
-        usersService.deleteUser(id);           // ← calls the service above
+        usersService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
-    // TODO 3 — return the DTO instead of the entity, still 201 CREATED
     @PostMapping("/add")
-    public ResponseEntity<Users> addUser(@RequestBody Users user)
-    {
-        Users newUser = usersService.addUser(user);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    public ResponseEntity<UserResponse> addUser(@Valid @RequestBody CreateUserRequest request) {
+        Users toCreate = Users.builder()
+                .userName(request.userName())
+                .email(request.email())
+                .password(request.password())
+                .points(request.points() != null ? request.points() : 0)
+                .role(request.role() != null ? request.role() : Role.USER)
+                .build();
+        Users created = usersService.addUser(toCreate);
+        return new ResponseEntity<>(UserResponse.from(created), HttpStatus.CREATED);
     }
 
-    // TODO 4 — same DTO conversion, 200 OK
     @PutMapping("/{id}")
-    public ResponseEntity<Users> updateUser(@PathVariable("id") Integer id, @RequestBody Users users) {
-        Users user = usersService.updateUser(id, users);
-        return new ResponseEntity<>(user, HttpStatus.OK);
+    public ResponseEntity<UserResponse> updateUser(
+            @PathVariable("id") Integer id,
+            @Valid @RequestBody UpdateUserRequest request) {
+        Users changes = Users.builder()
+                .userName(request.userName())
+                .email(request.email())
+                .password(request.password()) // blank/null -> service keeps the existing hash
+                .points(request.points())
+                .role(request.role())
+                .build();
+        Users updated = usersService.updateUser(id, changes);
+        return new ResponseEntity<>(UserResponse.from(updated), HttpStatus.OK);
     }
 
 }
