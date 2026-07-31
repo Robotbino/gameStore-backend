@@ -1,0 +1,1788 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Store — Architecture & Learning Guide</title>
+<style>
+  :root {
+    /* Shared with docs/architecture.html so the two pages read as one system. */
+    --bg:        #0d1016;
+    --panel:     #151a24;
+    --panel-2:   #1b2130;
+    --panel-3:   #212838;
+    --line:      #262d3d;
+    --line-2:    #333c52;
+    --ink:       #d6dbe7;
+    --ink-soft:  #98a1b5;
+    --ink-faint: #6b7488;
+    --accent:    #6d5efc;
+    --accent-2:  #8b7dff;
+    --accent-dim:#3a3570;
+    --spring:    #6db33f;
+    --spring-dim:#2c4a1c;
+    --auth:      #f5a623;
+    --auth-dim:  #4a3a12;
+    --new:       #34d399;
+    --new-dim:   #1f5745;
+    --danger:    #f0637a;
+    --danger-dim:#4a1d27;
+    --info:      #60a5fa;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --maxw: 1140px;
+    /* Real system fallbacks so the page never depends on the network. */
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .9em;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 1px 5px;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  pre {
+    font-family: var(--mono);
+    font-size: .86rem;
+    background: #0a0d13;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    overflow-x: auto;
+    line-height: 1.55;
+    color: #cad0dc;
+    margin: 0;
+  }
+  pre code { background: none; border: 0; padding: 0; color: inherit; font-size: 1em; }
+
+  h1, h2, h3, h4 { font-family: var(--display); font-weight: 700; line-height: 1.2; }
+  .kicker { color: var(--ink-faint); font-size: .8rem; letter-spacing: .18em; text-transform: uppercase; margin: 0 0 4px; }
+  .section-lede { color: var(--ink-soft); max-width: 68ch; }
+
+  /* ── Hero ── */
+  .hero { padding: 64px 0 32px; border-bottom: 1px solid var(--line); }
+  .hero h1 { font-size: clamp(28px, 4vw, 44px); margin: 6px 0 12px; }
+  .hero .subtitle { color: var(--ink-soft); font-size: 1.05rem; max-width: 68ch; }
+  .hero .callout {
+    margin-top: 22px;
+    background: linear-gradient(180deg, rgba(109,94,252,.12), rgba(109,94,252,.04));
+    border: 1px solid var(--accent-dim);
+    padding: 16px 18px;
+    border-radius: var(--radius);
+    color: var(--ink-soft);
+    font-size: .95rem;
+  }
+  .hero .callout strong { color: var(--ink); }
+
+  /* ── Nav (sticky top strip) ── */
+  nav.toc {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13,16,22,.86);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  nav.toc .wrap { display: flex; flex-wrap: wrap; gap: 8px 14px; padding-top: 12px; padding-bottom: 12px; }
+  nav.toc a {
+    font-size: .8rem;
+    color: var(--ink-soft);
+    padding: 4px 10px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--panel-2);
+  }
+  nav.toc a:hover { color: var(--ink); border-color: var(--line-2); text-decoration: none; }
+
+  /* ── Sections ── */
+  section { padding: 56px 0; border-bottom: 1px solid var(--line); }
+  section h2 { font-size: clamp(22px, 2.6vw, 30px); margin: 0 0 8px; }
+
+  /* ── Pill / badge ── */
+  .pill {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .04em;
+    padding: 2px 8px;
+    border-radius: 999px;
+    line-height: 1.5;
+    vertical-align: middle;
+    border: 1px solid var(--line-2);
+    color: var(--ink-soft);
+    background: var(--panel-2);
+  }
+  .pill.oca      { color: var(--new); border-color: var(--new-dim); background: #0f2820; }
+  .pill.notoca   { color: var(--auth); border-color: var(--auth-dim); background: #241c0c; }
+  .pill.ocp      { color: var(--accent-2); border-color: var(--accent-dim); background: #1a1830; }
+  .pill.spring   { color: var(--spring); border-color: var(--spring-dim); background: #14200e; }
+  .pill.security { color: var(--danger); border-color: var(--danger-dim); background: #2a1015; }
+  .pill.pattern  { color: var(--info); border-color: #1e3a5f; background: #0f1f2f; }
+  .pill.core     { color: var(--ink); border-color: var(--line-2); background: var(--panel-3); }
+  .pill.advanced { color: var(--accent-2); border-color: var(--accent-dim); background: #1a1830; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    margin: 16px 0;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+  .card .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+  /* ── Tables ── */
+  .table-shell { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+  table.grid { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 640px; }
+  table.grid th, table.grid td { padding: 12px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+  table.grid th { color: var(--ink-soft); font-weight: 600; background: var(--panel-2); }
+  table.grid tr:last-child td { border-bottom: 0; }
+  table.grid td.mono, table.grid th.mono { font-family: var(--mono); font-size: .86rem; }
+
+  /* ── Compare (mistake vs. best practice) ── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin: 14px 0 10px;
+  }
+  @media (max-width: 780px) { .compare { grid-template-columns: 1fr; } }
+  .compare .col { border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); }
+  .compare .col header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px;
+    font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  }
+  .compare .col.bad header    { background: #2a1015; color: var(--danger); border-bottom: 1px solid var(--danger-dim); }
+  .compare .col.good header   { background: #0f2820; color: var(--new); border-bottom: 1px solid var(--new-dim); }
+  .compare .col header .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .compare .col.bad .dot { background: var(--danger); }
+  .compare .col.good .dot { background: var(--new); }
+  .compare .col pre { border: 0; border-radius: 0; background: #0a0d13; }
+  .why {
+    background: var(--panel-2);
+    border-left: 3px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-soft);
+    font-size: .93rem;
+  }
+  .why strong { color: var(--ink); }
+
+  /* ── Accordion ── */
+  details.acc {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin: 8px 0;
+  }
+  details.acc[open] { border-color: var(--line-2); background: var(--panel-2); }
+  details.acc summary {
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--ink);
+    list-style: none;
+    display: flex; align-items: center; gap: 10px;
+  }
+  details.acc summary::-webkit-details-marker { display: none; }
+  details.acc summary::before {
+    content: "▸"; color: var(--ink-faint); font-size: .8rem;
+    transition: transform .18s ease;
+  }
+  details.acc[open] summary::before { transform: rotate(90deg); }
+  details.acc .body { padding-top: 10px; color: var(--ink-soft); }
+  details.acc .body p { margin: 6px 0; }
+
+  /* ── Filter chips ── */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 20px; }
+  .chip {
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: .78rem;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    background: var(--panel-2);
+    color: var(--ink-soft);
+    transition: all .15s ease;
+  }
+  .chip:hover { color: var(--ink); border-color: var(--accent-dim); }
+  .chip.active {
+    background: var(--accent-dim);
+    color: var(--ink);
+    border-color: var(--accent);
+  }
+
+  /* ── Quizzes ── */
+  #quiz-score {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    font-family: var(--mono);
+    font-size: .82rem;
+    color: var(--ink-soft);
+  }
+  #quiz-score strong { color: var(--new); }
+  #quiz-score button {
+    background: none; border: 0; color: var(--ink-faint); cursor: pointer;
+    font-size: .78rem; padding: 0; text-decoration: underline;
+  }
+  #quiz-score button:hover { color: var(--ink); }
+  .quiz {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 14px 0;
+  }
+  .quiz.hidden { display: none; }
+  .quiz .qhead { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 10px; }
+  .quiz .qhead .idx { color: var(--ink-faint); font-family: var(--mono); font-size: .82rem; }
+  .quiz .q { font-weight: 600; color: var(--ink); margin: 4px 0 12px; }
+  .quiz .opts { display: grid; gap: 6px; margin-bottom: 10px; }
+  .quiz .opt {
+    display: block; width: 100%; text-align: left;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: .94rem;
+    transition: all .12s ease;
+  }
+  .quiz .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--panel-3); }
+  .quiz .opt:disabled { cursor: default; opacity: .78; }
+  .quiz .opt.correct { border-color: var(--new); background: #0f2820; color: var(--new); }
+  .quiz .opt.wrong { border-color: var(--danger); background: #2a1015; color: var(--danger); }
+  .quiz .exp {
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: var(--panel-2);
+    border-left: 3px solid var(--info);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    color: var(--ink-soft);
+    font-size: .92rem;
+  }
+  .quiz .exp code { font-size: .82rem; }
+  .quiz .exp.hidden { display: none; }
+  .quiz .exp .cite { color: var(--ink-faint); font-family: var(--mono); font-size: .78rem; margin-top: 6px; display: block; }
+
+  /* ── Flow diagram (inline SVG replacement for Mermaid) ── */
+  .flow-svg {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 16px 0;
+  }
+  .flow-svg svg { display: block; width: 100%; height: auto; }
+
+  footer {
+    padding: 40px 0 60px;
+    color: var(--ink-faint);
+    font-size: .88rem;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────────────────────── HERO ─────────────────────────── -->
+<header class="hero">
+  <div class="wrap">
+    <p class="kicker">Game Store · Learning Guide</p>
+    <h1>From doubt to confidence — navigating this codebase</h1>
+    <p class="subtitle">
+      A companion to <a href="architecture.html">architecture.html</a>. That doc explains
+      <em>what</em> the backend does; this one explains <em>why</em>. Written for a developer who can
+      already read the code but doesn't yet trust their own judgement about it — with real
+      "beginner mistake" vs "best practice" comparisons pulled from this repo's actual history, a
+      deep dive on Spring, an OCA-badged tour of the Java features it uses, and click-to-reveal
+      quizzes.
+    </p>
+    <div class="callout">
+      <strong>How to read this doc.</strong> Skim the section list, then jump. Every code snippet
+      cites a real file and line so you can open it and see the pattern in context. Every Java
+      concept carries a badge — <span class="pill oca">On 1Z0-808</span>,
+      <span class="pill notoca">Java 9+ · NOT on 1Z0-808</span>, or
+      <span class="pill ocp">OCP (1Z0-809)</span> — so if you're prepping for an exam you always
+      know whether what you're reading is examinable.
+    </div>
+  </div>
+</header>
+
+<!-- ─────────────────────────── TOC ─────────────────────────── -->
+<nav class="toc">
+  <div class="wrap">
+    <a href="#read">§1 · How to read this codebase</a>
+    <a href="#patterns">§2 · Design patterns</a>
+    <a href="#compare">§3 · Mistake vs. best practice</a>
+    <a href="#spring">§4 · Spring annotations</a>
+    <a href="#java">§5 · Java fundamentals (exam-badged)</a>
+    <a href="#quizzes">§6 · Quizzes</a>
+    <a href="#assess">§7 · Assessment prep</a>
+    <a href="#contrib">§8 · Contributing</a>
+  </div>
+</nav>
+
+<!-- ─────────────────────────── §1 ─────────────────────────── -->
+<section id="read">
+  <div class="wrap">
+    <p class="kicker">§ 1 · Orientation</p>
+    <h2>How to read this codebase</h2>
+    <p class="section-lede">
+      Four layers, top to bottom. A request enters through security, gets routed to a controller,
+      the controller delegates to a service, the service talks to a repository, the repository
+      talks to the database. Nothing skips a layer.
+    </p>
+
+    <div class="flow-svg">
+      <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four layers of the app">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#5b647a"/>
+          </marker>
+        </defs>
+        <!-- boxes -->
+        <g font-family="ui-monospace, monospace" font-size="13" fill="#d6dbe7">
+          <g>
+            <rect x="20" y="20" width="860" height="60" rx="10" fill="#1b2130" stroke="#4a3a12" stroke-width="2"/>
+            <text x="40" y="45" font-weight="700" fill="#f5a623">Layer 0 · Security &amp; Configuration</text>
+            <text x="40" y="65" fill="#98a1b5">CORS → JWTAuthenticationFilter → SecurityConfiguration (401 if bad token, 403 if wrong role)</text>
+          </g>
+          <g>
+            <rect x="20" y="100" width="860" height="60" rx="10" fill="#1b2130" stroke="#3a3570" stroke-width="2"/>
+            <text x="40" y="125" font-weight="700" fill="#8b7dff">Layer 1 · Controllers (@RestController)</text>
+            <text x="40" y="145" fill="#98a1b5">Bind the request body (validated), call ONE service method, wrap in ResponseEntity. No logic.</text>
+          </g>
+          <g>
+            <rect x="20" y="180" width="860" height="60" rx="10" fill="#1b2130" stroke="#2c4a1c" stroke-width="2"/>
+            <text x="40" y="205" font-weight="700" fill="#6db33f">Layer 2 · Services (@Service)</text>
+            <text x="40" y="225" fill="#98a1b5">Business rules, transactions, password hashing, uniqueness guards. Where decisions happen.</text>
+          </g>
+          <g>
+            <rect x="20" y="260" width="860" height="45" rx="10" fill="#1b2130" stroke="#262d3d" stroke-width="2"/>
+            <text x="40" y="285" font-weight="700" fill="#60a5fa">Layer 3 · Repositories &amp; Entities (Spring Data JPA)</text>
+          </g>
+          <!-- arrows -->
+          <line x1="450" y1="80"  x2="450" y2="100" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="450" y1="160" x2="450" y2="180" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="450" y1="240" x2="450" y2="260" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
+        </g>
+      </svg>
+    </div>
+
+    <h3 style="margin-top:28px;">First reading exercise: follow one request all the way down</h3>
+    <p style="color:var(--ink-soft);">
+      Open five files in this exact order and read <em>only</em> the part each one contributes to a
+      single <code>GET /users/me</code> call:
+    </p>
+    <ol style="color:var(--ink-soft);">
+      <li><a href="../src/main/java/com/gameStore/Bino/configuration/JWTAuthenticationFilter.java"><code>JWTAuthenticationFilter</code></a> — reads the token and puts the user in the SecurityContext.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/configuration/SecurityConfiguration.java"><code>SecurityConfiguration</code></a> — matches <code>/users/me</code> and decides "authenticated? yes → proceed".</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/controllers/UsersController.java"><code>UsersController.getMe</code></a> — receives the principal Spring injected for it.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/dto/UserResponse.java"><code>UserResponse.from</code></a> — maps the entity onto the response record.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/exceptions/GlobalExceptionHandler.java"><code>GlobalExceptionHandler</code></a> — where a thrown exception would have gone if anything failed.</li>
+    </ol>
+    <p style="color:var(--ink-soft);">
+      If you can narrate those five files back to yourself as one story, you understand this app.
+      Everything else is variations on that theme.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §2 ─────────────────────────── -->
+<section id="patterns">
+  <div class="wrap">
+    <p class="kicker">§ 2 · Design patterns</p>
+    <h2>The patterns in this code, with the problem each one solves</h2>
+    <p class="section-lede">
+      A pattern isn't a decoration — it's a solution to a specific problem. If you can name the
+      pattern <em>and</em> the pain it removes, you understand the choice. Every row below is a
+      pattern that's really in this codebase, with the file where you can see it working.
+    </p>
+
+    <div class="table-shell">
+      <table class="grid">
+        <thead>
+          <tr><th>Pattern</th><th>Where it lives</th><th>The problem it solves</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Dependency Injection</strong> <span class="pill pattern">GoF-adjacent</span></td>
+            <td class="mono">@RequiredArgsConstructor + final fields — every service and controller</td>
+            <td>Classes ask for their collaborators instead of creating them. Testable, and no <code>new UserRepository()</code> buried in a service constructor.</td>
+          </tr>
+          <tr>
+            <td><strong>Layered architecture</strong></td>
+            <td class="mono">controllers → services → repositories</td>
+            <td>HTTP concerns stop at the controller edge; business rules stop at the service edge; SQL stops at the repository edge. Each layer changes for one reason.</td>
+          </tr>
+          <tr>
+            <td><strong>DTO (Data Transfer Object)</strong></td>
+            <td class="mono">dto/UserResponse · dto/GameRequest · dto/Create/UpdateUserRequest</td>
+            <td>The API contract is decoupled from the database schema. A password column on the entity can't leak into a JSON response because the DTO doesn't declare one.</td>
+          </tr>
+          <tr>
+            <td><strong>Static Factory Method</strong></td>
+            <td class="mono">UserResponse.from(users)</td>
+            <td>Names the mapping direction at the call site. <em>Effective Java</em>, Item 1: prefer static factories to constructors when the name adds information.</td>
+          </tr>
+          <tr>
+            <td><strong>Builder</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">Users.builder() · Games.builder() (via Lombok @Builder)</td>
+            <td>Readable construction of objects with many optional fields. <em>Effective Java</em>, Item 2: builder over telescoping constructors.</td>
+          </tr>
+          <tr>
+            <td><strong>Repository</strong></td>
+            <td class="mono">UserRepository · GamesRepository · PurchaseRepository</td>
+            <td>An interface abstracts data access. Method names like <code>findByTitleContainingIgnoreCase</code> become SQL at runtime — no hand-written JDBC.</td>
+          </tr>
+          <tr>
+            <td><strong>Proxy</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">Spring Data repository impls · @Transactional wrappers</td>
+            <td>Behaviour (SQL execution, transaction begin/commit, security checks) is added around a class without touching your source. The object you inject is a subclass Spring made at runtime.</td>
+          </tr>
+          <tr>
+            <td><strong>Chain of Responsibility</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">The servlet filter chain</td>
+            <td>Each filter does one job (CORS, JWT decoding, authorization) and calls <code>filterChain.doFilter(...)</code>. New concerns are added by inserting another link, not by editing existing filters.</td>
+          </tr>
+          <tr>
+            <td><strong>Template Method</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">extends OncePerRequestFilter → override doFilterInternal</td>
+            <td>The framework owns the algorithm; you fill one hook. That's why you never write "make sure this only runs once per request" — Spring's parent class already does it.</td>
+          </tr>
+          <tr>
+            <td><strong>Strategy</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">PasswordEncoder ← BCryptPasswordEncoder (in ApplicationConfig)</td>
+            <td>Callers depend on the interface, not the algorithm. Swapping bcrypt for Argon2 is one line in one file, and no calling code changes.</td>
+          </tr>
+          <tr>
+            <td><strong>Adapter</strong> <span class="pill pattern">GoF</span></td>
+            <td class="mono">Users implements UserDetails</td>
+            <td>A JPA entity is adapted to satisfy the shape Spring Security expects. Authentication can load a "security principal" straight from the users table with no extra type in the middle.</td>
+          </tr>
+          <tr>
+            <td><strong>Front Controller</strong></td>
+            <td class="mono">DispatcherServlet (Spring MVC, wired by Boot)</td>
+            <td>One entry point routes every incoming request to the right handler. You never write a URL-to-method table by hand — you write annotations on methods and the front controller does the dispatch.</td>
+          </tr>
+          <tr>
+            <td><strong>Singleton (default bean scope)</strong></td>
+            <td class="mono">Every @Service, @Component, @RestController</td>
+            <td>One instance per app. Cheap and fast — <em>and</em> the reason mutable fields on a bean are dangerous: every request sees the same object. Beans should be stateless.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §3 ─────────────────────────── -->
+<section id="compare">
+  <div class="wrap">
+    <p class="kicker">§ 3 · Real fixes from this repo</p>
+    <h2>Beginner mistake vs. best practice</h2>
+    <p class="section-lede">
+      Every card below is a change this codebase really made. The "mistake" panel is code that was
+      once here (or almost was); the "clean code" panel is what replaced it, and the note explains
+      why the fix matters in practice.
+    </p>
+
+    <!-- 1. field injection vs constructor injection -->
+    <div class="card">
+      <h3>1. Field injection → constructor injection on a <code>final</code> field</h3>
+      <div class="meta"><span class="pill pattern">DI</span><span class="pill spring">Spring</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · @Autowired on a field</header>
+<pre><code>@RestController
+public class GamesControllers {
+    @Autowired
+    private GamesService gamesService;  // mutable, not final
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · constructor injection via Lombok</header>
+<pre><code>@RestController
+@RequiredArgsConstructor
+public class GamesControllers {
+    private final GamesService gamesService;
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> field injection hides the dependency (no
+      constructor to look at), can't be <code>final</code>, and can't be exercised in a plain unit
+      test without reflection. Constructor injection makes the dependency <em>required</em> and
+      makes the class trivially testable — you just call <code>new</code> with mocks.</p>
+    </div>
+
+    <!-- 2. entity leak vs DTO -->
+    <div class="card">
+      <h3>2. Returning the JPA entity → returning a <code>UserResponse</code> DTO</h3>
+      <div class="meta"><span class="pill security">Security</span><span class="pill pattern">DTO</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · entity out the door</header>
+<pre><code>@GetMapping("/all")
+public ResponseEntity&lt;List&lt;Users&gt;&gt; getAllUsers() {
+    return ResponseEntity.ok(service.findAllUsers());
+    // Response includes password hash unless a Jackson
+    // annotation happens to be in place.
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · map to a record with no password field</header>
+<pre><code>@GetMapping("/all")
+public ResponseEntity&lt;List&lt;UserResponse&gt;&gt; getAllUsers() {
+    List&lt;UserResponse&gt; users = service.findAllUsers().stream()
+            .map(UserResponse::from)
+            .toList();
+    return ResponseEntity.ok(users);
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> the "safety" of hiding the password with a
+      <code>@JsonIgnore</code> is incidental — one removed annotation and the hash is public. The
+      DTO makes safety <em>structural</em>: the record doesn't declare a password field, so no code
+      path can serialise one, even by accident.</p>
+    </div>
+
+    <!-- 3. getUsername vs getUserName -->
+    <div class="card">
+      <h3>3. <code>getUsername()</code> vs <code>getUserName()</code> — today's real bug</h3>
+      <div class="meta"><span class="pill core">Java</span><span class="pill spring">Spring Security</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · call the UserDetails override by accident</header>
+<pre><code>public static UserResponse from(Users user) {
+    return new UserResponse(
+        user.getId(),
+        user.getUsername(),  // ← UserDetails override → returns EMAIL
+        user.getEmail(),
+        user.getRole().name(),
+        user.getPoints());
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · use the entity field getter</header>
+<pre><code>public static UserResponse from(Users user) {
+    return new UserResponse(
+        user.getId(),
+        user.getUserName(), // ← real Lombok getter for the field
+        user.getEmail(),
+        user.getRole().name(),
+        user.getPoints());
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> the interface method <code>getUsername()</code>
+      (from <code>UserDetails</code>) is overridden here to return the <em>email</em> — that's how
+      Spring Security looks users up. Lombok's generated <code>getUserName()</code> returns the real
+      username field. Compiler can't tell you apart. The regression test in
+      <code>UsersEndpointsIT</code> now asserts both fields are what a human would expect.</p>
+    </div>
+
+    <!-- 4. exception catch-all -->
+    <div class="card">
+      <h3>4. <code>RuntimeException → 400</code> catch-all → specific mappings + <code>Exception → 500</code></h3>
+      <div class="meta"><span class="pill spring">@RestControllerAdvice</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · blame the client for every bug</header>
+<pre><code>@ExceptionHandler(RuntimeException.class)
+public ResponseEntity&lt;?&gt; handleRuntime(RuntimeException e) {
+    return new ResponseEntity&lt;&gt;(
+        Map.of("message", e.getMessage()),
+        HttpStatus.BAD_REQUEST);
+    // A NullPointerException from a server bug
+    // just became "400 Bad Request".
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · specific handlers + honest 500 backstop</header>
+<pre><code>@ExceptionHandler({DuplicateResourceException.class,
+                    EmailAlreadyExistsException.class})
+public ResponseEntity&lt;?&gt; handleDuplicate(RuntimeException e) {
+    return status(BAD_REQUEST).body(msg(e.getMessage()));
+}
+
+@ExceptionHandler(Exception.class)
+public ResponseEntity&lt;?&gt; handleUnexpected(Exception e) {
+    log.error("Unhandled exception", e);
+    return status(INTERNAL_SERVER_ERROR)
+        .body(msg("An unexpected error occurred"));
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> 4xx says "the client made a mistake"; 5xx
+      says "the server did". Mapping every <code>RuntimeException</code> to 400 lies to callers
+      <em>and</em> hides your stack traces. The clean version logs the trace and returns a generic
+      500 message — the client sees "something went wrong", you see the cause in the logs.</p>
+    </div>
+
+    <!-- 5. bare RuntimeException vs named exception -->
+    <div class="card">
+      <h3>5. <code>throw new RuntimeException(...)</code> → a named domain exception</h3>
+      <div class="meta"><span class="pill core">Java</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · reach for the base type</header>
+<pre><code>if (userRepository.existsByEmail(user.getEmail())) {
+    throw new RuntimeException("Email already in use");
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · a type the handler can catch specifically</header>
+<pre><code>if (userRepository.existsByEmail(user.getEmail())) {
+    throw new DuplicateResourceException("Email already in use");
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> a bare <code>RuntimeException</code> can't
+      be routed anywhere without also catching every other unchecked exception in the app. A named
+      class lets the <code>@ExceptionHandler</code> target this specific error — and lets tests
+      assert on the type, not on a fragile message string.</p>
+    </div>
+
+    <!-- 6. entity as request body -->
+    <div class="card">
+      <h3>6. <code>@RequestBody Users</code> → <code>@Valid @RequestBody CreateUserRequest</code></h3>
+      <div class="meta"><span class="pill security">Security · mass assignment</span><span class="pill pattern">DTO</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · bind the entity directly</header>
+<pre><code>@PostMapping("/add")
+public ResponseEntity&lt;Users&gt; addUser(@RequestBody Users user) {
+    return ResponseEntity.status(CREATED).body(service.addUser(user));
+    // Client controls EVERY field — role, points, id.
+    // POST { "role": "ADMIN" } → self-promotion.
+}
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · validated DTO, controller maps to entity</header>
+<pre><code>@PostMapping("/add")
+public ResponseEntity&lt;UserResponse&gt; addUser(
+        @Valid @RequestBody CreateUserRequest request) {
+    Users toCreate = Users.builder()
+            .userName(request.userName())
+            .email(request.email())
+            .password(request.password())
+            .role(request.role() != null ? request.role() : Role.USER)
+            .build();
+    Users created = service.addUser(toCreate);
+    return ResponseEntity.status(CREATED).body(UserResponse.from(created));
+}
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> binding the entity is a mass-assignment
+      vulnerability. The DTO gives you a whitelist of accepted fields, and <code>@Valid</code>
+      enforces every constraint annotation on it (<code>@Email</code>, <code>@Size(min=8)</code>,
+      <code>@NotBlank</code>) before your handler runs.</p>
+    </div>
+
+    <!-- 7. route order -->
+    <div class="card">
+      <h3>7. Route order — first match wins</h3>
+      <div class="meta"><span class="pill security">Security</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · general rule first</header>
+<pre><code>.requestMatchers("/users/**").hasRole("ADMIN")
+.requestMatchers("/users/me").authenticated()
+// /users/me matches /users/** FIRST and gets ADMIN-gated,
+// so no ordinary user can ever read their own record.
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · specific rule first</header>
+<pre><code>.requestMatchers("/users/me").authenticated()
+.requestMatchers("/users/**").hasRole("ADMIN")
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> Spring Security evaluates matchers top to
+      bottom and stops at the first one that matches. The rule you meant to be the exception has to
+      appear before the rule it's an exception to. Same principle applies to
+      <code>if / else if</code> ladders in your own code.</p>
+    </div>
+
+    <!-- 8. JpaRepository generics -->
+    <div class="card">
+      <h3>8. <code>JpaRepository&lt;Users, Long&gt;</code> with an <code>Integer</code> id</h3>
+      <div class="meta"><span class="pill core">Java generics</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · guessed the id type</header>
+<pre><code>public interface UserRepository
+    extends JpaRepository&lt;Users, Long&gt; { }
+
+// Compiles, then at runtime:
+// "provided id of the wrong type for class ...Users.
+//  Expected: Integer, got Long"
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · match the entity's id type</header>
+<pre><code>public interface UserRepository
+    extends JpaRepository&lt;Users, Integer&gt; { }
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> generics get erased at runtime — so the
+      compiler happily accepts a repository whose id-type disagrees with the entity's
+      <code>@Id</code> field, and Hibernate only notices on the first query. Read the entity's id
+      declaration before writing the repository.</p>
+    </div>
+
+    <!-- 9. double vs BigDecimal -->
+    <div class="card">
+      <h3>9. <code>double price</code> → <code>BigDecimal price</code></h3>
+      <div class="meta"><span class="pill oca">OCA · numeric types</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · use a primitive for money</header>
+<pre><code>@Column(nullable = false)
+private double price;
+// double a = 0.1, b = 0.2;
+// a + b == 0.3   →   false  (it's 0.30000000000000004)
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · exact decimal for currency</header>
+<pre><code>@Column(nullable = false)
+private BigDecimal price;
+// Exact base-10 arithmetic; no accumulated rounding.
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> <code>double</code> and <code>float</code>
+      are base-2 floating point and can't represent most decimal fractions exactly. A cent lost per
+      transaction across a million transactions is a real bug. <code>BigDecimal</code> (immutable,
+      exact) is the right type for money. <span class="pill oca">This exact question appears on 1Z0-808 exam papers.</span></p>
+    </div>
+
+    <!-- 10. bidirectional relationship without mappedBy -->
+    <div class="card">
+      <h3>10. <code>@OneToMany</code> without <code>mappedBy</code> → phantom join table</h3>
+      <div class="meta"><span class="pill core">JPA</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · both sides declare ownership</header>
+<pre><code>// In Users:
+@OneToMany private List&lt;Purchases&gt; purchases;
+
+// Hibernate assumes it owns BOTH sides and generates
+// a users_purchases join table you never asked for.
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · one owner (the FK holder) + <code>mappedBy</code></header>
+<pre><code>// In Users:
+@OneToMany(mappedBy = "user",
+           cascade  = CascadeType.ALL,
+           orphanRemoval = true)
+private List&lt;Purchases&gt; purchases;
+
+// mappedBy = "user" says: "Purchases owns the FK column,
+// I just navigate to it." No junk table.
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> in a bidirectional JPA relationship exactly
+      one side is the <em>owner</em> — the one whose table holds the foreign key. The other side
+      declares <code>mappedBy = "&lt;field name on the owner&gt;"</code>. Skip it and Hibernate makes up its
+      own join table, mysteriously duplicating rows.</p>
+    </div>
+
+    <!-- 11. role from request -->
+    <div class="card">
+      <h3>11. Role taken from the request body → derived server-side from <code>admin.email</code></h3>
+      <div class="meta"><span class="pill security">Security · authorization</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · trust the client</header>
+<pre><code>public AuthenticationResponse register(RegisterRequest req) {
+    Users u = Users.builder()
+        .email(req.getEmail())
+        .role(req.getRole()) // ← client sets their own role
+        .build();
+    ...
+}
+// POST /register { "email": "...", "role": "ADMIN" }
+// You are now the admin.
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · derived from configured admin email</header>
+<pre><code>@Value("${admin.email}")
+private String adminEmail;
+
+Role role = request.getEmail().equalsIgnoreCase(adminEmail)
+        ? Role.ADMIN
+        : Role.USER;
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> any input the client controls is
+      untrusted. Authorization decisions must come from data <em>you</em> own (a configured value, a
+      database record, a signed token) — never from a field the caller can rename in Postman.</p>
+    </div>
+
+    <!-- 12. secret in properties -->
+    <div class="card">
+      <h3>12. Committed <code>jwt.secret</code> → <code>${JWT_SECRET}</code> from the environment</h3>
+      <div class="meta"><span class="pill security">Security · secrets</span></div>
+      <div class="compare">
+        <div class="col bad">
+          <header><span class="dot"></span>BEGINNER · commit the secret</header>
+<pre><code># application.properties (checked into git)
+jwt.secret=hR8fA...actualBase64Key...=
+</code></pre>
+        </div>
+        <div class="col good">
+          <header><span class="dot"></span>CLEAN · resolve from the environment</header>
+<pre><code># application.properties
+jwt.secret=${JWT_SECRET}
+# The value lives outside git — env var, .env not committed,
+# secrets manager, etc.
+</code></pre>
+        </div>
+      </div>
+      <p class="why"><strong>Why this bites you:</strong> anything you push to a public repo is
+      compromised the moment it lands — assume scrapers are watching. Rotating a leaked JWT key
+      invalidates every token in the wild, but the alternative is worse. Move all secrets to
+      environment variables or a secrets manager from day one.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §4 ─────────────────────────── -->
+<section id="spring">
+  <div class="wrap">
+    <p class="kicker">§ 4 · Spring, in depth</p>
+    <h2>Annotations — what they do, and what they secretly do</h2>
+    <p class="section-lede">
+      A Spring annotation is a request to the framework: "please generate the plumbing I would
+      otherwise write by hand." Every card below expands to the mechanism behind the annotation,
+      not just its name.
+    </p>
+
+    <details class="acc">
+      <summary><code>@RestController</code> — @Controller + @ResponseBody</summary>
+      <div class="body">
+        <p><code>@RestController</code> is <code>@Controller</code> + <code>@ResponseBody</code> on every method. That means
+        method returns are handed to Jackson (or whichever HttpMessageConverter matches
+        <code>Accept</code>) and serialized to JSON, instead of being treated as view names for a
+        template engine.</p>
+        <p>Under plain <code>@Controller</code>, returning <code>List&lt;Users&gt;</code> would ask Spring to render a
+        view called <code>"[Users{id=1,...}]"</code> — and you'd get a 500. This is
+        <strong>quiz Q1</strong>.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Service</code>, <code>@Repository</code>, <code>@Component</code> — same mechanism, different vocabulary</summary>
+      <div class="body">
+        <p>All three tell Spring "instantiate this class as a bean". They're semantically distinct
+        so a reader can tell what role a class plays: <code>@Service</code> = business logic,
+        <code>@Repository</code> = data access (and gets JPA exception translation), <code>@Component</code> = the
+        generic fallback for infrastructure classes like filters.</p>
+        <p>Pick the most specific one that fits. It costs nothing at runtime and it documents
+        intent.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Configuration</code> + <code>@Bean</code> — factory methods for beans</summary>
+      <div class="body">
+        <p><code>@Configuration</code> marks a class as a source of bean definitions. Every method annotated
+        <code>@Bean</code> becomes a factory Spring calls once (per scope; default is singleton) and
+        registers the result.</p>
+        <p>Look at <code>ApplicationConfig</code> — <code>passwordEncoder()</code>, <code>authenticationProvider()</code>,
+        <code>userDetailsService()</code> are all beans wired together by return type and by
+        parameters. That's why the classes never say <code>new BCryptPasswordEncoder()</code>: they
+        ask for a <code>PasswordEncoder</code> and Spring supplies whichever bean is currently
+        registered under that type.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Autowired</code> — and why you don't see it here</summary>
+      <div class="body">
+        <p>On a constructor, <code>@Autowired</code> is redundant since Spring 4.3 when the class has
+        exactly one constructor. Lombok's <code>@RequiredArgsConstructor</code> generates that single
+        constructor from <code>final</code> fields, so injection happens without <code>@Autowired</code> appearing
+        anywhere. Result: dependencies are visible in the constructor signature; the code stays
+        annotation-light.</p>
+        <p>You'll still see <code>@Autowired</code> on field injection — that's the antipattern this repo
+        removed.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Transactional</code> — the proxy trap that catches everyone once</summary>
+      <div class="body">
+        <p><code>@Transactional</code> works via a proxy: Spring subclasses your service and wraps the
+        annotated method in a <code>begin/commit/rollback</code>. So calls made <em>through</em> the proxy get the
+        transaction. Calls made <em>within</em> the same class (<code>this.someMethod()</code>) bypass the
+        proxy and lose the transaction — this is the "self-invocation trap".</p>
+        <p>By default, rollback fires on unchecked exceptions only. If you want checked exceptions
+        to trigger rollback: <code>@Transactional(rollbackFor = SomeChecked.class)</code>.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Valid</code> and <code>@RequestBody</code></summary>
+      <div class="body">
+        <p><code>@RequestBody</code> asks Jackson to deserialize the incoming JSON into the parameter type.
+        <code>@Valid</code> then runs every Bean Validation constraint on that object
+        (<code>@NotBlank</code>, <code>@Email</code>, <code>@Size</code>, <code>@Positive</code>, etc.). If validation fails, Spring throws
+        a <code>MethodArgumentNotValidException</code> before your handler runs — <code>GlobalExceptionHandler</code>
+        turns it into a 400 with a per-field <code>errors</code> map.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@RestControllerAdvice</code> + <code>@ExceptionHandler</code> — one place, all errors</summary>
+      <div class="body">
+        <p><code>@RestControllerAdvice</code> is <code>@ControllerAdvice</code> + <code>@ResponseBody</code>. Any
+        <code>@ExceptionHandler</code> method inside it applies to exceptions thrown by <em>any</em> controller
+        in the application — so services just <code>throw</code> and stay ignorant of HTTP. Everything
+        error-shaped funnels into <code>GlobalExceptionHandler</code> in this repo.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Entity</code>, <code>@Table</code>, <code>@Column</code> — mapping objects to rows</summary>
+      <div class="body">
+        <p><code>@Entity</code> tells JPA "this class is a persistent type". <code>@Table</code> overrides the
+        generated table name; <code>@Column</code> overrides the column name or adds constraints
+        (<code>nullable = false</code>, <code>unique = true</code>, <code>columnDefinition = "TEXT"</code>).
+        Hibernate builds a metamodel from these at boot and generates SQL on demand.</p>
+        <p><code>spring.jpa.hibernate.ddl-auto=update</code> lets Hibernate evolve the schema to match
+        the entities on startup — a lovely convenience in dev and an operational hazard in prod.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@OneToMany</code> / <code>@ManyToOne</code> and <code>FetchType.LAZY</code></summary>
+      <div class="body">
+        <p>Bidirectional relationship rule: <em>one</em> side owns the foreign key. The other side
+        declares <code>mappedBy = "&lt;field name on the owning side&gt;"</code>. This is
+        <strong>Mistake #10</strong> above.</p>
+        <p><code>FetchType.LAZY</code> defers loading until you actually navigate the association —
+        needed for <code>@ManyToOne</code> or you'll pull the whole graph on every query. Beware
+        <code>LazyInitializationException</code>: if you try to load a lazy field outside a
+        transaction (e.g. from a detached entity like the JWT principal), it throws.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Enumerated(EnumType.STRING)</code> — and why not <code>ORDINAL</code></summary>
+      <div class="body">
+        <p><code>EnumType.STRING</code> stores the enum's name ("USER", "ADMIN"). <code>EnumType.ORDINAL</code>
+        stores its position (0, 1). Reorder the enum's constants once and every ordinal in the
+        database refers to the wrong value with no compiler warning. Use STRING.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@JsonIgnore</code> / <code>@JsonProperty(access = WRITE_ONLY)</code></summary>
+      <div class="body">
+        <p><code>@JsonIgnore</code> tells Jackson to omit this field in both directions. <code>@JsonProperty(access
+        = WRITE_ONLY)</code> accepts the field on input but omits it on output — the pattern for
+        passwords on entities. Both are <em>incidental</em> safety though; the structural fix is a
+        DTO that never declares the field in the first place (see <strong>Mistake #2</strong>).</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@AuthenticationPrincipal</code> — inject "the current user"</summary>
+      <div class="body">
+        <p><code>@AuthenticationPrincipal</code> is a parameter-level annotation that pulls
+        <code>SecurityContextHolder.getContext().getAuthentication().getPrincipal()</code> and casts
+        it to the parameter type. In this app the principal <em>is</em> a <code>Users</code>
+        (because <code>userDetailsService()</code> returns the entity), so <code>@AuthenticationPrincipal
+        Users user</code> is the clean way to get the current user with no boilerplate.</p>
+      </div>
+    </details>
+
+    <details class="acc">
+      <summary><code>@Value("${...}")</code> — pull config into a bean</summary>
+      <div class="body">
+        <p><code>@Value</code> injects a resolved property (from application.properties, an env var, or a
+        yaml file) into a field. <code>${JWT_SECRET}</code> resolves in this order: the environment,
+        then system properties, then application.properties. That's the mechanism behind
+        <strong>Mistake #12</strong>.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §5 ─────────────────────────── -->
+<section id="java">
+  <div class="wrap">
+    <p class="kicker">§ 5 · Java fundamentals, exam-badged</p>
+    <h2>What this codebase teaches you about the language</h2>
+    <p class="section-lede">
+      Every concept below carries a badge. The OCA <code>1Z0-808</code> exam covers <strong>Java SE
+      8</strong>, but this codebase is <strong>Java 17</strong> — so some of the most idiomatic code
+      here (records, <code>var</code>, <code>Stream.toList()</code>) is <em>explicitly</em> outside
+      the exam. Read the badges before assuming.
+    </p>
+
+    <div class="filters" data-filter-group="java">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="oca">On 1Z0-808</button>
+      <button class="chip" data-filter="notoca">Java 9+ · not on exam</button>
+      <button class="chip" data-filter="ocp">OCP territory</button>
+    </div>
+
+    <div id="java-cards">
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Autoboxing</span></div>
+        <h3><code>Integer</code> vs <code>int</code> — the NPE that motivated today's null-guard</h3>
+        <p>In <code>UsersService.updateUser</code>, if a client sends an update with no <code>points</code> field, Jackson
+        leaves the DTO's <code>Integer points</code> as <code>null</code>. Autoboxing a <code>null</code> Integer into an <code>int</code>
+        throws <code>NullPointerException</code>. That's why the fix reads:</p>
+<pre><code>if (updatedUser.getPoints() != null) {
+    existing.setPoints(updatedUser.getPoints());
+}
+</code></pre>
+        <p><strong>OCA trap:</strong> the boxing/unboxing question shows up on 1Z0-808 as a "why does
+        this line NPE?" puzzle. Answer: assignment to an <code>int</code> triggers <code>.intValue()</code> on
+        <code>null</code>.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">enum</span></div>
+        <h3><code>enum Role { USER, ADMIN }</code></h3>
+        <p>An enum is a class that's declared with a fixed set of instances. You can add fields,
+        constructors, and methods to it. <code>Role.ADMIN.name()</code> returns <code>"ADMIN"</code> — that's what
+        gets stored in the DB (via <code>@Enumerated(EnumType.STRING)</code>) and what gets set as a
+        claim in the JWT.</p>
+        <p><strong>OCA trap:</strong> know the difference between <code>name()</code> (final, returns the
+        constant name) and <code>toString()</code> (overrideable).</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Interfaces</span></div>
+        <h3>Interfaces with <code>default</code> methods — <code>UserDetails</code> has them</h3>
+        <p>Since Java 8, an interface can carry method implementations via <code>default</code>. That's how
+        <code>UserDetails</code> can grow methods without breaking existing implementers. When you write
+        <code>Users implements UserDetails</code> you can leave the defaults alone (they return
+        <code>true</code> for the "non-locked", "non-expired" methods here) and only override the ones you
+        care about.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Multi-catch</span></div>
+        <h3>Multi-catch: <code>catch (JwtException | UsernameNotFoundException e)</code></h3>
+        <p>From <code>JWTAuthenticationFilter</code>. One <code>catch</code> block handles multiple exception types
+        joined with <code>|</code>. The parameter is effectively <code>final</code>.</p>
+        <p><strong>OCA trap:</strong> the types in a multi-catch must not be in an inheritance chain
+        with each other — you can't write <code>catch (RuntimeException | IllegalStateException e)</code>.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Lambdas</span></div>
+        <h3>Lambda implementing a functional interface</h3>
+        <p>From <code>ApplicationConfig.userDetailsService()</code>:</p>
+<pre><code>return username -&gt; repository.findByEmail(username)
+        .orElseThrow(() -&gt; new UsernameNotFoundException("User not found"));
+</code></pre>
+        <p><code>UserDetailsService</code> is a functional interface (one abstract method,
+        <code>loadUserByUsername</code>). The lambda <em>is</em> the implementation. This is textbook 1Z0-808
+        material.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Optional</span></div>
+        <h3><code>Optional.orElseThrow</code></h3>
+<pre><code>return userRepository.findById(id)
+    .orElseThrow(() -&gt; new ResourceNotFoundException("User not found with id: " + id));
+</code></pre>
+        <p><code>Optional</code> was added in Java 8. <code>orElseThrow(Supplier)</code> pulls the value or throws
+        what the supplier returns. Use it instead of <code>.get()</code> — <code>.get()</code> throws
+        <code>NoSuchElementException</code> with no diagnostic.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">String</span></div>
+        <h3><code>String</code> immutability and <code>equalsIgnoreCase</code></h3>
+        <p><code>request.getEmail().equalsIgnoreCase(adminEmail)</code> — case-insensitive comparison
+        without allocating lowered copies. <code>String</code>s are immutable, so pooling / literal caching
+        makes <code>==</code> sometimes look like it works. It doesn't (reliably) — always compare with
+        <code>.equals()</code> or <code>.equalsIgnoreCase()</code>. Big 1Z0-808 topic.</p>
+      </div>
+
+      <div class="card" data-tag="notoca">
+        <div class="meta"><span class="pill notoca">Java 14+ · not on 1Z0-808</span></div>
+        <h3><code>record</code> — used everywhere in <code>dto/</code></h3>
+<pre><code>public record UserResponse(
+        Integer id, String userName, String email,
+        String role, Integer points) { ... }
+</code></pre>
+        <p>A record gives you: private final fields, a canonical constructor, accessors, and
+        <code>equals</code>/<code>hashCode</code>/<code>toString</code> for free. Immutable by construction. <strong>Not on
+        1Z0-808</strong> — if you're prepping for that exam and you see the plain-class equivalent,
+        that's what you'll be tested on.</p>
+      </div>
+
+      <div class="card" data-tag="notoca">
+        <div class="meta"><span class="pill notoca">Java 9+ · not on 1Z0-808</span></div>
+        <h3><code>List.of(...)</code> — immutable collection factory</h3>
+        <p>From <code>Users.getAuthorities()</code>:</p>
+<pre><code>return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
+</code></pre>
+        <p>Returns an <em>unmodifiable</em> list. Cheaper and clearer than
+        <code>Collections.unmodifiableList(Arrays.asList(...))</code>. <strong>Not on 1Z0-808</strong>; on
+        the exam you'd use <code>Arrays.asList</code> or a mutable list.</p>
+      </div>
+
+      <div class="card" data-tag="notoca">
+        <div class="meta"><span class="pill notoca">Java 16+ · not on 1Z0-808</span></div>
+        <h3><code>Stream.toList()</code></h3>
+<pre><code>List&lt;UserResponse&gt; users = service.findAllUsers().stream()
+        .map(UserResponse::from)
+        .toList();
+</code></pre>
+        <p>Shorter than <code>.collect(Collectors.toList())</code> and returns an unmodifiable list.
+        <strong>1Z0-808 equivalent:</strong> <code>.collect(Collectors.toList())</code> — and Streams beyond
+        the basics live in the OCP exam, not the OCA.</p>
+      </div>
+
+      <div class="card" data-tag="notoca">
+        <div class="meta"><span class="pill notoca">Java 10+ · not on 1Z0-808</span></div>
+        <h3><code>var</code> — local variable type inference</h3>
+        <p>Used in <code>AuthenticationService</code>: <code>var newUser = Users.builder()...</code>. The compiler
+        infers the type from the initializer. Only works for local variables — not fields, method
+        params, or return types. <strong>Not on 1Z0-808</strong>.</p>
+      </div>
+
+      <div class="card" data-tag="ocp">
+        <div class="meta"><span class="pill ocp">OCP (1Z0-809)</span><span class="pill core">Streams</span></div>
+        <h3>Method references: <code>UserResponse::from</code></h3>
+        <p><code>ClassName::method</code> is a shorthand for a lambda that just calls that method. Equivalent
+        to <code>user -&gt; UserResponse.from(user)</code>. Passed as a <code>Function</code> to <code>Stream.map</code>. Streams
+        and method references are covered on the OCP exam, not on 1Z0-808.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Exceptions</span></div>
+        <h3>Checked vs unchecked exceptions</h3>
+        <p>Every custom exception in this repo (<code>ResourceNotFoundException</code>,
+        <code>DuplicateResourceException</code>, <code>EmailAlreadyExistsException</code>) extends
+        <code>RuntimeException</code>. That's unchecked — no <code>throws</code> clause required, no boilerplate for
+        callers, and Spring's <code>@Transactional</code> default rollback applies. Checked exceptions
+        (things that extend <code>Exception</code> directly) force every caller to handle or declare them.
+        Prefer unchecked for programming errors; use checked for genuinely recoverable conditions.
+        <strong>1Z0-808 examinable.</strong></p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">equals / hashCode</span></div>
+        <h3>Why every entity here has custom <code>equals</code> and <code>hashCode</code></h3>
+        <p>JPA entities have a mutable id (null before the first save, populated after). If <code>equals</code>
+        compares all fields, two instances of "the same" user look unequal until they're both saved.
+        The entities in this repo compare by <code>id</code> only, and <code>hashCode</code> returns
+        <code>getClass().hashCode()</code> so the value is stable across the entity's lifecycle. Classic
+        JPA hazard — and equals/hashCode contracts are 1Z0-808 territory.</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Modifiers</span></div>
+        <h3><code>final</code> on fields — what it actually guarantees</h3>
+        <p><code>final</code> on a field means: assigned exactly once, either at declaration or in the
+        constructor. It does <em>not</em> mean the referenced object is immutable — you can still
+        mutate the object the field points at. In this codebase <code>final</code> on injected fields is a
+        contract: "this dependency is set at construction and never replaced".</p>
+      </div>
+
+      <div class="card" data-tag="oca">
+        <div class="meta"><span class="pill oca">On 1Z0-808</span><span class="pill core">Access</span></div>
+        <h3>Access modifiers — <code>public</code>, <code>protected</code>, package-private, <code>private</code></h3>
+        <p>The DTOs are <code>public record</code>s because the API surface reads them. Fields on entities
+        are <code>private</code> and accessed via Lombok's generated getters. Package-private (the default —
+        no modifier) is genuinely useful for helpers; it's not "just <code>public</code> that forgot the
+        word".</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §6 ─────────────────────────── -->
+<section id="quizzes">
+  <div class="wrap">
+    <p class="kicker">§ 6 · Knowledge check</p>
+    <h2>Quizzes — click to reveal</h2>
+    <p class="section-lede">
+      Every question tests something about this codebase specifically. Filter by topic, click an
+      option to grade it, and use the explanation to trace the reasoning back to the file it comes
+      from.
+    </p>
+
+    <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-top:14px;">
+      <div id="quiz-score">Score <strong id="quiz-score-value">0 / 0</strong> · <button id="quiz-reset">reset</button></div>
+    </div>
+
+    <div class="filters" data-filter-group="quiz">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="spring">Spring</button>
+      <button class="chip" data-filter="security">Security</button>
+      <button class="chip" data-filter="jpa">JPA</button>
+      <button class="chip" data-filter="java">Java</button>
+      <button class="chip" data-filter="patterns">Patterns</button>
+    </div>
+
+    <div id="quiz-list"></div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §7 ─────────────────────────── -->
+<section id="assess">
+  <div class="wrap">
+    <p class="kicker">§ 7 · Assessment prep</p>
+    <h2>What rigorous technical assessments actually probe</h2>
+    <p class="section-lede">
+      This section is calibrated to the kind of thing graduate programmes and hiring assessments
+      (BBD-style, for example) really test — not fact recall, but the ability to <em>justify</em> a
+      design choice. Honest caveat: this is general preparation for that class of assessment, not
+      modelled on any specific company's paper.
+    </p>
+
+    <div class="card">
+      <h3>The four things they're testing under the code question</h3>
+      <ol>
+        <li><strong>Can you explain <em>why</em>?</strong> "Why is this a service, not a helper class in the controller?" — the answer is layering, testability, and the transaction boundary.</li>
+        <li><strong>Do you know when to reach for a pattern?</strong> Not "list five design patterns", but "you have three payment providers with different APIs — how do you structure that?" (Strategy, and here's why.)</li>
+        <li><strong>Can you spot a security issue in code you didn't write?</strong> Mass assignment, IDOR, secrets in git, weak password hashing, missing role check — all covered in §3 above.</li>
+        <li><strong>Can you talk about trade-offs?</strong> "Why 400 for duplicate email and not 409?" — the answer is a real trade-off between HTTP correctness and frontend contract stability, not a right/wrong.</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3>SOLID walkthrough on this codebase</h3>
+      <ul>
+        <li><strong>S — Single Responsibility.</strong> Controllers do HTTP, services do business rules, repositories do persistence. The exception handler is a single class because "turn thrown exceptions into JSON" is one responsibility.</li>
+        <li><strong>O — Open/Closed.</strong> The filter chain is open for extension (add a link) and closed for modification (existing filters stay put).</li>
+        <li><strong>L — Liskov substitution.</strong> <code>Users implements UserDetails</code> — anywhere Spring Security expects a <code>UserDetails</code>, a <code>Users</code> works, without surprising the caller.</li>
+        <li><strong>I — Interface segregation.</strong> <code>UserDetailsService</code> is one method. Callers don't depend on stuff they don't use.</li>
+        <li><strong>D — Dependency Inversion.</strong> <code>UsersService</code> depends on <code>PasswordEncoder</code> (interface), not <code>BCryptPasswordEncoder</code> (concrete). Swapping the algorithm is one line in <code>ApplicationConfig</code>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Things you should be able to draw on a whiteboard</h3>
+      <ul>
+        <li>The filter chain, in order, with what each filter does.</li>
+        <li>The four layers of the app, and one file name per layer.</li>
+        <li>The register flow: what happens between the POST arriving and the token going out.</li>
+        <li>The rule table from <code>SecurityConfiguration</code>, in order, with an explanation of why "first match wins" matters.</li>
+        <li>The exception → HTTP status mapping (200/201/204 successes and 400/401/403/404/500 errors).</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── §8 ─────────────────────────── -->
+<section id="contrib">
+  <div class="wrap">
+    <p class="kicker">§ 8 · Contributing</p>
+    <h2>Extending this guide</h2>
+    <p class="section-lede">
+      This doc is designed to grow as the codebase does. The additions you're most likely to make
+      are new quizzes, new mistake-vs-best-practice cards, and new annotation cards — all
+      structured so you never have to touch the CSS or hunt through markup.
+    </p>
+
+    <div class="card">
+      <h3>Adding a quiz</h3>
+      <p>All quizzes live in the <code>QUIZZES</code> array in the script at the bottom of this file.
+      Append one object — the renderer picks it up on the next load:</p>
+<pre><code>{
+  id: 'unique-slug',
+  topic: 'security',    // spring | security | jpa | java | patterns
+  difficulty: 'core',   // core | advanced
+  question: 'Why must /users/me appear before /users/** in the rule list?',
+  options: [
+    'Alphabetical ordering',
+    'First-match-wins — a broader rule listed first would swallow it',
+    'Spring processes GET routes before POST routes',
+    'It doesn\'t matter — Spring reorders automatically'
+  ],
+  answer: 1,   // zero-indexed
+  explanation: 'authorizeHttpRequests evaluates matchers top to bottom and stops at the first one that matches. Put the specific rule before the general one it\'s an exception to.',
+  cite: 'configuration/SecurityConfiguration.java:56'
+}
+</code></pre>
+    </div>
+
+    <div class="card">
+      <h3>Adding a mistake vs. best practice card</h3>
+      <p>Copy an existing <code>.card</code> in §3 and change the two <code>&lt;pre&gt;</code> blocks and the "why"
+      note. Keep the "bad" pane on the left, "good" on the right — the CSS colours the header bars
+      automatically based on the <code>.bad</code> / <code>.good</code> class.</p>
+    </div>
+
+    <div class="card">
+      <h3>Adding an annotation deep-dive</h3>
+      <p>Add another <code>&lt;details class="acc"&gt;</code> in §4. The chevron rotation and hover states are
+      handled by CSS.</p>
+    </div>
+
+    <div class="card">
+      <h3>Adding a Java concept card</h3>
+      <p>Copy an existing <code>.card</code> in §5 and set <code>data-tag</code> to <code>oca</code>, <code>notoca</code>, or <code>ocp</code>.
+      The filter chips will pick it up automatically.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Companion to <a href="architecture.html">architecture.html</a>. Save alongside the repo as
+  <code>docs/architecture-and-learning-guide.html</code>. No CDN dependencies — opens offline.
+</footer>
+
+<script>
+  // ── Filter chips (§5 java cards and §6 quizzes) ─────────────────
+  document.querySelectorAll('[data-filter-group]').forEach(group => {
+    const chips = group.querySelectorAll('.chip');
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.toggle('active', c === chip));
+        const tag = chip.dataset.filter;
+        const groupName = group.dataset.filterGroup;
+        if (groupName === 'java') applyJavaFilter(tag);
+        if (groupName === 'quiz') applyQuizFilter(tag);
+      });
+    });
+  });
+
+  function applyJavaFilter(tag) {
+    document.querySelectorAll('#java-cards .card').forEach(card => {
+      card.hidden = !(tag === 'all' || card.dataset.tag === tag);
+    });
+  }
+
+  // ── Quizzes (data-driven — append to QUIZZES to add more) ───────
+  const QUIZZES = [
+    {
+      id: 'q-rest-controller',
+      topic: 'spring',
+      difficulty: 'core',
+      question: 'A handler returning a plain List<Users> under @Controller (without @ResponseBody) would...',
+      options: [
+        'Serialize the list to JSON',
+        'Be treated as a view name and fail because no view matches',
+        'Throw a compile-time error',
+        'Return a 204 No Content'
+      ],
+      answer: 1,
+      explanation: '@Controller (without @ResponseBody) sends returns to view resolution. A List is not a valid view name, so you get a 500. @RestController is @Controller + @ResponseBody, which routes returns through HttpMessageConverters (Jackson) instead. This is quiz Q1 in the source.',
+      cite: 'controllers/UsersController.java'
+    },
+    {
+      id: 'q-token-not-param',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'Why must the current user come from the token, never from a ?userId= query param?',
+      options: [
+        'Query params are slower',
+        'Query params are cached by the browser',
+        'A query param is client-controlled — reading a user id from it is an IDOR (any user reads any other user)',
+        'Spring Security cannot read query params'
+      ],
+      answer: 2,
+      explanation: 'The token is the only part of the request the client cannot forge (it is signature-verified). A query param is attacker-controlled, so /users/me?userId=1 lets any authenticated user read any other user by changing a number.',
+      cite: 'controllers/UsersController.java'
+    },
+    {
+      id: 'q-static-factory',
+      topic: 'patterns',
+      difficulty: 'core',
+      question: 'Why does UserResponse expose UserResponse.from(user) rather than a constructor overload UserResponse(Users)?',
+      options: [
+        'A record cannot declare a constructor',
+        'A named factory documents the mapping direction; the canonical constructor is still available for field-by-field construction',
+        'Static factories are faster than constructors',
+        'Because Jackson requires it'
+      ],
+      answer: 1,
+      explanation: 'from() names the mapping direction at the call site, whereas new UserResponse(user) reads ambiguously. Both options still leave the canonical constructor public — the factory documents the blessed path; it does not seal the type. Effective Java, Item 1.',
+      cite: 'dto/UserResponse.java'
+    },
+    {
+      id: 'q-hasrole-prefix',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'hasRole("ADMIN") in SecurityConfiguration only works because one line in Users.java pairs with it. What does hasRole prepend to the string you pass in?',
+      options: [
+        '"AUTHORITY_"',
+        '"USER_"',
+        '"ROLE_"',
+        'Nothing — the string is used as-is'
+      ],
+      answer: 2,
+      explanation: 'hasRole("ADMIN") looks for authority ROLE_ADMIN — it prepends "ROLE_" for you. On the other side, Users.getAuthorities() returns List.of(new SimpleGrantedAuthority("ROLE_" + role.name())). They meet in the middle. If you want to write the prefix yourself, use hasAuthority("ROLE_ADMIN").',
+      cite: 'models/Users.java:64'
+    },
+    {
+      id: 'q-getusername',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'On the Users entity, what does getUsername() return, and what does getUserName() return?',
+      options: [
+        'Both return the username',
+        'getUsername() returns the username; getUserName() returns the email',
+        'getUsername() returns the email (UserDetails override); getUserName() returns the userName field (Lombok getter)',
+        'Only getUsername() exists — Lombok would not generate a duplicate'
+      ],
+      answer: 2,
+      explanation: 'getUsername() is Spring Security\'s UserDetails method — this app authenticates by email, so it returns the email. getUserName() is the Lombok-generated getter for the userName field. Mixing them up put the email in both fields of UserResponse and lost the real username. That was today\'s bug.',
+      cite: 'models/Users.java:75'
+    },
+    {
+      id: 'q-mappedby',
+      topic: 'jpa',
+      difficulty: 'core',
+      question: 'What does mappedBy = "user" on Users.purchases actually say?',
+      options: [
+        '"Copy the user field to the purchases table"',
+        '"Purchases owns the foreign key column (via its `user` field); Users just navigates to it"',
+        '"Do not persist the purchases collection"',
+        '"Make purchases lazy-loaded"'
+      ],
+      answer: 1,
+      explanation: 'In a bidirectional JPA relationship exactly one side is the owner (whose table holds the FK). Purchases owns the join by declaring @ManyToOne @JoinColumn(name = "user_id"). Users declares mappedBy = "user" so Hibernate knows not to invent a separate join table.',
+      cite: 'models/Users.java:56'
+    },
+    {
+      id: 'q-transactional-proxy',
+      topic: 'spring',
+      difficulty: 'advanced',
+      question: 'Why does calling this.someMethod() bypass @Transactional if you call it from another method in the same class?',
+      options: [
+        'Because @Transactional only applies to methods called from tests',
+        'Because @Transactional works via a proxy; internal calls (this.x()) do not go through the proxy',
+        'Because the annotation is inheritance-based',
+        'Because Spring turns off transactions for private methods'
+      ],
+      answer: 1,
+      explanation: '@Transactional is implemented by a proxy that Spring wraps around the bean. Only calls made through the injected reference go through the proxy. Self-invocation (this.x()) calls the actual instance directly and misses the proxy entirely.',
+      cite: 'service/UsersService.java'
+    },
+    {
+      id: 'q-401-vs-403',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'When does this API return 401 vs 403?',
+      options: [
+        '401 = wrong role, 403 = no token',
+        '401 = no or invalid token (we do not know you); 403 = valid token but wrong role (we know you, but you may not do this)',
+        '401 and 403 are interchangeable',
+        '403 is returned only for CSRF failures'
+      ],
+      answer: 1,
+      explanation: '401 = "I do not know who you are" → the frontend axios interceptor wipes the token and redirects to login. 403 = "I know who you are, but you cannot do this" → the app shows a permission error without logging you out.',
+      cite: 'configuration/SecurityConfiguration.java'
+    },
+    {
+      id: 'q-enum-string',
+      topic: 'jpa',
+      difficulty: 'core',
+      question: 'Why is Role annotated @Enumerated(EnumType.STRING) instead of the default ORDINAL?',
+      options: [
+        'Storage size is smaller with STRING',
+        'ORDINAL is not supported by MySQL',
+        'ORDINAL stores 0,1,... — reordering the enum silently changes the meaning of every stored row',
+        'STRING is faster'
+      ],
+      answer: 2,
+      explanation: 'ORDINAL stores the enum position (0, 1, ...). Adding or reordering constants moves the mapping, so old rows now refer to the wrong value with no compiler warning. STRING stores the name ("ADMIN") — refactor-safe.',
+      cite: 'models/Users.java:44'
+    },
+    {
+      id: 'q-bigdecimal',
+      topic: 'java',
+      difficulty: 'core',
+      question: 'Why is price on Games declared BigDecimal instead of double?',
+      options: [
+        'BigDecimal is required by JPA',
+        'double is base-2 floating point and cannot represent most decimal fractions exactly (0.1 + 0.2 != 0.3); money needs exact arithmetic',
+        'BigDecimal handles NULL values, double does not',
+        'double is deprecated in Java 17'
+      ],
+      answer: 1,
+      explanation: 'double and float are base-2 — 0.1 has no exact binary representation. Accumulated rounding errors over many transactions become real money. BigDecimal is exact base-10 arithmetic. This is a classic OCA 1Z0-808 exam item.',
+      cite: 'models/Games.java:34'
+    },
+    {
+      id: 'q-field-vs-constructor-injection',
+      topic: 'spring',
+      difficulty: 'core',
+      question: 'Why prefer constructor injection over @Autowired on a field?',
+      options: [
+        'Field injection is deprecated',
+        'Constructor injection lets the field be final, makes dependencies visible in the signature, and allows the class to be tested without reflection',
+        'Field injection is slower at runtime',
+        'Constructor injection is required by Spring 6'
+      ],
+      answer: 1,
+      explanation: 'Constructor injection makes the dependency required at construction, allows final fields (thread-safe publication), documents dependencies in one place (the constructor signature), and lets you test the class by just calling new with mocks — no reflection or Spring context needed.',
+      cite: 'controllers/GamesControllers.java (fixed) — general rule'
+    },
+    {
+      id: 'q-dto-vs-entity',
+      topic: 'patterns',
+      difficulty: 'core',
+      question: 'Why return UserResponse from GET /users/all instead of the Users entity directly?',
+      options: [
+        'To improve serialization speed',
+        'Because Jackson cannot serialize JPA entities',
+        'The DTO does not declare a password field, so the password hash cannot leak — it is structural safety, not incidental',
+        'To let the frontend paginate the response'
+      ],
+      answer: 2,
+      explanation: 'Returning the entity relies on @JsonProperty(WRITE_ONLY) on password remaining in place — one removed annotation and the hash is public. The DTO makes safety structural: the record has no password field, so no serializer can output one, ever.',
+      cite: 'dto/UserResponse.java'
+    },
+    {
+      id: 'q-mass-assignment',
+      topic: 'security',
+      difficulty: 'advanced',
+      question: 'What is the security risk of @PostMapping("/register") public void register(@RequestBody Users user)?',
+      options: [
+        'No risk — Spring validates automatically',
+        'Mass assignment: the client controls every field on the entity, including role and points, and can self-promote to ADMIN',
+        'It is slower than using a DTO',
+        'JSON parsing fails on nested collections'
+      ],
+      answer: 1,
+      explanation: 'Binding the entity directly means the client can send { "role": "ADMIN" } and become admin. A DTO with @Valid restricts the accepted fields to a whitelist and validates them before the handler runs. The role in this app is derived server-side from admin.email, not accepted from the request.',
+      cite: 'controllers/UsersController.java'
+    },
+    {
+      id: 'q-filter-chain',
+      topic: 'patterns',
+      difficulty: 'advanced',
+      question: 'The servlet filter chain in this app is which design pattern?',
+      options: [
+        'Observer',
+        'Chain of Responsibility',
+        'Visitor',
+        'Command'
+      ],
+      answer: 1,
+      explanation: 'Each filter does one job (CORS handling, JWT parsing, authorization) and either calls filterChain.doFilter(request, response) to pass control on, or short-circuits with a response. Adding a new concern means inserting a new link — no existing filter changes. That is Chain of Responsibility.',
+      cite: 'configuration/JWTAuthenticationFilter.java'
+    },
+    {
+      id: 'q-jparepo-generics',
+      topic: 'jpa',
+      difficulty: 'core',
+      question: 'JpaRepository<Users, Long> compiles even when the Users.id field is Integer. What happens?',
+      options: [
+        'Spring silently converts between Long and Integer',
+        'A compile-time error',
+        'It runs fine',
+        'Runtime error on the first query: "provided id of the wrong type"'
+      ],
+      answer: 3,
+      explanation: 'Java generics are erased at runtime, so the type mismatch survives compilation. Hibernate only notices when you actually call findById(...) and blows up with "expected Integer, got Long". Always read the entity\'s @Id declaration before writing the repository.',
+      cite: 'repositories/UserRepository.java:9'
+    },
+    {
+      id: 'q-jwt-stateless',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'Why is SessionCreationPolicy set to STATELESS?',
+      options: [
+        'To use less memory',
+        'Because Spring 6 no longer supports sessions',
+        'The JWT is the entire proof of identity — there is nothing to store server-side, so no server session is created or looked up per request',
+        'To disable CSRF automatically'
+      ],
+      answer: 2,
+      explanation: 'Stateless means no HttpSession is created or referenced. Every request re-proves identity with its JWT. The advantage: no server-side session store to scale or invalidate. The trade-off: a token stays valid until it expires (24h here), since there is nothing to revoke server-side.',
+      cite: 'configuration/SecurityConfiguration.java'
+    },
+    {
+      id: 'q-role-derivation',
+      topic: 'security',
+      difficulty: 'core',
+      question: 'How does a new user get the ADMIN role in this app?',
+      options: [
+        'They send { "role": "ADMIN" } in the register request',
+        'The role is derived server-side by comparing the registered email against the configured admin.email property',
+        'ADMIN is assigned to the first user ever registered',
+        'ADMIN must be granted by another admin through /users/{id}'
+      ],
+      answer: 1,
+      explanation: 'AuthenticationService.register compares request.getEmail() against @Value("${admin.email}") — matching that value gets Role.ADMIN, everyone else gets Role.USER. Never trust the client for authorization data.',
+      cite: 'service/AuthenticationService.java:41'
+    },
+    {
+      id: 'q-validation-envelope',
+      topic: 'spring',
+      difficulty: 'advanced',
+      question: 'A @Valid @RequestBody fails validation. What does the response body look like?',
+      options: [
+        'A plain Spring stack trace',
+        '{ "message": "Validation failed", "errors": { "email": "email must be a valid address", ... } } with status 400',
+        'HTML error page',
+        '404 Not Found'
+      ],
+      answer: 1,
+      explanation: 'GlobalExceptionHandler.handleValidation catches MethodArgumentNotValidException and returns 400 with the { "message": ..., "errors": { field: reason } } envelope. Keeps the {"message": ...} contract §8 of the architecture doc marks as required, and adds per-field detail the frontend can render.',
+      cite: 'exceptions/GlobalExceptionHandler.java'
+    },
+    {
+      id: 'q-500-vs-400',
+      topic: 'spring',
+      difficulty: 'advanced',
+      question: 'Why did this repo change the catch-all from RuntimeException → 400 to Exception → 500 (with logged stack trace)?',
+      options: [
+        'Because 500 responses are cached better',
+        'Because @ExceptionHandler cannot target RuntimeException',
+        'Because mapping every RuntimeException to 400 blames the client for server bugs (an NPE became "400 Bad Request") and hides the stack trace',
+        'Because Spring deprecates RuntimeException handlers in v6'
+      ],
+      answer: 2,
+      explanation: '4xx tells the caller "you made a mistake"; 5xx tells them "we did". A generic 500 with the stack trace logged (not returned) tells the truth to both audiences: the client sees "something went wrong", operators see the cause in the logs.',
+      cite: 'exceptions/GlobalExceptionHandler.java'
+    },
+    {
+      id: 'q-lazy-init',
+      topic: 'jpa',
+      difficulty: 'advanced',
+      question: 'The @AuthenticationPrincipal Users injected into UsersController.getMe is a detached entity. What would happen if you called user.getPurchases() there?',
+      options: [
+        'You would get the purchases list',
+        'You would get an empty list',
+        'LazyInitializationException — the persistence context that loaded the user is closed by the time the controller runs',
+        'A 500 with no error'
+      ],
+      answer: 2,
+      explanation: 'The principal was loaded by JWTAuthenticationFilter, outside any transaction. By the time the controller executes, the persistence context is closed — touching a lazy field throws LazyInitializationException. UserResponse.from only reads scalar columns, which is why it is safe.',
+      cite: 'controllers/UsersController.java'
+    }
+  ];
+
+  const listEl = document.getElementById('quiz-list');
+  const scoreEl = document.getElementById('quiz-score-value');
+  const state = { answered: {} };
+
+  function updateScore() {
+    const answers = Object.values(state.answered);
+    const total = answers.length;
+    const correct = answers.filter(v => v === true).length;
+    scoreEl.textContent = `${correct} / ${total}`;
+  }
+
+  function renderQuiz(q, idx) {
+    const el = document.createElement('div');
+    el.className = 'quiz';
+    el.dataset.topic = q.topic;
+    el.dataset.difficulty = q.difficulty;
+    el.dataset.id = q.id;
+    el.innerHTML = `
+      <div class="qhead">
+        <span class="idx">Q${idx + 1}</span>
+        <span class="pill ${q.topic}">${q.topic}</span>
+        <span class="pill ${q.difficulty}">${q.difficulty}</span>
+      </div>
+      <div class="q"></div>
+      <div class="opts"></div>
+      <div class="exp hidden"></div>
+    `;
+    el.querySelector('.q').textContent = q.question;
+    const opts = el.querySelector('.opts');
+    q.options.forEach((text, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'opt';
+      btn.type = 'button';
+      btn.textContent = text;
+      btn.addEventListener('click', () => {
+        if (state.answered[q.id] !== undefined) return; // already answered
+        const isCorrect = (i === q.answer);
+        state.answered[q.id] = isCorrect;
+        Array.from(opts.querySelectorAll('.opt')).forEach((b, bi) => {
+          b.disabled = true;
+          if (bi === q.answer) b.classList.add('correct');
+          else if (bi === i) b.classList.add('wrong');
+        });
+        const exp = el.querySelector('.exp');
+        exp.classList.remove('hidden');
+        exp.innerHTML = `${q.explanation} <span class="cite">${q.cite || ''}</span>`;
+        updateScore();
+      });
+      opts.appendChild(btn);
+    });
+    return el;
+  }
+
+  QUIZZES.forEach((q, i) => listEl.appendChild(renderQuiz(q, i)));
+  updateScore();
+
+  function applyQuizFilter(tag) {
+    document.querySelectorAll('#quiz-list .quiz').forEach(qe => {
+      qe.classList.toggle('hidden', !(tag === 'all' || qe.dataset.topic === tag));
+    });
+  }
+
+  document.getElementById('quiz-reset').addEventListener('click', () => {
+    state.answered = {};
+    listEl.innerHTML = '';
+    QUIZZES.forEach((q, i) => listEl.appendChild(renderQuiz(q, i)));
+    updateScore();
+    // Re-apply active filter
+    const activeChip = document.querySelector('[data-filter-group="quiz"] .chip.active');
+    if (activeChip) applyQuizFilter(activeChip.dataset.filter);
+  });
+</script>
+
+</body>
+</html>
