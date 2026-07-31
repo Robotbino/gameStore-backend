@@ -28,10 +28,13 @@
 	</scm>
 	<properties>
 		<java.version>17</java.version>
-		<!-- Overrides the 1.18.34 managed by spring-boot-starter-parent 3.3.4.
-		     Not required to build, just current; the annotationProcessorPaths
-		     entry below is what actually keeps Lombok working on modern JDKs. -->
-		<lombok.version>1.18.46</lombok.version>
+		<!-- Use the Lombok version managed by spring-boot-starter-parent 3.3.4 (1.18.34).
+		     Newer Lombok releases (1.18.40+) emit accessor annotations in a way that
+		     trips a NullPointerException in Spring Data Commons 3.3.x during entity
+		     introspection ("Cannot invoke Annotation.annotationType() because
+		     candidate is null"). The annotationProcessorPaths entry below still uses
+		     this property so Lombok runs on modern JDKs. -->
+		<lombok.version>1.18.34</lombok.version>
 	</properties>
 	<dependencies>
 		<dependency>

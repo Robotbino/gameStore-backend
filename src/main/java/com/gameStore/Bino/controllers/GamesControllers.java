@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/games")
@@ -17,6 +18,16 @@ import java.util.List;
 public class GamesControllers {
 
     private final GamesService gamesService;
+
+    // Placeholder for the RAWG catalog sync — admin-only per SecurityConfiguration
+    // (/games/** non-GET requires ROLE_ADMIN). Returns 501 so the demo can show the
+    // full RBAC ladder (401 anonymous / 403 user / 501 admin) without committing to
+    // an implementation that will be rewritten once RAWG ingestion lands.
+    @PostMapping("/sync/rawg")
+    public ResponseEntity<Map<String, String>> syncFromRawg() {
+        return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED)
+                .body(Map.of("message", "admin catalog sync — pending RAWG integration"));
+    }
 
     @PostMapping("/add")
     public ResponseEntity<Games> addGame(@Valid @RequestBody GameRequest request) {

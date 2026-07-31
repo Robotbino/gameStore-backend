@@ -34,3 +34,5 @@ build/
 
 ### Claude Code ###
 .claude/
+# Local overrides — contains secrets, never commit
+src/main/resources/application-local.properties
