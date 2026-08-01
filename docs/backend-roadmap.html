@@ -1,0 +1,1179 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Game Store — Backend Roadmap</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<style>
+  /* ══════════════════════════════════════════════════════════════
+     Design tokens lifted verbatim from docs/architecture.html so the
+     roadmap reads as part of the same doc set. --spring is the
+     backend-only accent (the framework's green).
+     ══════════════════════════════════════════════════════════════ */
+  :root {
+    --bg:        #0d1016;
+    --panel:     #151a24;
+    --panel-2:   #1b2130;
+    --panel-3:   #212838;
+    --line:      #262d3d;
+    --line-2:    #333c52;
+    --ink:       #d6dbe7;
+    --ink-soft:  #98a1b5;
+    --ink-faint: #6b7488;
+    --accent:    #6d5efc;
+    --accent-2:  #8b7dff;
+    --accent-dim:#3a3570;
+    --spring:    #6db33f;
+    --spring-dim:#2c4a1c;
+    --new:       #34d399;
+    --new-dim:   #1f5745;
+    --auth:      #f5a623;
+    --auth-dim:  #4a3a12;
+    --danger:    #f0637a;
+    --danger-dim:#4a1d27;
+    --info:      #60a5fa;
+    --info-dim:  #1e3a5f;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --maxw: 1140px;
+    --mono: "JetBrains Mono", ui-monospace, monospace;
+    --display: "Atkinson Hyperlegible", system-ui, sans-serif;
+    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --ease: cubic-bezier(.2,.7,.3,1);
+    --nav-h: 56px;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
+      var(--bg);
+    color: var(--ink);
+    font-family: var(--body);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  code {
+    font-family: var(--mono);
+    font-size: .9em;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    padding: 1px 6px;
+    border-radius: 5px;
+    color: var(--ink);
+  }
+
+  /* ── Cross-doc switcher (shared across the briefs) ── */
+  .doc-switch { border-bottom: 1px solid var(--line); background: var(--panel); }
+  .doc-switch-inner {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 24px; max-width: var(--maxw); margin: 0 auto;
+  }
+  .doc-switch .ds-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-right: 2px;
+  }
+  .doc-switch a {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
+    text-decoration: none; white-space: nowrap;
+  }
+  .doc-switch a:hover { color: var(--ink); background: var(--panel-2); text-decoration: none; }
+  .doc-switch a.is-here { color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-dim); }
+  .doc-switch .ds-repo {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  /* ── Sticky nav ── */
+  .subnav {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13,16,22,.82);
+    backdrop-filter: saturate(140%) blur(10px);
+    -webkit-backdrop-filter: saturate(140%) blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .subnav-inner {
+    max-width: var(--maxw); margin: 0 auto; padding: 10px 24px;
+    display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none;
+  }
+  .subnav-inner::-webkit-scrollbar { display: none; }
+  .subnav a {
+    font-family: var(--mono); font-size: 12px;
+    letter-spacing: .06em; text-transform: uppercase;
+    color: var(--ink-soft);
+    padding: 8px 12px; border-radius: 8px;
+    white-space: nowrap; text-decoration: none;
+    transition: color .18s var(--ease), background .18s var(--ease);
+  }
+  .subnav a:hover { color: var(--ink); background: var(--panel-2); text-decoration: none; }
+  .subnav a.active { color: var(--accent-2); background: var(--accent-dim); }
+
+  /* ── Header ── */
+  header.hero { border-bottom: 1px solid var(--line); padding: 64px 0 40px; }
+  .eyebrow {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 18px;
+  }
+  h1 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2.1rem, 5vw, 3.4rem);
+    line-height: 1.08; letter-spacing: -.018em;
+    text-wrap: balance; margin: 0 0 18px;
+  }
+  h1 .sub { color: var(--ink-soft); font-weight: 400; }
+  .lede { max-width: 64ch; color: var(--ink-soft); font-size: 1.09rem; line-height: 1.62; margin: 0 0 26px; }
+  .stack { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 5px 12px;
+  }
+  .chip b { color: var(--spring); font-weight: 400; }
+
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 34px 0 0; }
+  .kpi {
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: var(--radius-sm); padding: 14px 16px;
+    position: relative; overflow: hidden; box-shadow: var(--shadow-sm);
+    transition: border-color .24s var(--ease);
+  }
+  .kpi::after {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent 70%); opacity: .55;
+  }
+  .kpi:hover { border-color: var(--line-2); }
+  .kpi .k {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .kpi .v {
+    font-family: var(--display); font-weight: 700; font-size: 1.35rem;
+    color: var(--ink); margin-top: 4px; line-height: 1.25;
+  }
+  .kpi .v small { color: var(--ink-soft); font-weight: 400; font-size: .8rem; }
+
+  /* ── Sections ── */
+  section { padding: 64px 0; border-bottom: 1px solid var(--line); }
+  section[id] { scroll-margin-top: calc(var(--nav-h) + 20px); }
+  .kicker {
+    font-family: var(--mono); font-size: 12px; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--ink-faint);
+    display: flex; align-items: center; gap: 12px; margin: 0 0 8px;
+    font-feature-settings: "tnum";
+  }
+  .kicker::before { content: ""; width: 26px; height: 1px; background: var(--accent); }
+  h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(1.5rem, 3vw, 2.1rem);
+    line-height: 1.18; letter-spacing: -.008em; margin: 0 0 10px;
+  }
+  h3 { font-family: var(--display); font-weight: 700; font-size: 1.05rem; margin: 0; line-height: 1.28; }
+  .section-lede { color: var(--ink-soft); max-width: 68ch; margin: 0 0 26px; font-size: 1.01rem; line-height: 1.65; }
+  .caption { font-family: var(--mono); font-size: 12px; color: var(--ink-faint); margin: 18px 2px 0; line-height: 1.7; }
+
+  /* ── Gate callout ── */
+  .gate {
+    display: flex; gap: 12px; align-items: flex-start;
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--auth); border-radius: var(--radius);
+    padding: 14px 18px; margin: 0 0 24px;
+  }
+  .gate .g-k {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--auth); flex: none; padding-top: 3px; font-weight: 700;
+  }
+  .gate p { margin: 0; color: var(--ink-soft); font-size: .92rem; }
+
+  /* ── Progress header ── */
+  .check-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+  }
+  .check-progress { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+  .check-progress b { color: var(--new); font-weight: 700; }
+  .check-reset {
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    background: none; border: 1px solid var(--line); border-radius: 6px;
+    padding: 4px 10px; cursor: pointer;
+  }
+  .check-reset:hover { color: var(--ink); border-color: var(--line-2); }
+  .check-bar-track {
+    height: 6px; background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; overflow: hidden;
+  }
+  .check-bar-fill {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--new));
+    transition: width .4s ease;
+  }
+
+  /* ── Task cards ── */
+  .rm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  .rm-card {
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--line-2); border-radius: var(--radius);
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
+    box-shadow: var(--shadow-sm);
+    transition: transform .24s var(--ease), box-shadow .24s var(--ease),
+                border-color .24s var(--ease), background .24s var(--ease);
+  }
+  .rm-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+  .rm-card.v-do    { border-left-color: var(--new); }
+  .rm-card.v-crit  { border-left-color: var(--danger); }
+  .rm-card.v-later { border-left-color: var(--auth); }
+  .rm-card.v-skip  { border-left-color: var(--danger); opacity: .82; }
+
+  .rm-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+  .rm-tick { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+  .rm-tick input {
+    width: 17px; height: 17px; margin: 0; flex: none;
+    accent-color: var(--new); cursor: pointer;
+  }
+  .rm-id {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+    color: var(--ink-faint); font-weight: 600;
+  }
+  .rm-verdict {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+    text-transform: uppercase; padding: 3px 9px; border-radius: 6px;
+    white-space: nowrap; font-weight: 700;
+  }
+  .rm-verdict.v-do    { color: var(--new); border: 1px solid var(--new-dim); }
+  .rm-verdict.v-crit  { color: var(--danger); border: 1px solid var(--danger-dim); }
+  .rm-verdict.v-later { color: var(--auth); border: 1px solid var(--auth-dim); }
+  .rm-verdict.v-skip  { color: var(--danger); border: 1px solid var(--danger-dim); }
+  .rm-card p { margin: 0; color: var(--ink-soft); font-size: .91rem; }
+  .rm-anchor {
+    font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+    line-height: 1.7; margin: 0;
+  }
+  .rm-anchor code { font-size: 1em; background: var(--panel-2); }
+  .rm-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: auto; padding-top: 8px; }
+  .rm-metric { display: flex; flex-direction: column; gap: 2px; }
+  .rm-metric .m-k {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+  .rm-metric .m-v { font-size: .84rem; color: var(--ink); }
+  .rm-metric .m-v.pair { color: var(--info); font-family: var(--mono); font-size: .8rem; }
+
+  /* Completed state */
+  .rm-card.done { background: rgba(52,211,153,.05); border-left-color: var(--new); }
+  .rm-card.done h3 { color: var(--ink-faint); text-decoration: line-through; }
+  .rm-card.done .rm-id { color: var(--new); }
+
+  /* ── Pairings ── */
+  .pair-grid { display: grid; gap: 16px; }
+  .pair {
+    background: var(--panel); border: 1px solid var(--line);
+    border-left: 3px solid var(--info); border-radius: var(--radius);
+    padding: 18px 20px; display: grid;
+    grid-template-columns: 52px 1fr 1fr; gap: 0 18px; align-items: start;
+    box-shadow: var(--shadow-sm);
+    transition: transform .24s var(--ease), box-shadow .24s var(--ease), border-color .24s var(--ease);
+  }
+  .pair:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+  .pair-no {
+    font-family: var(--mono); font-size: .95rem; font-weight: 700;
+    color: var(--info); grid-row: span 1; padding-top: 2px;
+  }
+  .pair-side { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .pair-side .ps-k {
+    font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  .pair-side.be .ps-k { color: var(--spring); }
+  .pair-side.fe .ps-k { color: var(--info); }
+  .pair-side .ps-v { font-size: .92rem; color: var(--ink); }
+  .pair-side .ps-sub { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+  .pair-why {
+    grid-column: 1 / -1; margin: 13px 0 0; padding-top: 12px;
+    border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: .9rem;
+  }
+  .pair-why b { color: var(--ink); font-weight: 700; }
+
+  /* ── Footer ── */
+  footer {
+    padding: 40px 0 60px; color: var(--ink-faint);
+    font-family: var(--mono); font-size: 12px; line-height: 1.8;
+  }
+
+  /* ── Chrome injected by script ── */
+  #readProgress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--new));
+    z-index: 40; transition: width .12s linear; pointer-events: none;
+  }
+  #toTop {
+    position: fixed; right: 22px; bottom: 22px; z-index: 35;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--ink-soft);
+    display: grid; place-items: center; cursor: pointer; font-size: 15px;
+    box-shadow: var(--shadow-md);
+    opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity .25s var(--ease), transform .25s var(--ease),
+                visibility .25s, color .18s, border-color .18s;
+  }
+  #toTop.show { opacity: 1; visibility: visible; transform: none; }
+  #toTop:hover { color: var(--ink); border-color: var(--accent); }
+
+  a:focus-visible, button:focus-visible, input:focus-visible, label:focus-visible {
+    outline: none; box-shadow: var(--ring); border-radius: 8px;
+  }
+  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(16px); }
+    .reveal.in { opacity: 1; transform: none; transition: opacity .55s var(--ease), transform .55s var(--ease); }
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 980px) {
+    .rm-grid { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 860px) {
+    .doc-switch-inner { padding: 9px 18px; gap: 6px; }
+    .doc-switch .ds-repo { display: none; }
+    #toTop { right: 14px; bottom: 14px; }
+  }
+  @media (max-width: 780px) {
+    .pair { grid-template-columns: 1fr; gap: 14px; }
+    .pair-no { padding-top: 0; }
+  }
+  @media (max-width: 560px) {
+    .kpis { grid-template-columns: 1fr; }
+    .rm-meta { gap: 12px; }
+    .rm-head { grid-template-columns: auto 1fr; }
+    .rm-head .rm-verdict { grid-column: 1 / -1; justify-self: start; }
+    h1 { letter-spacing: -.01em; }
+    section { padding: 46px 0; }
+  }
+
+  /* ── Print ── */
+  @media print {
+    :root {
+      --bg: #fff; --panel: #fff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+      --danger: #c22e46; --danger-dim: #f6d3da;
+      --spring: #3f6b22; --info: #1c5aa8;
+    }
+    body { background: #fff !important; }
+    .subnav, .doc-switch, #readProgress, #toTop, .check-reset { display: none !important; }
+    section { padding: 26px 0; break-inside: avoid; }
+    .rm-card, .pair, .kpi, .gate { break-inside: avoid; box-shadow: none; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    a { color: #10131a; text-decoration: underline; }
+  }
+</style>
+
+<nav class="doc-switch" aria-label="Documentation set">
+  <div class="doc-switch-inner">
+    <span class="ds-label">Docs</span>
+    <span class="ds-repo">·&nbsp;frontend&nbsp;·</span>
+    <a href="../../../GameStore/docs/architecture.html">Frontend Architecture</a>
+    <a href="../../../GameStore/docs/catalog-architecture.html">Catalog Pivot</a>
+    <a href="../../../GameStore/docs/frontend-roadmap.html">Frontend Roadmap</a>
+    <span class="ds-repo">·&nbsp;backend&nbsp;·</span>
+    <a href="architecture.html">Backend Architecture</a>
+    <a href="architecture-and-learning-guide.html">Learning Guide</a>
+    <a href="backend-roadmap.html" class="is-here" aria-current="page">Backend Roadmap</a>
+  </div>
+</nav>
+
+<nav class="subnav" aria-label="Section navigation">
+  <div class="subnav-inner">
+    <a href="#phase-0">Phase 0 · Unblock</a>
+    <a href="#phase-1">Phase 1 · Data</a>
+    <a href="#phase-2">Phase 2 · API quality</a>
+    <a href="#phase-3">Phase 3 · Features</a>
+    <a href="#pairings">Pairings</a>
+    <a href="#skipped">Discarded</a>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Backend · Iterative Roadmap</p>
+    <h1>Nineteen tasks, in the order that actually unblocks things<br /><span class="sub">Spring Boot · deployability first</span></h1>
+    <p class="lede">
+      The architecture briefs score this backend at <b>9/10 on layering</b> and <b>2/10 on deployability</b>.
+      That gap is the whole story. Nothing in Phase 2 or 3 changes how the project reads until the API is
+      reachable from a URL, so the critical path runs through Docker and a public host — not through features.
+      Tick items as you land them; progress is saved in this browser.
+    </p>
+    <div class="stack">
+      <span class="chip"><b>Spring Boot</b> 3.3.4</span>
+      <span class="chip"><b>Java</b> 17</span>
+      <span class="chip"><b>MySQL</b> 8</span>
+      <span class="chip"><b>JWT</b> HS256 · 24h</span>
+      <span class="chip"><b>Tests</b> 20 · all integration</span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="k">Tasks</div><div class="v">19 <small>across 4 phases</small></div></div>
+      <div class="kpi"><div class="k">Critical path</div><div class="v">6 <small>all in Phase 0</small></div></div>
+      <div class="kpi"><div class="k">Cross-stack pairs</div><div class="v">9 <small>see §pairings</small></div></div>
+      <div class="kpi"><div class="k">Quick wins kept</div><div class="v">5 <small>6 discarded as debt</small></div></div>
+    </div>
+  </div>
+</header>
+
+<!-- ─────────────────────────── PROGRESS ─────────────────────────── -->
+<section id="progress" style="padding-top: 34px; padding-bottom: 34px;">
+  <div class="wrap">
+    <div class="check-head">
+      <span class="check-progress"><b id="checkDone">0</b> / <span id="checkTotal">0</span> backend tasks complete</span>
+      <button class="check-reset" id="checkReset">Reset</button>
+    </div>
+    <div class="check-bar-track"><div class="check-bar-fill" id="checkBar"></div></div>
+    <p class="caption">
+      Backend items are tracked here. Frontend items live in
+      <a href="../../../GameStore/docs/frontend-roadmap.html"><code>GameStore/docs/frontend-roadmap.html</code></a>
+      — the two files keep separate progress.
+    </p>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PHASE 0 ─────────────────────────── -->
+<section id="phase-0" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Phase 0 · Unblock deployment</p>
+    <h2>Six tasks between here and a link you can send someone</h2>
+    <p class="section-lede">
+      Every one of these is small. Together they are the difference between a project that exists on your
+      laptop and one a reviewer can open. Do them in order — <code>B1</code> gates <code>B5</code>, and
+      <code>B4</code> gates everything after it.
+    </p>
+
+    <div class="gate">
+      <span class="g-k">Gate</span>
+      <p>Nothing below Phase 0 is worth starting first. The briefs' own scorecard puts deployability at
+        2/10 and calls it "the load-bearing number" — it drags every other dimension down and is also the
+        cheapest to fix.</p>
+    </div>
+
+    <div class="rm-grid">
+
+      <article class="rm-card v-crit">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B1" /><span class="rm-id">B1</span></label>
+          <h3>Read the CORS origin from an env var</h3>
+          <span class="rm-verdict v-crit">Blocker</span>
+        </div>
+        <p>The allowed origin is a hardcoded literal, so the API physically cannot accept a request from a
+          deployed frontend. This is the single cheapest task on the board and it unblocks the most expensive one.</p>
+        <p class="rm-anchor"><code>configuration/CorsConfig.java:21</code> — <code>List.of("http://localhost:5173")</code>.
+          The placeholder <code>CORS_ALLOWED_ORIGINS</code> already sits commented-out at
+          <code>application-local.properties.example:22</code>; nothing reads it yet.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~30 min</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Unblocks deploy</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P1 · F1</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B2" /><span class="rm-id">B2</span></label>
+          <h3>Add a production Spring profile</h3>
+          <span class="rm-verdict v-do">Quick win</span>
+        </div>
+        <p>There is exactly one properties file, and it ships SQL echo plus six DEBUG/TRACE loggers —
+          including <code>org.springframework.security</code>. In production that leaks your schema and slows
+          every request.</p>
+        <p class="rm-anchor">Create <code>application-prod.properties</code>: <code>show-sql=false</code>,
+          logging at WARN, no security tracing. Today's noise is at
+          <code>application.properties:17,24-30</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 hr</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B3" /><span class="rm-id">B3</span></label>
+          <h3>Fix the startup log that lies about the admin account</h3>
+          <span class="rm-verdict v-do">Quick win</span>
+        </div>
+        <p>Boot prints <em>"ADMIN email=admin@gamestore.com password=12345678"</em> on every run — but only
+          the USER is ever seeded. If a real admin exists with a different password, the log publishes a
+          credential that is simply false. Either seed the admin for real, or delete the claim.</p>
+        <p class="rm-anchor"><code>BinoApplication.java:40</code>. The seeding block at <code>:26-43</code> is
+          idempotent and only creates <code>user@gamestore.com</code>. Neither doc nor the README mentions
+          this seeding at all.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~20 min</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Correctness</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-crit">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B4" /><span class="rm-id">B4</span></label>
+          <h3>Dockerise: <code>Dockerfile</code> + <code>compose.yml</code></h3>
+          <span class="rm-verdict v-crit">Critical</span>
+        </div>
+        <p>The four-container topology is already fully designed in the backend brief §14 — caddy, api, db
+          and an optional web container on <code>gamestore-net</code>. This task is implementing a design
+          that already exists, not making one.</p>
+        <p class="rm-anchor">No <code>Dockerfile</code>, <code>compose.yml</code> or <code>.dockerignore</code>
+          exists anywhere in the repo today. Base the API image on <code>eclipse-temurin:17</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P2 · F2</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-crit">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B5" /><span class="rm-id">B5</span></label>
+          <h3>Deploy to an Oracle Cloud Always-Free ARM VM</h3>
+          <span class="rm-verdict v-crit">Critical</span>
+        </div>
+        <p>The highest-impact task in the entire backlog. Caddy handles HTTPS and Let's Encrypt; config comes
+          from host env vars. Budget extra time for A1.Flex capacity errors — the brief flags them honestly.</p>
+        <p class="rm-anchor">Depends on <code>B1</code> (CORS) and <code>B4</code> (compose). Set
+          <code>CORS_ALLOWED_ORIGINS</code> to the real Pages domain once the frontend is up.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Critical</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P2 · F2</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B6" /><span class="rm-id">B6</span></label>
+          <h3>Publish the two backend briefs to GitHub Pages</h3>
+          <span class="rm-verdict v-do">Quick win</span>
+        </div>
+        <p>Highest leverage-per-minute item on the board. These briefs are the strongest artefact in the
+          project and they are currently invisible unless someone clones the repo and opens a local file.</p>
+        <p class="rm-anchor">Publishes <code>docs/architecture.html</code>,
+          <code>docs/architecture-and-learning-guide.html</code> and this roadmap. Cross-link with the two
+          frontend briefs, which live in a different repo.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 hr</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P3 · F3</span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PHASE 1 ─────────────────────────── -->
+<section id="phase-1" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Phase 1 · Data integrity</p>
+    <h2>Stop letting Hibernate own the schema</h2>
+    <p class="section-lede">
+      <code>B7</code> is the real gate here. A migration file already exists and reads as though Flyway is
+      wired up — it is not. Every schema change after this point should arrive as a versioned migration, so
+      this has to land before purchases or the catalog.
+    </p>
+
+    <div class="rm-grid">
+
+      <article class="rm-card v-crit">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B7" /><span class="rm-id">B7</span></label>
+          <h3>Actually wire Flyway up</h3>
+          <span class="rm-verdict v-crit">Gate</span>
+        </div>
+        <p>This one is easy to mistake for done. <code>V1__baseline.sql</code> exists, is well-commented, and
+          even references <code>spring.flyway.baseline-on-migrate</code> — but Flyway is <b>not a dependency in
+          the pom</b>, and no <code>spring.flyway.*</code> property is set anywhere. The file is inert; nothing
+          reads it.</p>
+        <p class="rm-anchor">Add the <code>flyway-core</code> + <code>flyway-mysql</code> deps, set
+          <code>spring.flyway.baseline-on-migrate=true</code>, then move
+          <code>spring.jpa.hibernate.ddl-auto</code> from <code>update</code> to <code>validate</code>.
+          Blocks <code>B8</code> and <code>B9</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~3 hrs</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B8" /><span class="rm-id">B8</span></label>
+          <h3>Give <code>games.price</code> a real precision</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>An unannotated <code>BigDecimal</code> becomes <code>decimal(38,2)</code> — Hibernate's default,
+          which the baseline migration itself calls out as "not a considered choice". Money should be
+          <code>decimal(10,2)</code>.</p>
+        <p class="rm-anchor"><code>models/Games.java</code> — bare <code>@Column private BigDecimal price</code>.
+          Ship this <b>inside a V2 migration</b>, never as a standalone entity edit.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~30 min</span></div>
+          <div class="rm-metric"><span class="m-k">Depends on</span><span class="m-v">B7</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B9" /><span class="rm-id">B9</span></label>
+          <h3>Build the purchase &amp; library endpoints</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>The last unchecked item in the README. The entity and repository are already written — and injected
+          absolutely nowhere. Until this lands, the frontend's Library page is showing the whole catalogue and
+          calling it "yours".</p>
+        <p class="rm-anchor"><code>repositories/PurchaseRepository.java</code> declares
+          <code>findByUser</code>, <code>findByGame</code> and <code>existsByUserAndGame</code>; no service or
+          controller references it. Add <code>POST /purchases</code> and <code>GET /purchases/me</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P4 · F14</span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PHASE 2 ─────────────────────────── -->
+<section id="phase-2" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Phase 2 · API quality &amp; proof</p>
+    <h2>Make the API shape defensible before features pile on top of it</h2>
+    <p class="section-lede">
+      Two inconsistencies are worth fixing before anything else consumes the API: service methods that no
+      controller exposes, and <code>/games</code> returning raw entities while <code>/users</code> returns a
+      DTO. Fix the shape once, not twice.
+    </p>
+
+    <div class="rm-grid">
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B10" /><span class="rm-id">B10</span></label>
+          <h3>Expose server-side search, sort &amp; pagination</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>The logic is already written and completely unreachable — no controller calls it, so the frontend
+          downloads the entire catalogue and filters in the browser. Return a <code>Page</code>, not a
+          <code>List</code>.</p>
+        <p class="rm-anchor"><code>service/GamesService.java:32</code> <code>searchGames()</code> and
+          <code>:36</code> <code>getGamesByGenre()</code> are dead code. <code>findAllGames()</code> returns an
+          unbounded list. Same story for <code>UsersService.searchUsers()</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~half day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P5 · F13</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B11" /><span class="rm-id">B11</span></label>
+          <h3>Add a <code>GameResponse</code> DTO</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>Every <code>/users</code> route returns a <code>UserResponse</code> record; every
+          <code>/games</code> route returns the raw JPA entity. That asymmetry is the kind of thing a reviewer
+          spots immediately — and pagination will bake the entity shape into the contract if it lands first.</p>
+        <p class="rm-anchor">Mirror the existing <code>dto/UserResponse.java</code> pattern. Do this
+          <b>before or with</b> <code>B10</code>.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~2 hrs</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Consistency</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P5 · F13</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B12" /><span class="rm-id">B12</span></label>
+          <h3>Add Actuator, exposing only <code>/health</code></h3>
+          <span class="rm-verdict v-do">Quick win</span>
+        </div>
+        <p>Observability scores 3/10 and there is no health endpoint at all — which also means the Docker
+          compose stack has nothing to health-check against.</p>
+        <p class="rm-anchor">No actuator dependency exists today. Expose <code>health</code> only; keep the
+          rest closed.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 hr</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B13" /><span class="rm-id">B13</span></label>
+          <h3>CI on every push (<code>mvnw verify</code>)</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>There are 20 passing integration tests and nothing that proves they pass on any machine but yours.
+          A green badge converts "I wrote tests" into evidence.</p>
+        <p class="rm-anchor">No <code>.github/</code> directory exists. <code>verify</code> runs both Surefire
+          (<code>*Tests</code>) and Failsafe (<code>*IT</code>); H2 means no MySQL service container is needed.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~half day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium–High</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P7 · FE CI</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B14" /><span class="rm-id">B14</span></label>
+          <h3>Add unit tests for the pure logic</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>All 20 existing tests boot a Spring context. The three pieces of genuinely testable pure logic have
+          no direct coverage, and they are exactly the pieces where a subtle bug is silent.</p>
+        <p class="rm-anchor">Target <code>service/JwtService.java</code> (expiry maths, claim extraction),
+          <code>models/GenreDeserializer.java</code> (array-vs-string) and
+          <code>exceptions/GlobalExceptionHandler.java</code> (the field-error map).</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~half day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B15" /><span class="rm-id">B15</span></label>
+          <h3>Document <code>POST /games/sync/rawg</code></h3>
+          <span class="rm-verdict v-do">Quick win</span>
+        </div>
+        <p>The endpoint exists, is reachable, and is admin-guarded — and appears in no endpoint table in
+          either brief or the README. The docs list 12 routes; the code serves 13.</p>
+        <p class="rm-anchor"><code>controllers/GamesControllers.java:26</code> returns a deliberate
+          <code>501</code> so the RBAC ladder demo can show 401 / 403 / 501. Worth documenting precisely
+          because it looks like an accident otherwise.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~15 min</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Doc accuracy</span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PHASE 3 ─────────────────────────── -->
+<section id="phase-3" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Phase 3 · Headline features</p>
+    <h2>The multi-day work, once the foundations hold</h2>
+    <p class="section-lede">
+      These are the items that make the project memorable rather than merely correct. They are last on
+      purpose: each one is significantly more expensive if the schema, the API shape or the deploy story is
+      still in flux underneath it.
+    </p>
+
+    <div class="rm-grid">
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B16" /><span class="rm-id">B16</span></label>
+          <h3>RAWG catalog with a tiered read-through cache</h3>
+          <span class="rm-verdict v-do">Standout</span>
+        </div>
+        <p>The headline feature, and already designed down to TTLs: Caffeine (search 10 min · detail 24 h ·
+          genres 7 days) → MySQL shadow rows (<code>UNIQUE(source, external_id)</code>, 14-day
+          <code>cached_at</code>) → RAWG on a genuine miss, with 2s/4s timeouts and a 60-second circuit
+          breaker.</p>
+        <p class="rm-anchor">Brief §11. Cache annotations belong on <code>RawgCatalogProvider</code>, not the
+          controller — the brief argues this explicitly, and it is what protects the internal
+          materialization path too.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">multi-day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High · standout</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P8 · F13/F15</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-do">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B17" /><span class="rm-id">B17</span></label>
+          <h3>Cart, checkout &amp; order snapshots</h3>
+          <span class="rm-verdict v-do">Do it</span>
+        </div>
+        <p>The interesting part is the persistence distinction the brief already draws: a shadow row is a
+          cache and may change; an <code>order_item</code> is history and may not. Price and title get
+          snapshotted at purchase.</p>
+        <p class="rm-anchor">New <code>orders</code> / <code>order_items</code> tables — as V-numbered
+          migrations, which is why <code>B7</code> comes first. Guest carts migrate from localStorage on login.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">multi-day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-later">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B18" /><span class="rm-id">B18</span></label>
+          <h3>Rate-limit the auth endpoints</h3>
+          <span class="rm-verdict v-later">Later</span>
+        </div>
+        <p><code>/api/v2/auth/**</code> is <code>permitAll</code>, skipped by the JWT filter, and completely
+          unthrottled — an unlimited credential-stuffing surface. Low effort, but only matters once the app
+          is publicly reachable.</p>
+        <p class="rm-anchor">bucket4j in the filter chain, or a Caddy-level rate limit on the auth path.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~half day</span></div>
+          <div class="rm-metric"><span class="m-k">Depends on</span><span class="m-v">B5</span></div>
+        </div>
+      </article>
+
+      <article class="rm-card v-later">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="B19" /><span class="rm-id">B19</span></label>
+          <h3>Refresh-token rotation</h3>
+          <span class="rm-verdict v-later">Later</span>
+        </div>
+        <p>The textbook-correct answer, and genuinely optional here — the brief's position is that a 24-hour
+          token with no revocation is a defensible portfolio trade-off. Do it to <em>show</em> you know the
+          pattern, not because the current design is broken.</p>
+        <p class="rm-anchor">Short-lived access token + <code>httpOnly</code> refresh cookie on a scoped path.
+          Meaningless without the matching client-side silent renew.</p>
+        <div class="rm-meta">
+          <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 day</span></div>
+          <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Low–Medium</span></div>
+          <div class="rm-metric"><span class="m-k">Pair with</span><span class="m-v pair">P9 · FE renew</span></div>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PAIRINGS ─────────────────────────── -->
+<section id="pairings" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Cross-stack · Recommended Pairings</p>
+    <h2>Nine places where doing one side alone is wasted work</h2>
+    <p class="section-lede">
+      The backend and frontend live in separate repos, which makes it easy to finish a task that cannot be
+      verified — or worse, ship an API shape the client then has to absorb twice. These pairs should be
+      tackled in the same sitting. This section is duplicated verbatim in the frontend roadmap.
+    </p>
+
+    <div class="pair-grid">
+
+      <article class="pair">
+        <div class="pair-no">P1</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B1 · CORS origin from env</span><span class="ps-sub">CorsConfig.java:21</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F1 · single API base-URL constant</span><span class="ps-sub">services/api.ts:5 · DemoPage.tsx:9</span></div>
+        <p class="pair-why"><b>Why together:</b> neither is testable on its own. The backend change has no
+          observable effect until a non-localhost origin calls it, and the frontend change has nowhere to
+          point until the backend accepts one. Combined, they are about an hour and they are <em>the</em>
+          deploy unblocker.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P2</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B4 + B5 · Docker &amp; Oracle VM</span><span class="ps-sub">compose · Caddy · TLS</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F2 · Cloudflare Pages deploy</span><span class="ps-sub">VITE_API_URL at build time</span></div>
+        <p class="pair-why"><b>Why together:</b> the dependency is circular. The SPA bundle needs the API's
+          public origin baked in at build time, and the API's <code>CORS_ALLOWED_ORIGINS</code> needs the Pages
+          domain. Sequence it in one session: bring the API up first, build the SPA against its URL, then set
+          the CORS value to the Pages host and redeploy the API.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P3</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B6 · backend briefs → Pages</span><span class="ps-sub">architecture · learning guide · roadmap</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F3 · frontend briefs → Pages</span><span class="ps-sub">architecture · catalog pivot · roadmap</span></div>
+        <p class="pair-why"><b>Why together:</b> six documents across two repos, but one story. The existing
+          cross-doc switcher already links between repos using relative filesystem paths — those break the
+          moment the docs are served from two different Pages sites, so the URLs have to be fixed on both
+          sides at once or half the doc set becomes orphaned.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P4</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B9 · purchase &amp; library endpoints</span><span class="ps-sub">PurchaseRepository, currently unused</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F14 · real LibraryPage</span><span class="ps-sub">LibraryPage.tsx:15</span></div>
+        <p class="pair-why"><b>Why together:</b> the Library page currently calls <code>getAll()</code> and
+          shows every game in the store as though the user owned it. The page is actively misleading, and
+          neither half fixes that alone — endpoints with no consumer prove nothing, and the page cannot be
+          corrected without them.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P5</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B10 + B11 · <code>Page&lt;GameResponse&gt;</code></span><span class="ps-sub">GamesService.searchGames():32</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F13 · consume Page, drop client filter</span><span class="ps-sub">gameService.search → getAll()</span></div>
+        <p class="pair-why"><b>Why together:</b> shipping pagination before the DTO forces the frontend
+          through two breaking rewrites — once for the envelope, once when the entity becomes a DTO. Land the
+          final shape and its only consumer in one go.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P6</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">duplicate-email 400 → 409</span><span class="ps-sub">GlobalExceptionHandler</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F11 · error handling rework</span><span class="ps-sub">utils/apiError.ts</span></div>
+        <p class="pair-why"><b>Why together — and never apart:</b> the brief documents 400 as a deliberate
+          choice "because the frontend keys on 400 for this case", and it does. Changing the status
+          server-side in isolation silently breaks the registration error message with no test failure to
+          catch it. This is the clearest example on the board of a change that is only safe as a pair.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P7</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B13 · <code>mvnw verify</code> job</span><span class="ps-sub">Surefire + Failsafe, H2</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">lint + <code>tsc -b</code> + build job</span><span class="ps-sub">no CI exists in either repo</span></div>
+        <p class="pair-why"><b>Why together:</b> a badge that only covers one repo is worse than none — it
+          implies coverage it does not have. Two jobs, authored together, so "green" means the whole stack
+          builds on a clean machine.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P8</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B16 · RAWG + tiered cache</span><span class="ps-sub">Caffeine → shadow rows → RAWG</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">F13 / F15 · query layer + degraded banner</span><span class="ps-sub">?search= &amp; page= in the URL</span></div>
+        <p class="pair-why"><b>Why together:</b> the design's best detail is the <code>degraded</code> response
+          flag for when RAWG is down and the cache is serving stale rows — and a flag nobody renders is just a
+          field. The pairing also retires the 501 stub button on the admin dashboard, which is currently the
+          most visible unfinished thing in the UI.</p>
+      </article>
+
+      <article class="pair">
+        <div class="pair-no">P9</div>
+        <div class="pair-side be"><span class="ps-k">Backend</span><span class="ps-v">B19 · refresh-token rotation</span><span class="ps-sub">httpOnly cookie + short access token</span></div>
+        <div class="pair-side fe"><span class="ps-k">Frontend</span><span class="ps-v">silent renew in the interceptor</span><span class="ps-sub">services/api.ts:22-34</span></div>
+        <p class="pair-why"><b>Why together:</b> today a token that dies mid-session is discovered only when
+          the server rejects a request, and the client responds with a hard page reload. Issuing refresh
+          tokens the client never exchanges changes nothing a user would notice.</p>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── SKIPPED ─────────────────────────── -->
+<section id="skipped" class="reveal">
+  <div class="wrap">
+    <p class="kicker">Discarded · Quick wins that aren't</p>
+    <h2>Six shortcuts that look cheap and cost more later</h2>
+    <p class="section-lede">
+      Each of these is genuinely fast to do and would each create work to undo. They are listed so the
+      decision is on the record rather than rediscovered.
+    </p>
+
+    <div class="rm-grid">
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS1" /><span class="rm-id">✕</span></label>
+          <h3>Flip <code>ddl-auto</code> to <code>validate</code> now</h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>Looks like a one-word hardening win. Without Flyway actually wired up (<code>B7</code>) there is no
+          migration runner to create the schema, so the app simply refuses to start.</p>
+      </article>
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS2" /><span class="rm-id">✕</span></label>
+          <h3>Put <code>@Cacheable</code> on the controllers</h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>Fast to add, and would be deleted during <code>B16</code>. The brief argues the cache belongs on
+          the provider precisely so the internal materialization path is protected too — controller-level
+          caching misses that and has to be unwound.</p>
+      </article>
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS3" /><span class="rm-id">✕</span></label>
+          <h3>Implement the RAWG sync ad hoc</h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>Filling in the 501 stub with a quick fetch-and-save discards a design that already exists:
+          <code>dto/GameRequest.java:16-18</code> documents a future <code>RawgImportService</code> mapping
+          RAWG JSON onto that record, so import reuses the same validation as the API. A shortcut here throws
+          that reuse away.</p>
+      </article>
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS4" /><span class="rm-id">✕</span></label>
+          <h3>Expose <code>/games/search</code> returning a plain <code>List</code></h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>Half an hour, and it guarantees a second breaking change the moment pagination lands — plus a
+          second frontend rewrite. If the method is worth exposing, expose it with the final envelope.</p>
+      </article>
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS5" /><span class="rm-id">✕</span></label>
+          <h3>Change <code>users.id</code> from <code>Integer</code> to <code>Long</code></h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>The inconsistency with <code>games.id</code> is real and slightly ugly. <code>V1__baseline.sql</code>
+          already calls it accepted debt: changing a primary-key type that other tables reference is genuine
+          risk for a cosmetic payoff.</p>
+      </article>
+
+      <article class="rm-card v-skip">
+        <div class="rm-head">
+          <label class="rm-tick"><input type="checkbox" data-ck="BS6" /><span class="rm-id">✕</span></label>
+          <h3>Move duplicate-email from 400 to 409 on its own</h3>
+          <span class="rm-verdict v-skip">Skip</span>
+        </div>
+        <p>Correct in isolation, breaking in practice — the frontend keys on 400. Valid only as pairing
+          <b>P6</b>, never as a standalone tidy-up.</p>
+      </article>
+
+    </div>
+
+    <p class="caption">
+      Also deliberately out of scope, per the architecture briefs: Kubernetes · Redis · microservices ·
+      Kafka / event sourcing / CQRS · GraphQL · Terraform. One bounded context does not need any of them, and
+      reaching for them reads as résumé-driven complexity.
+    </p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Backend roadmap · sequenced from the architecture briefs and a source-level audit ·
+    checkbox state is stored in this browser only, under <code>gamestore-backend-roadmap-v1</code>.<br />
+    Companion file: <a href="../../../GameStore/docs/frontend-roadmap.html"><code>GameStore/docs/frontend-roadmap.html</code></a>
+  </div>
+</footer>
+
+<script>
+  /* ══════════════════════════════════════════════════════════════
+     Checkbox persistence — same pattern as the recruiter checklist
+     in architecture.html, but under its own key so the two roadmaps
+     never share state.
+     ══════════════════════════════════════════════════════════════ */
+  const CK_KEY = "gamestore-backend-roadmap-v1";
+  const ckBoxes = [...document.querySelectorAll("input[data-ck]")];
+  const ckDone = document.getElementById("checkDone");
+  const ckTotal = document.getElementById("checkTotal");
+  const ckBar = document.getElementById("checkBar");
+  const ckReset = document.getElementById("checkReset");
+
+  // Only real roadmap tasks count toward progress — the discarded
+  // cards are tickable as "acknowledged" but must not inflate the bar.
+  const ckCounted = ckBoxes.filter((b) => !b.dataset.ck.startsWith("BS"));
+  if (ckTotal) ckTotal.textContent = ckCounted.length;
+
+  function loadCk() {
+    try { return JSON.parse(localStorage.getItem(CK_KEY)) || {}; }
+    catch { return {}; }
+  }
+  function saveCk(state) {
+    try { localStorage.setItem(CK_KEY, JSON.stringify(state)); } catch { /* private mode */ }
+  }
+  function renderCk() {
+    const state = loadCk();
+    let done = 0;
+    ckBoxes.forEach((box) => {
+      const on = !!state[box.dataset.ck];
+      box.checked = on;
+      box.closest(".rm-card").classList.toggle("done", on);
+      if (on && !box.dataset.ck.startsWith("BS")) done++;
+    });
+    if (ckDone) ckDone.textContent = done;
+    if (ckBar) ckBar.style.width = ckCounted.length ? (done / ckCounted.length * 100) + "%" : "0%";
+  }
+  ckBoxes.forEach((box) => {
+    box.addEventListener("change", () => {
+      const state = loadCk();
+      state[box.dataset.ck] = box.checked;
+      saveCk(state);
+      renderCk();
+    });
+  });
+  if (ckReset) ckReset.addEventListener("click", () => { saveCk({}); renderCk(); });
+  renderCk();
+
+  /* ══════════════════════════════════════════════════════════════
+     PAGE CHROME — progressive enhancement only. The document reads
+     fine without any of this, and motion is gated on the user's
+     reduced-motion preference.
+     ══════════════════════════════════════════════════════════════ */
+  const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const progress = document.createElement("div");
+  progress.id = "readProgress";
+  document.body.appendChild(progress);
+
+  const toTop = document.createElement("button");
+  toTop.id = "toTop";
+  toTop.type = "button";
+  toTop.setAttribute("aria-label", "Back to top");
+  toTop.textContent = "↑";
+  toTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: motionOK ? "smooth" : "auto" });
+  });
+  document.body.appendChild(toTop);
+
+  function onScroll() {
+    const h = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
+    progress.style.width = pct + "%";
+    toTop.classList.toggle("show", window.scrollY > 600);
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // ── Scroll-spy on the sticky subnav ──
+  const navLinks = [...document.querySelectorAll(".subnav a")];
+  const spied = navLinks
+    .map((a) => document.querySelector(a.getAttribute("href")))
+    .filter(Boolean);
+  if ("IntersectionObserver" in window && spied.length) {
+    const spy = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        navLinks.forEach((a) =>
+          a.classList.toggle("active", a.getAttribute("href") === "#" + e.target.id)
+        );
+      });
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    spied.forEach((s) => spy.observe(s));
+  }
+
+  // ── Scroll reveal ──
+  if (motionOK && "IntersectionObserver" in window) {
+    const rev = new IntersectionObserver((entries, obs) => {
+      entries.forEach((e) => {
+        if (!e.isIntersecting) return;
+        e.target.classList.add("in");
+        obs.unobserve(e.target);
+      });
+    }, { rootMargin: "0px 0px -10% 0px" });
+    document.querySelectorAll(".reveal").forEach((el) => rev.observe(el));
+  } else {
+    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("in"));
+  }
+</script>
