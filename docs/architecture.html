@@ -187,6 +187,12 @@
     overflow-x: auto;
   }
   .diagram-shell .mermaid { text-align: center; min-width: 640px; }
+  /* Mermaid stripes ER attribute rows off `background` and lands the odd one
+     at near-white, which is unreadable under the light diagram text. It ignores
+     attributeBackgroundColorOdd/Even, so restate the fills here — CSS beats the
+     presentation attribute. Both tones keep the text above 11:1. */
+  .diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: #1e2432; }
+  .diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: #171c28; }
   .caption {
     font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
     margin: 14px 2px 0;
