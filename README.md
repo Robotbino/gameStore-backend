@@ -2,6 +2,20 @@
 
 REST API for a game store application built with Spring Boot. Supports user registration and login with JWT authentication, role-based access (USER / ADMIN), and CRUD management of games and users, backed by a MySQL database.
 
+> **Live demo:** _coming soon_ &nbsp;·&nbsp; **Frontend repo:** [`GameStore`](../../GameStore) &nbsp;·&nbsp; **Architecture docs:** [Backend](docs/architecture.html) · [Learning guide](docs/architecture-and-learning-guide.html)
+
+## Documentation
+
+An interactive engineering handbook ships in `docs/` — open the HTML files in any browser (no build needed):
+
+| Doc | What it covers |
+|-----|----------------|
+| [`docs/architecture.html`](docs/architecture.html) | Backend architecture, request lifecycle, security, plus the **caching strategy, persistence plan, $0 deployment, Docker topology, hardening, and scorecard** (§11–§16) |
+| [`docs/architecture-and-learning-guide.html`](docs/architecture-and-learning-guide.html) | Design patterns, Spring internals, and an OCA-badged Java tour with quizzes |
+| [`GameStore`](../../GameStore/docs/architecture.html) | Frontend architecture and the full **roadmap board, maturity ladder, and recruiter checklist** |
+
+The two repos' docs cross-link via a switcher strip at the top of each page.
+
 ## Tech Stack
 
 - **Java 17**

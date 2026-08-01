@@ -4,7 +4,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
 <style>
   :root {
@@ -33,8 +33,10 @@
     --radius-sm: 8px;
     --maxw: 1140px;
     --mono: "JetBrains Mono", ui-monospace, monospace;
-    --display: "Sora", system-ui, sans-serif;
-    --body: "Public Sans", system-ui, sans-serif;
+    /* Atkinson Hyperlegible — letterforms designed for maximum legibility.
+       Ships only 400/700, so heading weights are normalised to those below. */
+    --display: "Atkinson Hyperlegible", system-ui, sans-serif;
+    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -110,7 +112,7 @@
     text-wrap: balance;
     margin: 0 0 18px;
   }
-  h1 .sub { color: var(--ink-soft); font-weight: 500; }
+  h1 .sub { color: var(--ink-soft); font-weight: 400; }
   .lede {
     max-width: 62ch;
     color: var(--ink-soft);
@@ -127,7 +129,7 @@
     border-radius: 999px;
     padding: 5px 12px;
   }
-  .chip b { color: var(--accent); font-weight: 500; }
+  .chip b { color: var(--accent); font-weight: 400; }
 
   .kpis {
     display: grid; grid-template-columns: repeat(4, 1fr);
@@ -144,10 +146,10 @@
     text-transform: uppercase; color: var(--ink-faint);
   }
   .kpi .v {
-    font-family: var(--display); font-weight: 600; font-size: 1.35rem;
+    font-family: var(--display); font-weight: 700; font-size: 1.35rem;
     color: var(--ink); margin-top: 4px;
   }
-  .kpi .v small { color: var(--ink-soft); font-weight: 500; font-size: .8rem; }
+  .kpi .v small { color: var(--ink-soft); font-weight: 400; font-size: .8rem; }
 
   /* ── Sections ── */
   section { padding: 64px 0; border-bottom: 1px solid var(--line); }
@@ -165,13 +167,13 @@
   }
   h2 {
     font-family: var(--display);
-    font-weight: 600;
+    font-weight: 700;
     font-size: clamp(1.5rem, 3vw, 2.1rem);
     letter-spacing: -.015em;
     margin: 0 0 10px;
   }
   h3 {
-    font-family: var(--display); font-weight: 600;
+    font-family: var(--display); font-weight: 700;
     font-size: 1.05rem; margin: 0 0 8px; letter-spacing: -.01em;
   }
   .section-lede { color: var(--ink-soft); max-width: 66ch; margin: 0 0 30px; }
@@ -229,7 +231,7 @@
   }
   .layer-btn.active .label { color: var(--accent); }
   .layer-btn .title {
-    font-family: var(--display); font-weight: 600; font-size: 1.02rem;
+    font-family: var(--display); font-weight: 700; font-size: 1.02rem;
   }
   .layer-btn .hint { color: var(--ink-soft); font-size: .85rem; }
 
@@ -285,7 +287,7 @@
     font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
     text-transform: uppercase; color: var(--ink-faint);
   }
-  .stage .s-t { font-family: var(--display); font-weight: 600; font-size: .95rem; }
+  .stage .s-t { font-family: var(--display); font-weight: 700; font-size: .95rem; }
   .stage .s-d { color: var(--ink-soft); font-size: .82rem; }
   .stage.cors   { border-left: 3px solid var(--spring); }
   .stage.jwt    { border-left: 3px solid var(--auth); }
@@ -319,7 +321,7 @@
     color: var(--ink);
     box-shadow: inset 0 0 0 1px var(--line-2);
   }
-  .tab .step { color: var(--accent); font-weight: 600; margin-right: 6px; }
+  .tab .step { color: var(--accent); font-weight: 700; margin-right: 6px; }
 
   .flow-panel[hidden] { display: none; }
   .flow-panel {
@@ -351,7 +353,7 @@
     color: var(--accent); text-transform: uppercase;
   }
   .step-item .title {
-    font-family: var(--display); font-weight: 600; font-size: 1rem;
+    font-family: var(--display); font-weight: 700; font-size: 1rem;
     margin: 4px 0 6px;
   }
   .step-item .body { color: var(--ink-soft); font-size: .92rem; margin: 0 0 8px; }
@@ -497,7 +499,7 @@
     padding: 16px 18px;
   }
   .entity h4 {
-    font-family: var(--display); font-weight: 600; font-size: 1rem;
+    font-family: var(--display); font-weight: 700; font-size: 1rem;
     margin: 0 0 4px; letter-spacing: -.01em;
   }
   .entity h4 .cls { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); font-weight: 400; }
@@ -539,7 +541,7 @@
   details.acc[open] { background: var(--panel-2); }
   details.acc summary {
     cursor: pointer;
-    font-family: var(--display); font-weight: 600;
+    font-family: var(--display); font-weight: 700;
     color: var(--ink);
     list-style: none;
     display: flex; align-items: center; gap: 10px;
@@ -561,9 +563,307 @@
     .flow-panel { grid-template-columns: 1fr; }
     .jwt-anatomy { grid-template-columns: 1fr; }
     .kpis { grid-template-columns: repeat(2, 1fr); }
+    .cache-ladder, .persist-grid, .compare, .sec-grid { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: 1fr 66px; }
+    .score-row .s-label { grid-column: 1 / -1; }
     section { padding: 44px 0; }
   }
+
+  /* ── Cross-doc switcher (shared across the four architecture briefs) ── */
+  .doc-switch { border-bottom: 1px solid var(--line); background: var(--panel); }
+  .doc-switch-inner {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 24px; max-width: var(--maxw); margin: 0 auto;
+  }
+  .doc-switch .ds-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-right: 2px;
+  }
+  .doc-switch a {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
+    text-decoration: none; white-space: nowrap;
+  }
+  .doc-switch a:hover { color: var(--ink); background: var(--panel-2); text-decoration: none; }
+  .doc-switch a.is-here {
+    color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-dim);
+  }
+  .doc-switch .ds-repo {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  /* ── Shared components for §11–§16 ── */
+  .callout {
+    border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    background: rgba(109,94,252,.06); border-radius: 10px;
+    padding: 16px 18px; margin: 26px 0 0; color: var(--ink-soft); font-size: .95rem;
+  }
+  .callout.spring { border-left-color: var(--spring); background: rgba(109,179,63,.06); }
+  .callout.warn { border-left-color: var(--auth); background: rgba(245,166,35,.06); }
+  .callout b { color: var(--ink); font-weight: 700; }
+
+  /* Recommendation banner */
+  .reco {
+    display: flex; gap: 14px; align-items: baseline; margin: 26px 0 0;
+    border: 1px solid var(--new-dim); border-left: 3px solid var(--new);
+    background: rgba(52,211,153,.06); border-radius: 10px; padding: 16px 18px;
+  }
+  .reco .r-tag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase;
+    color: var(--new); white-space: nowrap; font-weight: 700;
+  }
+  .reco p { margin: 0; color: var(--ink-soft); font-size: .95rem; }
+  .reco b { color: var(--ink); font-weight: 700; }
+
+  /* Approach / host matrix rating dots */
+  .rate { letter-spacing: 1.5px; font-size: .8rem; white-space: nowrap; }
+  .rate .on { color: var(--accent-2); }
+  .rate .on.good { color: var(--new); }
+  .rate .on.warn { color: var(--auth); }
+  .rate .off { color: var(--line-2); }
+  tr.is-pick td { background: rgba(52,211,153,.05); }
+  tr.is-pick td:first-child { border-left: 2px solid var(--new); }
+
+  /* Cache tier ladder */
+  .cache-ladder { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+  .c-rung {
+    border: 1px solid var(--line); border-top: 3px solid var(--line-2); border-radius: var(--radius);
+    background: var(--panel); padding: 18px 16px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .c-rung.t1 { border-top-color: var(--new); }
+  .c-rung.t2 { border-top-color: var(--accent); }
+  .c-rung.t3 { border-top-color: var(--auth); }
+  .c-rung .c-tier { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); }
+  .c-rung h3 { margin: 0; font-size: 1.05rem; }
+  .c-rung p { margin: 0; color: var(--ink-soft); font-size: .89rem; }
+  .c-rung .c-hit { font-family: var(--mono); font-size: 11px; color: var(--new); margin-top: auto; padding-top: 8px; }
+  .c-rung.t3 .c-hit { color: var(--auth); }
+
+  /* Persistence four-column */
+  .persist-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .persist-col {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
+    padding: 16px 15px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .persist-col .p-head { display: flex; flex-direction: column; gap: 4px; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+  .persist-col .p-title { font-family: var(--display); font-weight: 700; font-size: .96rem; }
+  .persist-col .p-sub { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); }
+  .persist-col.k-perm  .p-title { color: var(--accent-2); }
+  .persist-col.k-cache .p-title { color: var(--new); }
+  .persist-col.k-sess  .p-title { color: var(--auth); }
+  .persist-col.k-none  .p-title { color: var(--info); }
+  .persist-col ul { margin: 0; padding-left: 15px; color: var(--ink-soft); font-size: .87rem; display: flex; flex-direction: column; gap: 6px; }
+
+  /* Deployment compare */
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px; }
+  .panel {
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
+    padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
+  }
+  .panel.now { border-left: 3px solid var(--danger); }
+  .panel.target { border-left: 3px solid var(--new); }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .panel-head h3 { margin: 0; font-size: 1.02rem; }
+  .verdict { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 6px; font-weight: 700; }
+  .verdict.bad { color: var(--danger); border: 1px solid var(--danger-dim); }
+  .verdict.good { color: var(--new); border: 1px solid var(--new-dim); }
+  .panel ul { margin: 0; padding-left: 16px; color: var(--ink-soft); font-size: .9rem; display: flex; flex-direction: column; gap: 5px; }
+
+  /* Security hardening cards */
+  .sec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .sec-card {
+    border: 1px solid var(--line); border-left: 3px solid var(--auth); border-radius: var(--radius);
+    background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 7px;
+  }
+  .sec-card h3 { margin: 0; font-size: .98rem; }
+  .sec-card p { margin: 0; color: var(--ink-soft); font-size: .89rem; }
+  .sec-card .s-now { font-family: var(--mono); font-size: 10.5px; color: var(--danger); }
+  .sec-card .s-fix { font-family: var(--mono); font-size: 10.5px; color: var(--new); }
+
+  /* §16 mini scorecard */
+  .score-grid { display: flex; flex-direction: column; gap: 11px; }
+  .score-row { display: grid; grid-template-columns: 210px 1fr 66px; gap: 14px; align-items: center; }
+  .score-row .s-label { font-size: .9rem; }
+  .score-row .s-label small { display: block; font-family: var(--mono); font-size: 10px; color: var(--ink-faint); margin-top: 2px; }
+  .score-bar { position: relative; height: 22px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .score-fill { position: absolute; inset: 0 auto 0 0; background: linear-gradient(90deg, var(--accent-dim), var(--accent)); }
+  .score-tgt { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--new); }
+  .score-num { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); text-align: right; }
+  .score-num b { color: var(--new); font-weight: 700; }
+
+  /* ══════════════════════════════════════════════════════════════════
+     REFINEMENT LAYER
+     Deliberately last in the stylesheet. Two reasons:
+       1. Media queries add no specificity, so the responsive rules for
+          components defined below the original @media block have to be
+          re-declared here or the desktop rule wins at every width.
+       2. The type scale above was tuned for Sora — a tight geometric
+          display face. Atkinson Hyperlegible is a legibility face with
+          open apertures and generous sidebearings; negative tracking
+          and 1.6 heading leading fight it. Retuned here.
+     ══════════════════════════════════════════════════════════════════ */
+
+  :root {
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --shadow-lg: 0 20px 52px -14px rgba(0,0,0,.62);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --ease: cubic-bezier(.2,.7,.3,1);
+    --nav-h: 56px;
+  }
+
+  /* ── Type scale, retuned for Atkinson ── */
+  h1 { line-height: 1.08; letter-spacing: -.018em; }
+  h2 { line-height: 1.18; letter-spacing: -.008em; }
+  h3 { line-height: 1.28; letter-spacing: 0; }
+  .kpi .v,
+  .c-rung h3,
+  .panel-head h3,
+  .sec-card h3,
+  .persist-col .p-title,
+  .layer-btn .name { line-height: 1.25; letter-spacing: 0; }
+  .lede { font-size: 1.09rem; line-height: 1.62; }
+  .section-lede { font-size: 1.01rem; line-height: 1.65; }
+
+  /* ── Anchor offset: the subnav is sticky, so jump targets need clearance ── */
+  section[id] { scroll-margin-top: calc(var(--nav-h) + 20px); }
+
+  /* ── Reading progress (injected by script) ── */
+  #readProgress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--spring));
+    z-index: 40; transition: width .12s linear; pointer-events: none;
+  }
+
+  /* ── Sticky subnav: active-section state ── */
+  .subnav a { transition: color .18s var(--ease), background .18s var(--ease); }
+  .subnav a.active { color: var(--accent-2); background: var(--accent-dim); }
+
+  /* ── Back to top (injected by script) ── */
+  #toTop {
+    position: fixed; right: 22px; bottom: 22px; z-index: 35;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--ink-soft);
+    display: grid; place-items: center; cursor: pointer; font-size: 15px;
+    box-shadow: var(--shadow-md);
+    opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity .25s var(--ease), transform .25s var(--ease),
+                visibility .25s, color .18s, border-color .18s;
+  }
+  #toTop.show { opacity: 1; visibility: visible; transform: none; }
+  #toTop:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ── Elevation & hover materials ── */
+  .kpi, .layer-btn, .diagram-shell, .c-rung,
+  .persist-col, .sec-card, .panel {
+    box-shadow: var(--shadow-sm);
+    transition: transform .24s var(--ease), box-shadow .24s var(--ease),
+                border-color .24s var(--ease), background .24s var(--ease);
+  }
+  .c-rung:hover, .persist-col:hover, .sec-card:hover, .panel:hover {
+    transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2);
+  }
+  .panel.now:hover    { border-left-color: var(--danger); }
+  .panel.target:hover { border-left-color: var(--new); }
+  .sec-card:hover     { border-left-color: var(--auth); }
+  .kpi:hover { border-color: var(--line-2); }
+  .diagram-shell { box-shadow: var(--shadow-md); }
+  .layer-btn:hover, .layer-btn.active { box-shadow: var(--shadow-md); }
+
+  .kpi { position: relative; overflow: hidden; }
+  .kpi::after {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent), transparent 70%);
+    opacity: .55;
+  }
+
+  /* Table rows respond to the pointer so long matrices stay trackable */
+  table.grid tbody tr { transition: background .16s var(--ease); }
+  table.grid tbody tr:hover { background: rgba(109,94,252,.05); }
+  tr.is-pick:hover td { background: rgba(52,211,153,.09); }
+
+  /* ── Focus visibility (keyboard users) ── */
+  a:focus-visible, button:focus-visible, input:focus-visible,
+  .layer-btn:focus-visible, .tab:focus-visible, summary:focus-visible {
+    outline: none; box-shadow: var(--ring); border-radius: 8px;
+  }
+
+  /* ── Selection & scrollbars ── */
+  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  html { scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+
+  /* ── Scroll reveal (motion-safe only) ── */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(16px); }
+    .reveal.in {
+      opacity: 1; transform: none;
+      transition: opacity .55s var(--ease), transform .55s var(--ease);
+    }
+  }
+
+  /* ══════════════════════════════════════════════
+     RESPONSIVE — re-declared after the components
+     they target (see note at the top of this layer)
+     ══════════════════════════════════════════════ */
+  @media (max-width: 1040px) {
+    .persist-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 900px) {
+    .cache-ladder, .compare, .sec-grid { grid-template-columns: 1fr; }
+    .score-row { grid-template-columns: 1fr 66px; }
+    .score-row .s-label { grid-column: 1 / -1; }
+    .doc-switch-inner { padding: 9px 18px; gap: 6px; }
+    .doc-switch .ds-repo { display: none; }
+    #toTop { right: 14px; bottom: 14px; }
+  }
+  @media (max-width: 620px) {
+    .persist-grid { grid-template-columns: 1fr; }
+    .kpis { grid-template-columns: 1fr; }
+    h1 { letter-spacing: -.01em; }
+  }
+
+  /* ══════════════════════════════════════════════
+     PRINT — everything styles through tokens, so
+     re-pointing them is the whole light-mode job.
+     ══════════════════════════════════════════════ */
+  @media print {
+    :root {
+      --bg: #fff; --panel: #fff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --spring: #3f7a1f; --spring-dim: #cfe6bd;
+      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+      --danger: #c22e46; --danger-dim: #f6d3da;
+    }
+    body { background: #fff !important; }
+    .subnav, .doc-switch, #readProgress, #toTop { display: none !important; }
+    section { padding: 26px 0; break-inside: avoid; }
+    .c-rung, .persist-col, .sec-card, .panel, .diagram-shell, .kpi,
+    table.grid { break-inside: avoid; box-shadow: none; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    a { color: #10131a; text-decoration: underline; }
+  }
 </style>
+
+<nav class="doc-switch" aria-label="Documentation set">
+  <div class="doc-switch-inner">
+    <span class="ds-label">Docs</span>
+    <span class="ds-repo">·&nbsp;frontend&nbsp;·</span>
+    <a href="../../../GameStore/docs/architecture.html">Frontend Architecture</a>
+    <a href="../../../GameStore/docs/catalog-architecture.html">Catalog Pivot</a>
+    <span class="ds-repo">·&nbsp;backend&nbsp;·</span>
+    <a href="architecture.html" class="is-here" aria-current="page">Backend Architecture</a>
+    <a href="architecture-and-learning-guide.html">Learning Guide</a>
+  </div>
+</nav>
 
 <nav class="subnav">
   <div class="subnav-inner">
@@ -577,6 +877,12 @@
     <a href="#errors">Error Mapping</a>
     <a href="#api">API Surface</a>
     <a href="#config">Config</a>
+    <a href="#caching">Caching</a>
+    <a href="#persistence">Persistence</a>
+    <a href="#deployment">Deployment</a>
+    <a href="#docker">Docker</a>
+    <a href="#hardening">Hardening</a>
+    <a href="#roadmap">Roadmap</a>
   </div>
 </nav>
 
@@ -1551,6 +1857,413 @@ erDiagram
   </div>
 </section>
 
+<!-- ─────────────────────────── CACHING ─────────────────────────── -->
+<section id="caching">
+  <div class="wrap">
+    <p class="kicker">§ 11 · Catalog &amp; Caching Strategy</p>
+    <h2>Can we serve RAWG data from our own database after the first fetch?</h2>
+    <p class="section-lede">
+      <b style="color:var(--new)">Yes — and we should.</b> The catalog will move to RAWG's live API
+      (<a href="../../../GameStore/docs/catalog-architecture.html">the pivot is fully designed here</a>),
+      but RAWG's free tier allows only ~20 000 requests a month. The answer is a read-through cache: the
+      first user to view a game pays the remote call, every user after reads it locally. Below is the
+      decision, not just the menu.
+    </p>
+
+    <h3 style="margin-top:34px">Ten approaches, one recommendation</h3>
+    <div class="diagram-shell" style="padding:0; overflow-x:auto;">
+      <table class="grid">
+        <thead>
+          <tr><th>Approach</th><th>What it is</th><th>Complexity</th><th>Free-host fit</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr class="is-pick"><td class="mono">A · Backend proxy</td><td>Frontend never calls RAWG; the API does. Hides the key, enables caching.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good">Foundation</span></td></tr>
+          <tr class="is-pick"><td class="mono">H · Caffeine</td><td>In-process cache. Sub-millisecond hits, zero infra, dies on restart.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good">Tier 1</span></td></tr>
+          <tr class="is-pick"><td class="mono">G · Spring Cache</td><td>The <code>@Cacheable</code> abstraction over Caffeine — swap providers without touching services.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good">Yes</span></td></tr>
+          <tr class="is-pick"><td class="mono">C · Database cache</td><td>Lazily-populated <code>games</code> shadow rows. Survives restarts; serves when RAWG is down.</td><td><span class="rate"><span class="on">●</span><span class="on">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good">Tier 2</span></td></tr>
+          <tr class="is-pick"><td class="mono">E · Hybrid</td><td>Caffeine → DB → RAWG, cheapest layer first. The composition of the four rows above.</td><td><span class="rate"><span class="on">●</span><span class="on">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good">Chosen</span></td></tr>
+          <tr><td class="mono">D · Scheduled sync</td><td>A cron job refreshing stale rows. Useful <em>later</em> as a warm-up, not as the primary path.</td><td><span class="rate"><span class="on">●</span><span class="on">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on warn">●</span><span class="on warn">●</span><span class="off">●</span></span></td><td><span class="verdict good" style="color:var(--auth);border-color:var(--auth-dim)">Optional</span></td></tr>
+          <tr><td class="mono">I · HTTP caching</td><td>ETag / Cache-Control on our own responses. Complements the above; helps the browser, not quota.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good" style="color:var(--auth);border-color:var(--auth-dim)">Add-on</span></td></tr>
+          <tr><td class="mono">J · Preloaded catalog</td><td>Import a fixed set of games once, never call RAWG live. Simple, but throws away the "live API" story.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict good" style="color:var(--auth);border-color:var(--auth-dim)">Fallback</span></td></tr>
+          <tr><td class="mono">B · App-level cache</td><td>A hand-rolled <code>Map</code>. Exactly what Caffeine already is, minus eviction and stats.</td><td><span class="rate"><span class="on">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="rate"><span class="on good">●</span><span class="on good">●</span><span class="on good">●</span></span></td><td><span class="verdict bad">Superseded</span></td></tr>
+          <tr><td class="mono">F · Redis</td><td>Out-of-process cache. Real, but adds a service to run, secure and back up for no gain at this scale.</td><td><span class="rate"><span class="on warn">●</span><span class="on warn">●</span><span class="on warn">●</span></span></td><td><span class="rate"><span class="on warn">●</span><span class="off">●</span><span class="off">●</span></span></td><td><span class="verdict bad">Rejected</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="reco">
+      <span class="r-tag">Recommendation</span>
+      <p><b>Spring Cache abstraction over Caffeine (Tier 1) → MySQL shadow rows (Tier 2) → RAWG on a
+        genuine miss.</b> No Redis. This is a hybrid (E) built from A + G + H + C. It fits a single free
+        VM with no extra services, degrades to cached data when RAWG is unreachable, and the
+        provider-swap seam (<code>@Cacheable</code>) is itself a senior-level talking point.</p>
+    </div>
+
+    <h3 style="margin-top:40px">Tier 1 · Tier 2 · Tier 3 — cheapest first</h3>
+    <div class="cache-ladder">
+      <div class="c-rung t1">
+        <span class="c-tier">Tier 1 · in-process</span>
+        <h3>Caffeine</h3>
+        <p>Search 10 min, detail 24 h, genres 7 days. Annotated on the provider via <code>@Cacheable</code>.</p>
+        <span class="c-hit">Hit → ~0 ms · 0 quota</span>
+      </div>
+      <div class="c-rung t2">
+        <span class="c-tier">Tier 2 · durable</span>
+        <h3>MySQL shadow row</h3>
+        <p>Survives restarts. Serves while <code>cached_at</code> is under 14 days old — and serves
+          everything when RAWG is down.</p>
+        <span class="c-hit">Hit → one local query · 0 quota</span>
+      </div>
+      <div class="c-rung t3">
+        <span class="c-tier">Tier 3 · remote</span>
+        <h3>RAWG API</h3>
+        <p>Reached only on a genuine miss, with explicit 2 s / 4 s timeouts, then batch-upserted locally.</p>
+        <span class="c-hit">Miss → 1 call, then cached</span>
+      </div>
+    </div>
+
+    <h3 style="margin-top:40px">The four flows that make it safe</h3>
+
+    <h3 style="margin-top:22px;font-size:.98rem;color:var(--ink-soft)">1 · Read-through ladder</h3>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart LR
+  U["Request<br/>GET /api/catalog"] --> C{"Caffeine<br/>hit?"}
+  C -->|yes| R1["Return ~0 ms"]:::good
+  C -->|no| D{"Fresh shadow<br/>row in MySQL?"}
+  D -->|yes| R2["Return + warm Caffeine"]:::good
+  D -->|no| X["Call RAWG<br/>2s / 4s timeout"]:::ext
+  X --> S["Batch upsert to MySQL<br/>+ warm Caffeine"]:::chg
+  S --> R3["Return"]:::good
+  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
+  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
+  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
+      </pre>
+    </div>
+    <p class="caption">Diagram 1 · every layer answers before the next is touched, so quota is spent only on genuinely new games.</p>
+
+    <h3 style="margin-top:26px;font-size:.98rem;color:var(--ink-soft)">2 · Lazy load &amp; duplicate prevention</h3>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+sequenceDiagram
+  participant S as CatalogService
+  participant P as RawgProvider
+  participant DB as MySQL games
+  S->>P: fetch("witcher") on miss
+  P-->>S: 40 CatalogGame records
+  S->>DB: SELECT by (source, external_id) IN (…)
+  DB-->>S: existing ids (some already present)
+  S->>DB: saveAll — insert new, refresh stale
+  Note over DB: UNIQUE(source, external_id)<br/>makes re-fetch idempotent
+  DB-->>S: 40 rows, each with a local Long id
+      </pre>
+    </div>
+    <p class="caption">Diagram 2 · the composite unique key means two users searching the same term never create duplicate rows.</p>
+
+    <h3 style="margin-top:26px;font-size:.98rem;color:var(--ink-soft)">3 · Staleness &amp; scheduled refresh</h3>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart TB
+  A["Shadow row read"] --> B{"cached_at<br/>&lt; 14 days?"}
+  B -->|yes| Serve["Serve as-is"]:::good
+  B -->|no| Stale["Serve stale immediately"]:::chg
+  Stale --> Q["Queue background refresh"]:::chg
+  Q --> RAWG["RAWG re-fetch"]:::ext
+  RAWG --> Up["Update row + cached_at"]:::good
+  Cron["@Scheduled nightly<br/>(optional warm-up)"]:::auth --> Q
+  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
+  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
+  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
+  classDef auth stroke:#60a5fa,stroke-width:2px,color:#e3f0ff,fill:#12203a;
+      </pre>
+    </div>
+    <p class="caption">Diagram 3 · reads never block on a refresh — stale data is served instantly while the update happens behind it.</p>
+
+    <h3 style="margin-top:26px;font-size:.98rem;color:var(--ink-soft)">4 · Degraded mode when RAWG is down</h3>
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart LR
+  Req["Catalog request"] --> Try["Call RAWG"]:::ext
+  Try -->|timeout / 5xx| Fall["Fall back to MySQL"]:::chg
+  Fall --> Ban["Response + degraded flag"]:::good
+  Ban --> UI["'Showing cached results' banner"]:::good
+  Try -->|repeated failures| CB["Circuit breaker opens 60 s"]:::auth
+  CB --> Fall
+  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
+  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
+  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
+  classDef auth stroke:#f0637a,stroke-width:2px,color:#ffe1e7,fill:#2a1015;
+      </pre>
+    </div>
+    <p class="caption">Diagram 4 · a store that degrades to cached data is a better store than one that returns a 500. The banner is honest; the page still works.</p>
+
+    <div class="callout spring">
+      <b>Why the cache lives on the provider, not the controller.</b> Annotating <code>@Cacheable</code>
+      on <code>RawgCatalogProvider</code> rather than the controller means the internal materialization
+      path — the code that turns a search into shadow rows — is protected too, not just the public HTTP
+      surface. A cache in front of the door but not the back door isn't a cache.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── PERSISTENCE ─────────────────────────── -->
+<section id="persistence">
+  <div class="wrap">
+    <p class="kicker">§ 12 · Persistence Strategy</p>
+    <h2>Persist what must be true forever; recreate the rest</h2>
+    <p class="section-lede">
+      A portfolio store does not need enterprise persistence. The discipline is knowing which data
+      earns a permanent row, which is just a cache, and which can live in a session or a URL. Over-persisting
+      is its own kind of amateur tell.
+    </p>
+
+    <div class="persist-grid">
+      <div class="persist-col k-perm">
+        <div class="p-head"><span class="p-title">Persist forever</span><span class="p-sub">system of record</span></div>
+        <ul>
+          <li>Users, roles, credentials</li>
+          <li>Orders + order_items</li>
+          <li>Price &amp; title <em>snapshots</em> at purchase</li>
+          <li>Game shadow rows &amp; LOCAL rows</li>
+          <li>Admin price overrides</li>
+        </ul>
+      </div>
+      <div class="persist-col k-cache">
+        <div class="p-head"><span class="p-title">Cache · evictable</span><span class="p-sub">rebuildable from RAWG</span></div>
+        <ul>
+          <li>RAWG search results</li>
+          <li>Game detail payloads</li>
+          <li>Genre list</li>
+          <li>Anything with a <code>cached_at</code></li>
+        </ul>
+      </div>
+      <div class="persist-col k-sess">
+        <div class="p-head"><span class="p-title">Session / client</span><span class="p-sub">no server row needed</span></div>
+        <ul>
+          <li>Guest cart (localStorage → server on login)</li>
+          <li>Filters, sort, page (URL query params)</li>
+          <li>Theme preference</li>
+          <li>JWT (localStorage)</li>
+        </ul>
+      </div>
+      <div class="persist-col k-none">
+        <div class="p-head"><span class="p-title">On demand only</span><span class="p-sub">never stored</span></div>
+        <ul>
+          <li>RAWG images (hotlinked, never re-hosted)</li>
+          <li>Aggregate stats (computed per request)</li>
+          <li>Derived display prices</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout">
+      <b>The one rule that ties it together:</b> a shadow row is a <em>cache</em>, so it may change; an
+      order_item is <em>history</em>, so it may not. That is why price and title are snapshotted onto the
+      order at checkout — join a receipt live to <code>games</code> and last month's receipt silently
+      rewrites itself when RAWG retitles a game.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── DEPLOYMENT ─────────────────────────── -->
+<section id="deployment">
+  <div class="wrap">
+    <p class="kicker">§ 13 · Deployment Architecture</p>
+    <h2>From "runs on my machine" to a link recruiters can click — for $0</h2>
+    <p class="section-lede">
+      The whole stack can go live without a credit card. The constraint is a feature: doing it on free
+      infrastructure forces exactly the Docker, reverse-proxy and CI decisions that make the project
+      worth reviewing.
+    </p>
+
+    <div class="compare">
+      <article class="panel now">
+        <div class="panel-head"><h3>Today</h3><span class="verdict bad">Local only</span></div>
+        <ul>
+          <li>Runs on <code>localhost</code> only — no public URL</li>
+          <li>No container; manual MySQL + <code>mvnw</code> + <code>npm run dev</code></li>
+          <li>CORS hardcoded to <code>localhost:5173</code></li>
+          <li>Secrets in <code>application.properties</code> / env by hand</li>
+          <li>No CI; nothing proves it builds elsewhere</li>
+        </ul>
+      </article>
+      <article class="panel target">
+        <div class="panel-head"><h3>Target ($0)</h3><span class="verdict good">Public + HTTPS</span></div>
+        <ul>
+          <li>SPA on <b>Cloudflare Pages</b> — global CDN, free HTTPS, no cold start</li>
+          <li>API + MySQL on an <b>Oracle Cloud Always-Free</b> ARM VM via <code>docker compose</code></li>
+          <li><b>Caddy</b> container terminates HTTPS with automatic Let's Encrypt</li>
+          <li>Config from env; nothing secret in the repo</li>
+          <li><b>GitHub Actions → GHCR → SSH deploy</b> on every push to main</li>
+          <li>Docs on <b>GitHub Pages</b> — these briefs become a link</li>
+        </ul>
+      </article>
+    </div>
+
+    <h3 style="margin-top:34px">Free-host comparison</h3>
+    <div class="diagram-shell" style="padding:0; overflow-x:auto;">
+      <table class="grid">
+        <thead>
+          <tr><th>Host</th><th>Role</th><th>Cold start</th><th>Catch</th><th>Verdict</th></tr>
+        </thead>
+        <tbody>
+          <tr class="is-pick"><td class="mono">Oracle Cloud Free</td><td>API + MySQL VM</td><td>None</td><td>Fiddly signup, ARM capacity errors</td><td><span class="verdict good">Primary</span></td></tr>
+          <tr class="is-pick"><td class="mono">Cloudflare Pages</td><td>Static SPA</td><td>None</td><td>Build-time env only</td><td><span class="verdict good">Primary</span></td></tr>
+          <tr class="is-pick"><td class="mono">GitHub Pages</td><td>These docs</td><td>None</td><td>Static only</td><td><span class="verdict good">Primary</span></td></tr>
+          <tr><td class="mono">Render (free)</td><td>API fallback</td><td>~50 s</td><td>Sleeps after 15 min idle</td><td><span class="verdict good" style="color:var(--auth);border-color:var(--auth-dim)">Fallback</span></td></tr>
+          <tr><td class="mono">Neon (free)</td><td>Postgres fallback</td><td>None</td><td>Needs MySQL→Postgres port</td><td><span class="verdict good" style="color:var(--auth);border-color:var(--auth-dim)">Fallback</span></td></tr>
+          <tr><td class="mono">Railway</td><td>—</td><td>—</td><td>No free tier anymore</td><td><span class="verdict bad">No</span></td></tr>
+          <tr><td class="mono">Fly.io</td><td>—</td><td>—</td><td>No real free tier</td><td><span class="verdict bad">No</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <b>Be honest about Oracle.</b> The Always-Free ARM tier is genuinely free and powerful (4 cores /
+      24 GB), but signup can be painful and "out of capacity" errors on <code>A1.Flex</code> are common.
+      The documented fallback is Render (free web service) + Neon (free Postgres) + Cloudflare Pages —
+      it costs a ~50 s cold start and a MySQL→Postgres migration. Note: Render's <em>own</em> free
+      Postgres expires after 30 days, which is exactly why Neon is named instead.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── DOCKER ─────────────────────────── -->
+<section id="docker">
+  <div class="wrap">
+    <p class="kicker">§ 14 · Docker Topology</p>
+    <h2>Four containers, one network, one command</h2>
+    <p class="section-lede">
+      The whole backend side runs as a small <code>docker compose</code> stack. Caddy is the only
+      container exposed to the internet; everything else talks over a private bridge network and is
+      never published to a host port.
+    </p>
+
+    <div class="diagram-shell">
+      <pre class="mermaid">
+flowchart TB
+  Internet(("Internet")) -->|443| Caddy["caddy<br/>reverse proxy · TLS"]:::auth
+  subgraph net["Docker network · gamestore-net (internal)"]
+    Caddy -->|/api → :8181| API["api<br/>Spring Boot"]:::chg
+    API -->|jdbc:3306| DB["db<br/>MySQL 8"]:::core
+    DB --- Vol[("volume<br/>mysql-data")]:::vol
+    Caddy -.->|static SPA*| Web["web<br/>built assets (or Cloudflare Pages)"]:::core
+  end
+  classDef auth stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
+  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
+  classDef core stroke:#98a1b5,stroke-width:1.5px,color:#e7ebf3,fill:#1b2130;
+  classDef vol stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
+      </pre>
+    </div>
+    <p class="caption">*In the $0 plan the SPA is served by Cloudflare Pages, so the <code>web</code>
+      container is optional — the same compose file works both ways.</p>
+
+    <div class="diagram-shell" style="padding:0; overflow-x:auto; margin-top:20px;">
+      <table class="grid">
+        <thead>
+          <tr><th>Service</th><th>Image</th><th>Ports</th><th>Volumes</th><th>Key env</th><th>Depends on</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">caddy</td><td class="mono">caddy:2</td><td class="mono">80, 443</td><td class="mono">caddy-data, Caddyfile</td><td class="mono">DOMAIN</td><td class="mono">api</td></tr>
+          <tr><td class="mono">api</td><td class="mono">eclipse-temurin:17</td><td class="mono">8181 (internal)</td><td class="mono">—</td><td class="mono">DB_*, JWT_SECRET, CORS_ORIGIN</td><td class="mono">db</td></tr>
+          <tr><td class="mono">db</td><td class="mono">mysql:8</td><td class="mono">3306 (internal)</td><td class="mono">mysql-data</td><td class="mono">MYSQL_*</td><td class="mono">—</td></tr>
+          <tr><td class="mono">web*</td><td class="mono">nginx:alpine</td><td class="mono">80 (internal)</td><td class="mono">built /dist</td><td class="mono">—</td><td class="mono">—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout">
+      <b>What each Docker concept buys here.</b> The <b>bridge network</b> lets <code>api</code> reach
+      <code>db</code> by service name (<code>jdbc:mysql://db:3306</code>) with no host ports exposed. The
+      named <b>volume</b> <code>mysql-data</code> is why the database survives <code>compose down</code>.
+      <b>Env vars</b> replace every hardcoded value — the same image runs locally and in production with
+      different <code>.env</code> files. <code>depends_on</code> orders startup so the API doesn't race the database.
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── HARDENING ─────────────────────────── -->
+<section id="hardening">
+  <div class="wrap">
+    <p class="kicker">§ 15 · Security Hardening</p>
+    <h2>What deployment forces you to fix — and what to defend as a choice</h2>
+    <p class="section-lede">
+      Going public turns a few local shortcuts into real gaps. Each card is the current state, then the
+      fix. The last one is deliberately <em>not</em> "fixed" — it's a documented trade-off, which is a
+      different and stronger thing.
+    </p>
+
+    <div class="sec-grid">
+      <div class="sec-card">
+        <h3>CORS origin</h3>
+        <p>The allowed origin is hardcoded to the Vite dev server, so a deployed frontend is blocked.</p>
+        <span class="s-now">now · localhost:5173 in CorsConfig</span>
+        <span class="s-fix">fix · read from CORS_ORIGIN env var</span>
+      </div>
+      <div class="sec-card">
+        <h3>Secrets</h3>
+        <p>DB password and JWT secret must never sit in a committed file once the repo is public.</p>
+        <span class="s-now">now · in application.properties / manual env</span>
+        <span class="s-fix">fix · env vars + .env.example, secrets in host only</span>
+      </div>
+      <div class="sec-card">
+        <h3>Profiles &amp; logging</h3>
+        <p><code>show-sql=true</code> and DEBUG logging leak schema and slow every request in production.</p>
+        <span class="s-now">now · single properties file, DEBUG on</span>
+        <span class="s-fix">fix · application-prod with WARN + no SQL echo</span>
+      </div>
+      <div class="sec-card">
+        <h3>Rate limiting</h3>
+        <p>Auth endpoints are unthrottled — a public login is a brute-force target.</p>
+        <span class="s-now">now · none</span>
+        <span class="s-fix">fix · bucket4j or a Caddy rate-limit on /auth</span>
+      </div>
+      <div class="sec-card">
+        <h3>Actuator exposure</h3>
+        <p>If actuator is added for health checks, its endpoints must not be world-readable.</p>
+        <span class="s-now">now · not yet added</span>
+        <span class="s-fix">fix · expose only /health, secure the rest</span>
+      </div>
+      <div class="sec-card" style="border-left-color:var(--accent)">
+        <h3>JWT in localStorage <span class="pill" style="color:var(--accent-2);border:1px solid var(--accent-dim);background:#17152b">Decision</span></h3>
+        <p>A 24 h token in <code>localStorage</code>, no refresh, no revocation. XSS-exposed in theory —
+          but acceptable for a portfolio with no real user data. Documented as a choice, with the
+          httpOnly-cookie + refresh-token upgrade path named. Owning the trade-off beats hiding it.</p>
+        <span class="s-fix">path · httpOnly refresh cookie + short access token (roadmap)</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────── ROADMAP ─────────────────────────── -->
+<section id="roadmap">
+  <div class="wrap">
+    <p class="kicker">§ 16 · Roadmap &amp; Scorecard</p>
+    <h2>The backend build order</h2>
+    <p class="section-lede">
+      The full, filterable roadmap board lives in the
+      <a href="../../../GameStore/docs/architecture.html#roadmap">frontend brief §11</a>. Here is the
+      backend-specific scorecard and the order the server-side work should land in.
+    </p>
+
+    <div class="score-grid">
+      <div class="score-row"><div class="s-label">Layering &amp; structure<small>controller · service · repo · dto</small></div><div class="score-bar"><div class="score-fill" style="width:90%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">9 → <b>9</b></div></div>
+      <div class="score-row"><div class="s-label">Security<small>JWT · RBAC · hardening</small></div><div class="score-bar"><div class="score-fill" style="width:70%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">7 → <b>9</b></div></div>
+      <div class="score-row"><div class="s-label">Data integrity<small>constraints · migrations</small></div><div class="score-bar"><div class="score-fill" style="width:50%"></div><div class="score-tgt" style="left:85%"></div></div><div class="score-num">5 → <b>8.5</b></div></div>
+      <div class="score-row"><div class="s-label">Caching<small>Caffeine · shadow rows</small></div><div class="score-bar"><div class="score-fill" style="width:15%"></div><div class="score-tgt" style="left:85%"></div></div><div class="score-num">1.5 → <b>8.5</b></div></div>
+      <div class="score-row"><div class="s-label">Testing<small>H2 integration tests</small></div><div class="score-bar"><div class="score-fill" style="width:70%"></div><div class="score-tgt" style="left:82%"></div></div><div class="score-num">7 → <b>8.2</b></div></div>
+      <div class="score-row"><div class="s-label">Deployability<small>docker · CI · public</small></div><div class="score-bar"><div class="score-fill" style="width:20%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">2 → <b>9</b></div></div>
+      <div class="score-row"><div class="s-label">Observability<small>health · logs</small></div><div class="score-bar"><div class="score-fill" style="width:30%"></div><div class="score-tgt" style="left:70%"></div></div><div class="score-num">3 → <b>7</b></div></div>
+    </div>
+
+    <div class="callout spring">
+      <b>Order of operations.</b> ① CORS + secrets from env → ② Dockerise → ③ deploy + docs on Pages →
+      ④ Flyway + prod profile → ⑤ purchases/library endpoints → ⑥ server-side search &amp; pagination →
+      ⑦ the RAWG catalog + cache (§11) → ⑧ cart &amp; checkout. Deploy comes <em>before</em> the flashy
+      features on purpose: a reachable modest app beats an unreachable impressive one every time.
+    </div>
+  </div>
+</section>
+
 <footer>
   <div class="wrap">
     Backend architecture brief · open in any browser · diagrams rendered client-side via
@@ -1628,4 +2341,96 @@ erDiagram
       }
     });
   });
+
+  /* ══════════════════════════════════════════════════════════════
+     PAGE CHROME — reading progress, scroll-spy, back-to-top, reveal.
+     All progressive enhancement: the document reads fine without it,
+     and every motion effect is gated on prefers-reduced-motion.
+     ══════════════════════════════════════════════════════════════ */
+  const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ── Reading progress bar ──
+  const progress = document.createElement("div");
+  progress.id = "readProgress";
+  document.body.appendChild(progress);
+
+  // ── Back to top ──
+  const toTop = document.createElement("button");
+  toTop.id = "toTop";
+  toTop.type = "button";
+  toTop.setAttribute("aria-label", "Back to top");
+  toTop.innerHTML = "&uarr;";
+  toTop.addEventListener("click", () => {
+    window.scrollTo({ top: 0, behavior: motionOK ? "smooth" : "auto" });
+  });
+  document.body.appendChild(toTop);
+
+  // ── Scroll handler: progress width + back-to-top visibility ──
+  let ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(() => {
+      const doc = document.documentElement;
+      const max = doc.scrollHeight - doc.clientHeight;
+      const pct = max > 0 ? (doc.scrollTop / max) * 100 : 0;
+      progress.style.width = pct + "%";
+      toTop.classList.toggle("show", doc.scrollTop > 600);
+      ticking = false;
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  // ── Scroll-spy: highlight the subnav link for the section in view ──
+  const navLinks = [...document.querySelectorAll(".subnav a")];
+  const linkFor = new Map(navLinks.map((a) => [a.getAttribute("href").slice(1), a]));
+  const spied = [...document.querySelectorAll("section[id]")].filter((s) => linkFor.has(s.id));
+  if ("IntersectionObserver" in window && spied.length) {
+    const visible = new Set();
+    const spy = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        });
+        const current = spied.find((s) => visible.has(s.id));
+        navLinks.forEach((a) => a.classList.remove("active"));
+        if (current) {
+          const link = linkFor.get(current.id);
+          if (link) link.classList.add("active");
+        }
+      },
+      // Top inset clears the sticky nav; bottom inset stops the last
+      // section claiming focus while you're still reading the one above.
+      { rootMargin: "-76px 0px -55% 0px", threshold: 0 }
+    );
+    spied.forEach((s) => spy.observe(s));
+  }
+
+  // ── Scroll reveal ──
+  if (motionOK && "IntersectionObserver" in window) {
+    const targets = [...document.querySelectorAll("section")];
+    targets.forEach((el) => el.classList.add("reveal"));
+    const revealer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("in");
+          obs.unobserve(e.target);
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.04 }
+    );
+    targets.forEach((el) => revealer.observe(el));
+    requestAnimationFrame(() => {
+      targets.forEach((el) => {
+        if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+      });
+    });
+    // Fail-safe: .reveal starts at opacity 0, so if the observer never fires
+    // the document would read as blank. Force everything visible after a beat —
+    // a doc that loses its animation is fine, one that loses its text is not.
+    setTimeout(() => targets.forEach((el) => el.classList.add("in")), 2500);
+  }
 </script>

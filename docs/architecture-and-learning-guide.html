@@ -4,6 +4,9 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Game Store — Architecture & Learning Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
 <style>
   :root {
     /* Shared with docs/architecture.html so the two pages read as one system. */
@@ -31,10 +34,11 @@
     --radius: 14px;
     --radius-sm: 8px;
     --maxw: 1140px;
-    /* Real system fallbacks so the page never depends on the network. */
+    /* Atkinson Hyperlegible first, then the full system fallback chain so the
+       page still renders correctly if the webfont is blocked or offline. */
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    --display: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --display: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   }
 
   * { box-sizing: border-box; }
@@ -124,7 +128,7 @@
     display: inline-block;
     font-family: var(--mono);
     font-size: .72rem;
-    font-weight: 600;
+    font-weight: 700;
     letter-spacing: .04em;
     padding: 2px 8px;
     border-radius: 999px;
@@ -158,7 +162,7 @@
   .table-shell { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
   table.grid { width: 100%; border-collapse: collapse; font-size: .92rem; min-width: 640px; }
   table.grid th, table.grid td { padding: 12px 14px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
-  table.grid th { color: var(--ink-soft); font-weight: 600; background: var(--panel-2); }
+  table.grid th { color: var(--ink-soft); font-weight: 700; background: var(--panel-2); }
   table.grid tr:last-child td { border-bottom: 0; }
   table.grid td.mono, table.grid th.mono { font-family: var(--mono); font-size: .86rem; }
 
@@ -174,7 +178,7 @@
   .compare .col header {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 12px;
-    font-family: var(--mono); font-size: .78rem; font-weight: 600;
+    font-family: var(--mono); font-size: .78rem; font-weight: 700;
   }
   .compare .col.bad header    { background: #2a1015; color: var(--danger); border-bottom: 1px solid var(--danger-dim); }
   .compare .col.good header   { background: #0f2820; color: var(--new); border-bottom: 1px solid var(--new-dim); }
@@ -203,7 +207,7 @@
   details.acc[open] { border-color: var(--line-2); background: var(--panel-2); }
   details.acc summary {
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--ink);
     list-style: none;
     display: flex; align-items: center; gap: 10px;
@@ -264,7 +268,7 @@
   .quiz.hidden { display: none; }
   .quiz .qhead { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; margin-bottom: 10px; }
   .quiz .qhead .idx { color: var(--ink-faint); font-family: var(--mono); font-size: .82rem; }
-  .quiz .q { font-weight: 600; color: var(--ink); margin: 4px 0 12px; }
+  .quiz .q { font-weight: 700; color: var(--ink); margin: 4px 0 12px; }
   .quiz .opts { display: grid; gap: 6px; margin-bottom: 10px; }
   .quiz .opt {
     display: block; width: 100%; text-align: left;
@@ -311,9 +315,152 @@
     font-size: .88rem;
     text-align: center;
   }
+
+  /* ── Cross-doc switcher (shared across the four architecture briefs) ── */
+  .doc-switch { border-bottom: 1px solid var(--line); background: var(--panel); }
+  .doc-switch-inner {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 24px; max-width: var(--maxw); margin: 0 auto;
+  }
+  .doc-switch .ds-label {
+    font-family: var(--mono); font-size: 11px; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-faint); margin-right: 2px;
+  }
+  .doc-switch a {
+    font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
+    text-decoration: none; white-space: nowrap;
+  }
+  .doc-switch a:hover { color: var(--ink); background: var(--panel-2); }
+  .doc-switch a.is-here {
+    color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-dim);
+  }
+  .doc-switch .ds-repo {
+    font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--ink-faint);
+  }
+
+  /* ══════════════════════════════════════════════════════════════════
+     REFINEMENT LAYER
+     Last in the stylesheet so it wins on specificity ties. Headings here
+     inherited the 1.6 body leading, which reads as loose and unstructured
+     at display sizes — especially in Atkinson Hyperlegible, whose tall
+     x-height already carries the line. Retuned, plus the anchor offset
+     the sticky TOC needs and shared page chrome.
+     ══════════════════════════════════════════════════════════════════ */
+
+  :root {
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --ease: cubic-bezier(.2,.7,.3,1);
+    --nav-h: 52px;
+  }
+
+  /* ── Type scale, retuned for Atkinson ── */
+  h1 { line-height: 1.1; letter-spacing: -.016em; }
+  section h2 { line-height: 1.2; letter-spacing: -.008em; }
+  h3 { line-height: 1.3; letter-spacing: 0; }
+  .subtitle { line-height: 1.62; }
+
+  /* ── Anchor offset: the TOC is sticky, so jump targets need clearance ── */
+  section[id] { scroll-margin-top: calc(var(--nav-h) + 20px); }
+
+  /* ── Sticky TOC: active-section state ── */
+  nav.toc a { transition: color .18s var(--ease), background .18s var(--ease), border-color .18s var(--ease); }
+  nav.toc a.active {
+    color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-dim);
+  }
+
+  /* ── Reading progress (injected by script) ── */
+  #readProgress {
+    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    background: linear-gradient(90deg, var(--accent), var(--spring));
+    z-index: 40; transition: width .12s linear; pointer-events: none;
+  }
+
+  /* ── Back to top (injected by script) ── */
+  #toTop {
+    position: fixed; right: 22px; bottom: 22px; z-index: 35;
+    width: 42px; height: 42px; border-radius: 50%;
+    background: var(--panel-2); border: 1px solid var(--line-2); color: var(--ink-soft);
+    display: grid; place-items: center; cursor: pointer; font-size: 15px;
+    box-shadow: var(--shadow-md);
+    opacity: 0; visibility: hidden; transform: translateY(8px);
+    transition: opacity .25s var(--ease), transform .25s var(--ease),
+                visibility .25s, color .18s, border-color .18s;
+  }
+  #toTop.show { opacity: 1; visibility: visible; transform: none; }
+  #toTop:hover { color: var(--ink); border-color: var(--accent); }
+
+  /* ── Elevation & materials ── */
+  .callout, .quiz, table.grid { box-shadow: var(--shadow-sm); }
+  table.grid tbody tr { transition: background .16s var(--ease); }
+  table.grid tbody tr:hover { background: rgba(109,94,252,.05); }
+  details { transition: border-color .2s var(--ease); }
+  details[open] { border-color: var(--line-2); }
+  summary { cursor: pointer; }
+
+  /* ── Focus visibility, selection, scrollbars ── */
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: none; box-shadow: var(--ring); border-radius: 8px;
+  }
+  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  html { scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
+  ::-webkit-scrollbar { width: 12px; height: 12px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+
+  /* ── Scroll reveal (motion-safe only) ── */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal { opacity: 0; transform: translateY(16px); }
+    .reveal.in {
+      opacity: 1; transform: none;
+      transition: opacity .55s var(--ease), transform .55s var(--ease);
+    }
+  }
+
+  @media (max-width: 860px) {
+    .doc-switch-inner { padding: 9px 18px; gap: 6px; }
+    .doc-switch .ds-repo { display: none; }
+    #toTop { right: 14px; bottom: 14px; }
+  }
+
+  @media print {
+    :root {
+      --bg: #fff; --panel: #fff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --spring: #3f7a1f; --auth: #a35f06; --danger: #c22e46;
+    }
+    body { background: #fff !important; }
+    nav.toc, .doc-switch, #readProgress, #toTop { display: none !important; }
+    section { padding: 26px 0; break-inside: avoid; }
+    .callout, .quiz, table.grid { break-inside: avoid; box-shadow: none; }
+    details { break-inside: avoid; }
+    details:not([open]) > *:not(summary) { display: revert; }
+    .reveal { opacity: 1 !important; transform: none !important; }
+    a { color: #10131a; text-decoration: underline; }
+  }
 </style>
 </head>
 <body>
+
+<nav class="doc-switch" aria-label="Documentation set">
+  <div class="doc-switch-inner">
+    <span class="ds-label">Docs</span>
+    <span class="ds-repo">·&nbsp;frontend&nbsp;·</span>
+    <a href="../../../GameStore/docs/architecture.html">Frontend Architecture</a>
+    <a href="../../../GameStore/docs/catalog-architecture.html">Catalog Pivot</a>
+    <span class="ds-repo">·&nbsp;backend&nbsp;·</span>
+    <a href="architecture.html">Backend Architecture</a>
+    <a href="architecture-and-learning-guide.html" class="is-here" aria-current="page">Learning Guide</a>
+  </div>
+</nav>
 
 <!-- ─────────────────────────── HERO ─────────────────────────── -->
 <header class="hero">
@@ -1782,6 +1929,85 @@ jwt.secret=${JWT_SECRET}
     const activeChip = document.querySelector('[data-filter-group="quiz"] .chip.active');
     if (activeChip) applyQuizFilter(activeChip.dataset.filter);
   });
+
+  /* ══════════════════════════════════════════════════════════════
+     PAGE CHROME — reading progress, TOC scroll-spy, back-to-top,
+     reveal. Progressive enhancement; motion gated on the OS setting.
+     ══════════════════════════════════════════════════════════════ */
+  (function () {
+    const motionOK = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const progress = document.createElement("div");
+    progress.id = "readProgress";
+    document.body.appendChild(progress);
+
+    const toTop = document.createElement("button");
+    toTop.id = "toTop";
+    toTop.type = "button";
+    toTop.setAttribute("aria-label", "Back to top");
+    toTop.innerHTML = "&uarr;";
+    toTop.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: motionOK ? "smooth" : "auto" });
+    });
+    document.body.appendChild(toTop);
+
+    let ticking = false;
+    function onScroll() {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - doc.clientHeight;
+        progress.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + "%";
+        toTop.classList.toggle("show", doc.scrollTop > 600);
+        ticking = false;
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+
+    // ── TOC scroll-spy ──
+    const navLinks = [...document.querySelectorAll("nav.toc a")];
+    const linkFor = new Map(navLinks.map((a) => [a.getAttribute("href").slice(1), a]));
+    const spied = [...document.querySelectorAll("section[id]")].filter((s) => linkFor.has(s.id));
+    if ("IntersectionObserver" in window && spied.length) {
+      const visible = new Set();
+      const spy = new IntersectionObserver((entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) visible.add(e.target.id);
+          else visible.delete(e.target.id);
+        });
+        const current = spied.find((s) => visible.has(s.id));
+        navLinks.forEach((a) => a.classList.remove("active"));
+        if (current) {
+          const link = linkFor.get(current.id);
+          if (link) link.classList.add("active");
+        }
+      }, { rootMargin: "-72px 0px -55% 0px", threshold: 0 });
+      spied.forEach((s) => spy.observe(s));
+    }
+
+    // ── Scroll reveal ──
+    if (motionOK && "IntersectionObserver" in window) {
+      const targets = [...document.querySelectorAll("section")];
+      targets.forEach((el) => el.classList.add("reveal"));
+      const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          e.target.classList.add("in");
+          obs.unobserve(e.target);
+        });
+      }, { rootMargin: "0px 0px -8% 0px", threshold: 0.04 });
+      targets.forEach((el) => io.observe(el));
+      requestAnimationFrame(() => {
+        targets.forEach((el) => {
+          if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add("in");
+        });
+      });
+      // Fail-safe: losing the animation is fine; losing the text is not.
+      setTimeout(() => targets.forEach((el) => el.classList.add("in")), 2500);
+    }
+  })();
 </script>
 
 </body>
