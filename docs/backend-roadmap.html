@@ -642,14 +642,17 @@
         <div class="rm-head">
           <label class="rm-tick"><input type="checkbox" data-ck="B9" /><span class="rm-id">B9</span></label>
           <h3>Build the purchase &amp; library endpoints</h3>
-          <span class="rm-verdict v-do">Do it</span>
+          <span class="rm-verdict v-do">Shipped ✓</span>
         </div>
-        <p>The last unchecked item in the README. The entity and repository are already written — and injected
-          absolutely nowhere. Until this lands, the frontend's Library page is showing the whole catalogue and
-          calling it "yours".</p>
-        <p class="rm-anchor"><code>repositories/PurchaseRepository.java</code> declares
-          <code>findByUser</code>, <code>findByGame</code> and <code>existsByUserAndGame</code>; no service or
-          controller references it. Add <code>POST /purchases</code> and <code>GET /purchases/me</code>.</p>
+        <p><b>Done (2026-08-07).</b> The entity and repository were already written and injected nowhere;
+          now wired into <code>POST /purchases</code> and <code>GET /purchases/me</code> via a new
+          <code>PurchaseService</code> and <code>PurchaseController</code>. The Library page was showing the whole
+          catalogue and calling it "yours" — it now reads only what the user bought (pair P4 / F14, both shipped).</p>
+        <p class="rm-anchor"><code>PurchaseRepository</code>'s <code>findByUser</code> /
+          <code>existsByUserAndGame</code> are now consumed; <code>findByUser</code> gained an
+          <code>@EntityGraph</code> fetch-join so the library response never serializes a lazy proxy.
+          <code>CheckoutResponse</code> splits results into <code>{purchased, alreadyOwned}</code> so a repeat
+          checkout is a safe no-op. Re-buy → 201/alreadyOwned, anonymous → 401, unknown id → 404 (curl-verified).</p>
         <div class="rm-meta">
           <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~1 day</span></div>
           <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">High</span></div>
@@ -1087,8 +1090,14 @@
   if (ckTotal) ckTotal.textContent = ckCounted.length;
 
   function loadCk() {
-    try { return JSON.parse(localStorage.getItem(CK_KEY)) || {}; }
-    catch { return {}; }
+    // Seed defaults for work already shipped, so the checklist reflects reality
+    // on a fresh visit. Once the user toggles anything, their saved state wins.
+    const SEED = { B9: true };
+    try {
+      const saved = localStorage.getItem(CK_KEY);
+      return saved ? JSON.parse(saved) : { ...SEED };
+    }
+    catch { return { ...SEED }; }
   }
   function saveCk(state) {
     try { localStorage.setItem(CK_KEY, JSON.stringify(state)); } catch { /* private mode */ }
