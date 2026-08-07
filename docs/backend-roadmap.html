@@ -46,8 +46,68 @@
     --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
     --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
     --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --nav-veil: rgba(13,16,22,.82);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
     --ease: cubic-bezier(.2,.7,.3,1);
     --nav-h: 56px;
+  }
+
+  /* Light theme — OS preference first, explicit data-theme hook wins both
+     directions (same contract as catalog-architecture.html). */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --spring: #4d8b28; --spring-dim: #cfe0bf;
+      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+      --danger: #c22e46; --danger-dim: #f6d3da;
+      --info: #1d4ed8; --info-dim: #c9dcf7;
+      --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+      --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+      --ring: 0 0 0 3px rgba(76,63,208,.35);
+      --nav-veil: rgba(246,247,251,.85);
+      --scroll-hover: #9aa4bb;
+      --glow-a: rgba(85,70,232,.08);
+      --glow-b: rgba(77,139,40,.07);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
+    --line: #262d3d; --line-2: #333c52;
+    --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
+    --accent: #6d5efc; --accent-2: #8b7dff; --accent-dim: #3a3570;
+    --spring: #6db33f; --spring-dim: #2c4a1c;
+    --new: #34d399; --new-dim: #1f5745; --auth: #f5a623; --auth-dim: #4a3a12;
+    --danger: #f0637a; --danger-dim: #4a1d27;
+    --info: #60a5fa; --info-dim: #1e3a5f;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --nav-veil: rgba(13,16,22,.82);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+    --line: #d3d8e4; --line-2: #b4bccd;
+    --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+    --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+    --spring: #4d8b28; --spring-dim: #cfe0bf;
+    --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+    --danger: #c22e46; --danger-dim: #f6d3da;
+    --info: #1d4ed8; --info-dim: #c9dcf7;
+    --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+    --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+    --ring: 0 0 0 3px rgba(76,63,208,.35);
+    --nav-veil: rgba(246,247,251,.85);
+    --scroll-hover: #9aa4bb;
+    --glow-a: rgba(85,70,232,.08);
+    --glow-b: rgba(77,139,40,.07);
   }
 
   * { box-sizing: border-box; }
@@ -55,8 +115,8 @@
   body {
     margin: 0;
     background:
-      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
-      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
+      radial-gradient(1100px 520px at 82% -8%, var(--glow-a), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, var(--glow-b), transparent 55%),
       var(--bg);
     color: var(--ink);
     font-family: var(--body);
@@ -103,7 +163,7 @@
   /* ── Sticky nav ── */
   .subnav {
     position: sticky; top: 0; z-index: 20;
-    background: rgba(13,16,22,.82);
+    background: var(--nav-veil);
     backdrop-filter: saturate(140%) blur(10px);
     -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--line);
@@ -336,11 +396,11 @@
   a:focus-visible, button:focus-visible, input:focus-visible, label:focus-visible {
     outline: none; box-shadow: var(--ring); border-radius: 8px;
   }
-  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  ::selection { background: var(--accent-dim); color: var(--ink); }
   ::-webkit-scrollbar { width: 12px; height: 12px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg); }
-  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
 
   @media (prefers-reduced-motion: no-preference) {
     .reveal { opacity: 0; transform: translateY(16px); }

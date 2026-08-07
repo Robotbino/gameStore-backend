@@ -39,6 +39,18 @@
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
     --display: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --nav-veil: rgba(13,16,22,.86);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
+    --diagram-line: #5b647a;
+    --info-dim:  #1e3a5f;
+    --info-wash: #0f1f2f;
+    --accent-wash: #1a1830;
+    --spring-wash: #14200e;
+    --new-wash:    #0f2820;
+    --auth-wash:   #241c0c;
+    --danger-wash: #2a1015;
   }
 
   * { box-sizing: border-box; }
@@ -46,8 +58,8 @@
   body {
     margin: 0;
     background:
-      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
-      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
+      radial-gradient(1100px 520px at 82% -8%, var(--glow-a), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, var(--glow-b), transparent 55%),
       var(--bg);
     color: var(--ink);
     font-family: var(--body);
@@ -104,7 +116,7 @@
   /* ── Nav (sticky top strip) ── */
   nav.toc {
     position: sticky; top: 0; z-index: 10;
-    background: rgba(13,16,22,.86);
+    background: var(--nav-veil);
     backdrop-filter: blur(8px);
     border-bottom: 1px solid var(--line);
   }
@@ -138,14 +150,14 @@
     color: var(--ink-soft);
     background: var(--panel-2);
   }
-  .pill.oca      { color: var(--new); border-color: var(--new-dim); background: #0f2820; }
-  .pill.notoca   { color: var(--auth); border-color: var(--auth-dim); background: #241c0c; }
-  .pill.ocp      { color: var(--accent-2); border-color: var(--accent-dim); background: #1a1830; }
-  .pill.spring   { color: var(--spring); border-color: var(--spring-dim); background: #14200e; }
-  .pill.security { color: var(--danger); border-color: var(--danger-dim); background: #2a1015; }
-  .pill.pattern  { color: var(--info); border-color: #1e3a5f; background: #0f1f2f; }
+  .pill.oca      { color: var(--new); border-color: var(--new-dim); background: var(--new-wash); }
+  .pill.notoca   { color: var(--auth); border-color: var(--auth-dim); background: var(--auth-wash); }
+  .pill.ocp      { color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-wash); }
+  .pill.spring   { color: var(--spring); border-color: var(--spring-dim); background: var(--spring-wash); }
+  .pill.security { color: var(--danger); border-color: var(--danger-dim); background: var(--danger-wash); }
+  .pill.pattern  { color: var(--info); border-color: var(--info-dim); background: var(--info-wash); }
   .pill.core     { color: var(--ink); border-color: var(--line-2); background: var(--panel-3); }
-  .pill.advanced { color: var(--accent-2); border-color: var(--accent-dim); background: #1a1830; }
+  .pill.advanced { color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-wash); }
 
   /* ── Cards ── */
   .card {
@@ -180,8 +192,8 @@
     padding: 8px 12px;
     font-family: var(--mono); font-size: .78rem; font-weight: 700;
   }
-  .compare .col.bad header    { background: #2a1015; color: var(--danger); border-bottom: 1px solid var(--danger-dim); }
-  .compare .col.good header   { background: #0f2820; color: var(--new); border-bottom: 1px solid var(--new-dim); }
+  .compare .col.bad header    { background: var(--danger-wash); color: var(--danger); border-bottom: 1px solid var(--danger-dim); }
+  .compare .col.good header   { background: var(--new-wash); color: var(--new); border-bottom: 1px solid var(--new-dim); }
   .compare .col header .dot { width: 8px; height: 8px; border-radius: 50%; }
   .compare .col.bad .dot { background: var(--danger); }
   .compare .col.good .dot { background: var(--new); }
@@ -284,8 +296,8 @@
   }
   .quiz .opt:hover:not(:disabled) { border-color: var(--accent); background: var(--panel-3); }
   .quiz .opt:disabled { cursor: default; opacity: .78; }
-  .quiz .opt.correct { border-color: var(--new); background: #0f2820; color: var(--new); }
-  .quiz .opt.wrong { border-color: var(--danger); background: #2a1015; color: var(--danger); }
+  .quiz .opt.correct { border-color: var(--new); background: var(--new-wash); color: var(--new); }
+  .quiz .opt.wrong { border-color: var(--danger); background: var(--danger-wash); color: var(--danger); }
   .quiz .exp {
     margin-top: 10px;
     padding: 10px 14px;
@@ -405,14 +417,14 @@
   a:focus-visible, button:focus-visible, summary:focus-visible {
     outline: none; box-shadow: var(--ring); border-radius: 8px;
   }
-  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  ::selection { background: var(--accent-dim); color: var(--ink); }
   html { scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
   ::-webkit-scrollbar { width: 12px; height: 12px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg);
   }
-  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
 
   /* ── Scroll reveal (motion-safe only) ── */
   @media (prefers-reduced-motion: no-preference) {
@@ -427,6 +439,84 @@
     .doc-switch-inner { padding: 9px 18px; gap: 6px; }
     .doc-switch .ds-repo { display: none; }
     #toTop { right: 14px; bottom: 14px; }
+  }
+
+  /* ── Light theme — OS preference first; an explicit data-theme attribute
+        wins both directions (same contract as catalog-architecture.html).
+        Code panels stay dark in both themes — a terminal stays a terminal. ── */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --spring: #4d8b28; --spring-dim: #cfe0bf;
+      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+      --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
+      --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+      --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+      --ring: 0 0 0 3px rgba(76,63,208,.35);
+      --nav-veil: rgba(246,247,251,.88);
+      --scroll-hover: #9aa4bb;
+      --glow-a: rgba(85,70,232,.08);
+      --glow-b: rgba(77,139,40,.07);
+      --diagram-line: #8b94a9;
+      --info-dim:  #c9dcf7;
+      --info-wash: #e8f0fd;
+      --accent-wash: #edeaff;
+      --spring-wash: #ecf5e4;
+      --new-wash:    #e7f6ef;
+      --auth-wash:   #faf0dd;
+      --danger-wash: #fbe9ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
+    --line: #262d3d; --line-2: #333c52;
+    --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
+    --accent: #6d5efc; --accent-2: #8b7dff; --accent-dim: #3a3570;
+    --spring: #6db33f; --spring-dim: #2c4a1c;
+    --new: #34d399; --new-dim: #1f5745; --auth: #f5a623; --auth-dim: #4a3a12;
+    --danger: #f0637a; --danger-dim: #4a1d27; --info: #60a5fa;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --nav-veil: rgba(13,16,22,.86);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
+    --diagram-line: #5b647a;
+    --info-dim:  #1e3a5f;
+    --info-wash: #0f1f2f;
+    --accent-wash: #1a1830;
+    --spring-wash: #14200e;
+    --new-wash:    #0f2820;
+    --auth-wash:   #241c0c;
+    --danger-wash: #2a1015;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+    --line: #d3d8e4; --line-2: #b4bccd;
+    --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+    --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+    --spring: #4d8b28; --spring-dim: #cfe0bf;
+    --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+    --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
+    --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+    --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+    --ring: 0 0 0 3px rgba(76,63,208,.35);
+    --nav-veil: rgba(246,247,251,.88);
+    --scroll-hover: #9aa4bb;
+    --glow-a: rgba(85,70,232,.08);
+    --glow-b: rgba(77,139,40,.07);
+    --diagram-line: #8b94a9;
+    --info-dim:  #c9dcf7;
+    --info-wash: #e8f0fd;
+    --accent-wash: #edeaff;
+    --spring-wash: #ecf5e4;
+    --new-wash:    #e7f6ef;
+    --auth-wash:   #faf0dd;
+    --danger-wash: #fbe9ec;
   }
 
   @media print {
@@ -517,34 +607,35 @@
       <svg viewBox="0 0 900 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Four layers of the app">
         <defs>
           <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-            <path d="M0,0 L10,5 L0,10 z" fill="#5b647a"/>
+            <path d="M0,0 L10,5 L0,10 z" style="fill:var(--diagram-line)"/>
           </marker>
         </defs>
-        <!-- boxes -->
-        <g font-family="ui-monospace, monospace" font-size="13" fill="#d6dbe7">
+        <!-- boxes; colors ride the theme tokens via style attributes,
+             since SVG presentation attributes cannot take var() -->
+        <g font-family="ui-monospace, monospace" font-size="13" style="fill:var(--ink)">
           <g>
-            <rect x="20" y="20" width="860" height="60" rx="10" fill="#1b2130" stroke="#4a3a12" stroke-width="2"/>
-            <text x="40" y="45" font-weight="700" fill="#f5a623">Layer 0 · Security &amp; Configuration</text>
-            <text x="40" y="65" fill="#98a1b5">CORS → JWTAuthenticationFilter → SecurityConfiguration (401 if bad token, 403 if wrong role)</text>
+            <rect x="20" y="20" width="860" height="60" rx="10" stroke-width="2" style="fill:var(--panel-2);stroke:var(--auth-dim)"/>
+            <text x="40" y="45" font-weight="700" style="fill:var(--auth)">Layer 0 · Security &amp; Configuration</text>
+            <text x="40" y="65" style="fill:var(--ink-soft)">CORS → JWTAuthenticationFilter → SecurityConfiguration (401 if bad token, 403 if wrong role)</text>
           </g>
           <g>
-            <rect x="20" y="100" width="860" height="60" rx="10" fill="#1b2130" stroke="#3a3570" stroke-width="2"/>
-            <text x="40" y="125" font-weight="700" fill="#8b7dff">Layer 1 · Controllers (@RestController)</text>
-            <text x="40" y="145" fill="#98a1b5">Bind the request body (validated), call ONE service method, wrap in ResponseEntity. No logic.</text>
+            <rect x="20" y="100" width="860" height="60" rx="10" stroke-width="2" style="fill:var(--panel-2);stroke:var(--accent-dim)"/>
+            <text x="40" y="125" font-weight="700" style="fill:var(--accent-2)">Layer 1 · Controllers (@RestController)</text>
+            <text x="40" y="145" style="fill:var(--ink-soft)">Bind the request body (validated), call ONE service method, wrap in ResponseEntity. No logic.</text>
           </g>
           <g>
-            <rect x="20" y="180" width="860" height="60" rx="10" fill="#1b2130" stroke="#2c4a1c" stroke-width="2"/>
-            <text x="40" y="205" font-weight="700" fill="#6db33f">Layer 2 · Services (@Service)</text>
-            <text x="40" y="225" fill="#98a1b5">Business rules, transactions, password hashing, uniqueness guards. Where decisions happen.</text>
+            <rect x="20" y="180" width="860" height="60" rx="10" stroke-width="2" style="fill:var(--panel-2);stroke:var(--spring-dim)"/>
+            <text x="40" y="205" font-weight="700" style="fill:var(--spring)">Layer 2 · Services (@Service)</text>
+            <text x="40" y="225" style="fill:var(--ink-soft)">Business rules, transactions, password hashing, uniqueness guards. Where decisions happen.</text>
           </g>
           <g>
-            <rect x="20" y="260" width="860" height="45" rx="10" fill="#1b2130" stroke="#262d3d" stroke-width="2"/>
-            <text x="40" y="285" font-weight="700" fill="#60a5fa">Layer 3 · Repositories &amp; Entities (Spring Data JPA)</text>
+            <rect x="20" y="260" width="860" height="45" rx="10" stroke-width="2" style="fill:var(--panel-2);stroke:var(--line)"/>
+            <text x="40" y="285" font-weight="700" style="fill:var(--info)">Layer 3 · Repositories &amp; Entities (Spring Data JPA)</text>
           </g>
           <!-- arrows -->
-          <line x1="450" y1="80"  x2="450" y2="100" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="450" y1="160" x2="450" y2="180" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
-          <line x1="450" y1="240" x2="450" y2="260" stroke="#5b647a" stroke-width="2" marker-end="url(#arrow)"/>
+          <line x1="450" y1="80"  x2="450" y2="100" stroke-width="2" style="stroke:var(--diagram-line)" marker-end="url(#arrow)"/>
+          <line x1="450" y1="160" x2="450" y2="180" stroke-width="2" style="stroke:var(--diagram-line)" marker-end="url(#arrow)"/>
+          <line x1="450" y1="240" x2="450" y2="260" stroke-width="2" style="stroke:var(--diagram-line)" marker-end="url(#arrow)"/>
         </g>
       </svg>
     </div>

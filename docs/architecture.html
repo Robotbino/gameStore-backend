@@ -39,6 +39,21 @@
        Ships only 400/700, so heading weights are normalised to those below. */
     --display: "Atkinson Hyperlegible", system-ui, sans-serif;
     --body: "Atkinson Hyperlegible", system-ui, sans-serif;
+    --nav-veil: rgba(13,16,22,.82);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
+    --row-odd: #1e2432;
+    --row-even: #171c28;
+    --swatch-ring: rgba(255,255,255,.15);
+    --sky:      #7dd3fc;   /* HTTP GET / 2xx info hue */
+    --sky-dim:  #24506b;
+    --sky-wash: #0e2536;
+    --accent-wash: #17152b;
+    --spring-wash: #14200c;
+    --new-wash:    #0f2019;
+    --auth-wash:   #241c0c;
+    --danger-wash: #2a1015;
   }
 
   * { box-sizing: border-box; }
@@ -46,8 +61,8 @@
   body {
     margin: 0;
     background:
-      radial-gradient(1100px 520px at 82% -8%, rgba(109,94,252,.16), transparent 60%),
-      radial-gradient(760px 420px at 6% 108%, rgba(109,179,63,.10), transparent 55%),
+      radial-gradient(1100px 520px at 82% -8%, var(--glow-a), transparent 60%),
+      radial-gradient(760px 420px at 6% 108%, var(--glow-b), transparent 55%),
       var(--bg);
     color: var(--ink);
     font-family: var(--body);
@@ -72,7 +87,7 @@
   /* ── Sticky nav ── */
   .subnav {
     position: sticky; top: 0; z-index: 20;
-    background: rgba(13,16,22,.82);
+    background: var(--nav-veil);
     backdrop-filter: saturate(140%) blur(10px);
     -webkit-backdrop-filter: saturate(140%) blur(10px);
     border-bottom: 1px solid var(--line);
@@ -193,8 +208,8 @@
      at near-white, which is unreadable under the light diagram text. It ignores
      attributeBackgroundColorOdd/Even, so restate the fills here — CSS beats the
      presentation attribute. Both tones keep the text above 11:1. */
-  .diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: #1e2432; }
-  .diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: #171c28; }
+  .diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: var(--row-odd); }
+  .diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: var(--row-even); }
   .caption {
     font-family: var(--mono); font-size: 12px; color: var(--ink-faint);
     margin: 14px 2px 0;
@@ -204,7 +219,7 @@
     font-size: 13px; color: var(--ink-soft);
   }
   .legend span { display: inline-flex; align-items: center; gap: 8px; }
-  .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(255,255,255,.15); }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--swatch-ring); }
   .sw-base { background: var(--panel-2); }
   .sw-new  { background: var(--new-dim); border-color: var(--new); }
   .sw-chg  { background: var(--accent-dim); border-color: var(--accent); }
@@ -479,21 +494,21 @@
     padding: 2px 8px; border-radius: 999px; letter-spacing: .03em;
     display: inline-block; white-space: nowrap;
   }
-  .pill.get    { color: #7dd3fc; border: 1px solid #24506b; background: #0e2536; }
-  .pill.post   { color: var(--new); border: 1px solid var(--new-dim); background: #0f2019; }
-  .pill.put    { color: var(--auth); border: 1px solid var(--auth-dim); background: #241c0c; }
-  .pill.del    { color: var(--danger); border: 1px solid var(--danger-dim); background: #2a1015; }
-  .pill.public { color: var(--spring); border: 1px solid var(--spring-dim); background: #14200c; }
-  .pill.authn  { color: var(--accent-2); border: 1px solid var(--accent-dim); background: #17152b; }
-  .pill.admin  { color: var(--auth); border: 1px solid var(--auth-dim); background: #241c0c; }
-  .pill.s200 { color:#7dd3fc; border:1px solid #24506b; background:#0e2536; }
-  .pill.s201 { color: var(--new); border:1px solid var(--new-dim); background:#0f2019; }
+  .pill.get    { color: var(--sky); border: 1px solid var(--sky-dim); background: var(--sky-wash); }
+  .pill.post   { color: var(--new); border: 1px solid var(--new-dim); background: var(--new-wash); }
+  .pill.put    { color: var(--auth); border: 1px solid var(--auth-dim); background: var(--auth-wash); }
+  .pill.del    { color: var(--danger); border: 1px solid var(--danger-dim); background: var(--danger-wash); }
+  .pill.public { color: var(--spring); border: 1px solid var(--spring-dim); background: var(--spring-wash); }
+  .pill.authn  { color: var(--accent-2); border: 1px solid var(--accent-dim); background: var(--accent-wash); }
+  .pill.admin  { color: var(--auth); border: 1px solid var(--auth-dim); background: var(--auth-wash); }
+  .pill.s200 { color: var(--sky); border:1px solid var(--sky-dim); background: var(--sky-wash); }
+  .pill.s201 { color: var(--new); border:1px solid var(--new-dim); background: var(--new-wash); }
   .pill.s204 { color: var(--ink-soft); border:1px solid var(--line-2); background: var(--panel-2); }
-  .pill.s400 { color: var(--auth); border:1px solid var(--auth-dim); background:#241c0c; }
-  .pill.s401 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
-  .pill.s403 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
-  .pill.s404 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
-  .pill.s500 { color: var(--danger); border:1px solid var(--danger-dim); background:#2a1015; }
+  .pill.s400 { color: var(--auth); border:1px solid var(--auth-dim); background: var(--auth-wash); }
+  .pill.s401 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
+  .pill.s403 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
+  .pill.s404 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
+  .pill.s500 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
 
   /* ── Data model cards ── */
   .entities {
@@ -798,14 +813,14 @@
   }
 
   /* ── Selection & scrollbars ── */
-  ::selection { background: rgba(109,94,252,.4); color: #fff; }
+  ::selection { background: var(--accent-dim); color: var(--ink); }
   html { scrollbar-color: var(--line-2) transparent; scrollbar-width: thin; }
   ::-webkit-scrollbar { width: 12px; height: 12px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
     background: var(--line-2); border-radius: 99px; border: 3px solid var(--bg);
   }
-  ::-webkit-scrollbar-thumb:hover { background: #46506b; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--scroll-hover); }
 
   /* ── Scroll reveal (motion-safe only) ── */
   @media (prefers-reduced-motion: no-preference) {
@@ -835,6 +850,95 @@
     .persist-grid { grid-template-columns: 1fr; }
     .kpis { grid-template-columns: 1fr; }
     h1 { letter-spacing: -.01em; }
+  }
+
+  /* ══════════════════════════════════════════════
+     LIGHT THEME — OS preference first; an explicit
+     data-theme attribute wins both directions (same
+     contract as catalog-architecture.html). Mermaid
+     picks its matching theme at init in the script
+     below. Code panels stay dark in both themes —
+     a terminal stays a terminal.
+     ══════════════════════════════════════════════ */
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+      --line: #d3d8e4; --line-2: #b4bccd;
+      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+      --spring: #4d8b28; --spring-dim: #cfe0bf;
+      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+      --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
+      --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+      --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+      --shadow-lg: 0 20px 52px -14px rgba(16,20,32,.22);
+      --ring: 0 0 0 3px rgba(76,63,208,.35);
+      --nav-veil: rgba(246,247,251,.85);
+      --scroll-hover: #9aa4bb;
+      --glow-a: rgba(85,70,232,.08);
+      --glow-b: rgba(77,139,40,.07);
+      --row-odd: #eef1f7;
+      --row-even: #f7f8fc;
+      --swatch-ring: rgba(16,19,26,.18);
+      --sky: #0369a1; --sky-dim: #bcd9ec; --sky-wash: #e3f2fb;
+      --accent-wash: #edeaff;
+      --spring-wash: #ecf5e4;
+      --new-wash:    #e7f6ef;
+      --auth-wash:   #faf0dd;
+      --danger-wash: #fbe9ec;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
+    --line: #262d3d; --line-2: #333c52;
+    --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
+    --accent: #6d5efc; --accent-2: #8b7dff; --accent-dim: #3a3570;
+    --spring: #6db33f; --spring-dim: #2c4a1c;
+    --new: #34d399; --new-dim: #1f5745; --auth: #f5a623; --auth-dim: #4a3a12;
+    --danger: #f0637a; --danger-dim: #4a1d27; --info: #60a5fa;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
+    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
+    --shadow-lg: 0 20px 52px -14px rgba(0,0,0,.62);
+    --ring: 0 0 0 3px rgba(109,94,252,.4);
+    --nav-veil: rgba(13,16,22,.82);
+    --scroll-hover: #46506b;
+    --glow-a: rgba(109,94,252,.16);
+    --glow-b: rgba(109,179,63,.10);
+    --row-odd: #1e2432;
+    --row-even: #171c28;
+    --swatch-ring: rgba(255,255,255,.15);
+    --sky: #7dd3fc; --sky-dim: #24506b; --sky-wash: #0e2536;
+    --accent-wash: #17152b;
+    --spring-wash: #14200c;
+    --new-wash:    #0f2019;
+    --auth-wash:   #241c0c;
+    --danger-wash: #2a1015;
+  }
+  :root[data-theme="light"] {
+    --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
+    --line: #d3d8e4; --line-2: #b4bccd;
+    --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
+    --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
+    --spring: #4d8b28; --spring-dim: #cfe0bf;
+    --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
+    --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
+    --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
+    --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
+    --shadow-lg: 0 20px 52px -14px rgba(16,20,32,.22);
+    --ring: 0 0 0 3px rgba(76,63,208,.35);
+    --nav-veil: rgba(246,247,251,.85);
+    --scroll-hover: #9aa4bb;
+    --glow-a: rgba(85,70,232,.08);
+    --glow-b: rgba(77,139,40,.07);
+    --row-odd: #eef1f7;
+    --row-even: #f7f8fc;
+    --swatch-ring: rgba(16,19,26,.18);
+    --sky: #0369a1; --sky-dim: #bcd9ec; --sky-wash: #e3f2fb;
+    --accent-wash: #edeaff;
+    --spring-wash: #ecf5e4;
+    --new-wash:    #e7f6ef;
+    --auth-wash:   #faf0dd;
+    --danger-wash: #fbe9ec;
   }
 
   /* ══════════════════════════════════════════════
@@ -2284,11 +2388,38 @@ flowchart TB
 
 <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
 <script>
+  // Mermaid resolves its palette at init, not from CSS variables, so pick the
+  // theme once from the OS preference — the same signal the stylesheet uses.
+  const prefersLight = window.matchMedia
+    && window.matchMedia("(prefers-color-scheme: light)").matches;
+
   mermaid.initialize({
     startOnLoad: true,
     securityLevel: "loose",
     theme: "base",
-    themeVariables: {
+    themeVariables: prefersLight ? {
+      background: "#ffffff",
+      primaryColor: "#f4f6fa",
+      primaryBorderColor: "#d3d8e4",
+      primaryTextColor: "#10131a",
+      lineColor: "#8b94a9",
+      fontFamily: "'JetBrains Mono', ui-monospace, monospace",
+      fontSize: "14px",
+      clusterBkg: "#f6f7fb",
+      clusterBorder: "#c6cddd",
+      actorBkg: "#f4f6fa",
+      actorBorder: "#c9c2f2",
+      actorTextColor: "#10131a",
+      actorLineColor: "#8b94a9",
+      signalColor: "#4d5670",
+      signalTextColor: "#10131a",
+      labelBoxBkgColor: "#f4f6fa",
+      labelBoxBorderColor: "#c9c2f2",
+      labelTextColor: "#10131a",
+      noteBkgColor: "#edeaff",
+      noteBorderColor: "#4c3fd0",
+      noteTextColor: "#10131a"
+    } : {
       background: "#151a24",
       primaryColor: "#1b2130",
       primaryBorderColor: "#262d3d",
@@ -2312,6 +2443,29 @@ flowchart TB
       noteTextColor: "#d6dbe7"
     }
   });
+
+  // classDef fills inside the diagram sources are authored dark; remap them to
+  // their light equivalents before Mermaid reads the text (this script runs
+  // before the load event that startOnLoad renders on).
+  if (prefersLight) {
+    const swap = {
+      "#12241d": "#e7f6ef", "#eafff6": "#0a5c3f",
+      "#1a1830": "#edeaff", "#eae7ff": "#3f33ad",
+      "#2a2110": "#faf0dd", "#fff3dd": "#7a4a05"
+    };
+    document.querySelectorAll(".mermaid").forEach((el) => {
+      el.textContent = el.textContent.replace(
+        /#(?:12241d|eafff6|1a1830|eae7ff|2a2110|fff3dd)/g, (m) => swap[m]
+      );
+    });
+  }
+
+  // The stylesheet flips live when the OS scheme changes, but Mermaid bakes
+  // its palette at render time — reload once so the diagrams match again.
+  if (window.matchMedia) {
+    window.matchMedia("(prefers-color-scheme: light)")
+      .addEventListener("change", () => window.location.reload());
+  }
 
   // ── Layer explorer ──────────────────────────────────────────────
   const layerBtns = document.querySelectorAll(".layer-btn");
