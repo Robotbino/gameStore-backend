@@ -247,10 +247,12 @@
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
     margin-bottom: 20px;
   }
+  /* No side-tab in either state. The active state reads via the surface tint
+     change (panel → panel-2) plus the .label color flipping to --accent below,
+     which together are a strong-enough "this one is selected" signal. */
   .layer-btn {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-left: 3px solid var(--line-2);
     border-radius: var(--radius);
     padding: 18px 18px;
     text-align: left;
@@ -262,7 +264,7 @@
   .layer-btn:hover { background: var(--panel-2); transform: translateY(-1px); }
   .layer-btn.active {
     background: var(--panel-2);
-    border-left-color: var(--accent);
+    border-color: var(--accent-dim);
   }
   .layer-btn .label {
     font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
@@ -328,11 +330,15 @@
   }
   .stage .s-t { font-family: var(--display); font-weight: 700; font-size: .95rem; }
   .stage .s-d { color: var(--ink-soft); font-size: .82rem; }
-  .stage.cors   { border-left: 3px solid var(--spring); }
-  .stage.jwt    { border-left: 3px solid var(--auth); }
-  .stage.authz  { border-left: 3px solid var(--auth); }
-  .stage.disp   { border-left: 3px solid var(--accent); }
-  .stage.ctrl   { border-left: 3px solid var(--accent); }
+  /* Categorical color moved off the left border and onto the .s-n mono label
+     ("STAGE 1", "CORS", …). Same information — the color still tells you
+     which filter chain segment this is — carried by a natural typographic
+     element instead of a side-tab. */
+  .stage.cors  .s-n { color: var(--spring); }
+  .stage.jwt   .s-n { color: var(--auth); }
+  .stage.authz .s-n { color: var(--auth); }
+  .stage.disp  .s-n { color: var(--accent); }
+  .stage.ctrl  .s-n { color: var(--accent); }
 
   /* ── Tabs (Flow walkthroughs) ── */
   .tabs {
@@ -378,10 +384,11 @@
     max-height: 660px;
     overflow-y: auto;
   }
+  /* No side-tab: the step number label (.n) is already rendered in --accent,
+     which is enough to signal that this is a step card. */
   .step-item {
     background: var(--panel-2);
     border: 1px solid var(--line);
-    border-left: 3px solid var(--accent);
     border-radius: var(--radius-sm);
     padding: 12px 14px 14px;
     margin: 6px;
@@ -554,19 +561,20 @@
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px;
     margin-top: 20px;
   }
+  /* No side-tab: the .code line ("HTTP 401", "HTTP 500", …) is already colored
+     per severity, which is the categorical signal — the side-tab was doubling
+     it. The .warn/.info modifier classes keep tinting .code accordingly. */
   .failure {
     background: var(--panel);
     border: 1px solid var(--line);
-    border-left: 3px solid var(--danger);
     border-radius: var(--radius);
     padding: 14px 16px;
   }
   .failure h4 { font-family: var(--display); font-size: .98rem; margin: 0 0 4px; color: var(--ink); }
   .failure .code { font-family: var(--mono); font-size: 11px; color: var(--danger); letter-spacing: .06em; }
   .failure p { color: var(--ink-soft); font-size: .9rem; margin: 8px 0 0; }
-  .failure.warn { border-left-color: var(--auth); }
   .failure.warn .code { color: var(--auth); }
-  .failure.info { border-left-color: var(--info); }
+  .failure.info .code { color: var(--info); }
   .failure.info .code { color: var(--info); }
 
   /* ── Accordion ── */
@@ -650,19 +658,23 @@
   .doc-switch .theme-toggle svg[hidden] { display: none; }
 
   /* ── Shared components for §11–§16 ── */
+  /* No side-tab on callouts. The tinted background — purple / spring-green /
+     amber — is already the categorical signal, and matching the border color
+     to the accent gives a subtler-but-still-visible frame. */
   .callout {
-    border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border: 1px solid rgba(109,94,252,.28);
     background: rgba(109,94,252,.06); border-radius: 10px;
     padding: 16px 18px; margin: 26px 0 0; color: var(--ink-soft); font-size: .95rem;
   }
-  .callout.spring { border-left-color: var(--spring); background: rgba(109,179,63,.06); }
-  .callout.warn { border-left-color: var(--auth); background: rgba(245,166,35,.06); }
+  .callout.spring { border-color: rgba(109,179,63,.28); background: rgba(109,179,63,.06); }
+  .callout.warn   { border-color: rgba(245,166,35,.32); background: rgba(245,166,35,.06); }
   .callout b { color: var(--ink); font-weight: 700; }
 
-  /* Recommendation banner */
+  /* Recommendation banner — same idea: green-tinted surface, matching border,
+     the .r-tag chip on the left already carries the --new accent. */
   .reco {
     display: flex; gap: 14px; align-items: baseline; margin: 26px 0 0;
-    border: 1px solid var(--new-dim); border-left: 3px solid var(--new);
+    border: 1px solid var(--new-dim);
     background: rgba(52,211,153,.06); border-radius: 10px; padding: 16px 18px;
   }
   .reco .r-tag {
@@ -717,8 +729,10 @@
     border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel);
     padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
   }
-  .panel.now { border-left: 3px solid var(--danger); }
-  .panel.target { border-left: 3px solid var(--new); }
+  /* No side-tab: each panel already carries a .verdict badge (.bad / .good)
+     in the matching color, which is the categorical "now vs target" signal. */
+  .panel.now    { border-color: var(--danger-dim); }
+  .panel.target { border-color: var(--new-dim); }
   .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
   .panel-head h3 { margin: 0; font-size: 1.02rem; }
   .verdict { font-family: var(--mono); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; padding: 3px 9px; border-radius: 6px; font-weight: 700; }
@@ -728,8 +742,11 @@
 
   /* Security hardening cards */
   .sec-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  /* No side-tab: the .s-now / .s-fix mono lines inside each card are already
+     colored (danger / new), which does more work than an amber left border
+     signalling "this is a security card". */
   .sec-card {
-    border: 1px solid var(--line); border-left: 3px solid var(--auth); border-radius: var(--radius);
+    border: 1px solid var(--line); border-radius: var(--radius);
     background: var(--panel); padding: 16px 18px; display: flex; flex-direction: column; gap: 7px;
   }
   .sec-card h3 { margin: 0; font-size: .98rem; }
@@ -786,10 +803,14 @@
   section[id] { scroll-margin-top: calc(var(--nav-h) + 20px); }
 
   /* ── Reading progress (injected by script) ── */
+  /* Full-width bar scaled from 0 via transform, so scroll-driven updates
+     never touch layout. JS setter uses style.transform below. */
   #readProgress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    position: fixed; top: 0; left: 0; height: 3px; width: 100%;
     background: linear-gradient(90deg, var(--accent), var(--spring));
-    z-index: 40; transition: width .12s linear; pointer-events: none;
+    transform: scaleX(0); transform-origin: left;
+    z-index: 40; transition: transform .12s linear; pointer-events: none;
+    will-change: transform;
   }
 
   /* ── Sticky subnav: active-section state ── */
@@ -2624,7 +2645,7 @@ flowchart TB
   });
   document.body.appendChild(toTop);
 
-  // ── Scroll handler: progress width + back-to-top visibility ──
+  // ── Scroll handler: progress transform + back-to-top visibility ──
   let ticking = false;
   function onScroll() {
     if (ticking) return;
@@ -2632,8 +2653,9 @@ flowchart TB
     requestAnimationFrame(() => {
       const doc = document.documentElement;
       const max = doc.scrollHeight - doc.clientHeight;
-      const pct = max > 0 ? (doc.scrollTop / max) * 100 : 0;
-      progress.style.width = pct + "%";
+      const frac = max > 0 ? doc.scrollTop / max : 0;
+      // scaleX(0..1) instead of width % — matches the transform-based CSS above.
+      progress.style.transform = "scaleX(" + frac + ")";
       toTop.classList.toggle("show", doc.scrollTop > 600);
       ticking = false;
     });

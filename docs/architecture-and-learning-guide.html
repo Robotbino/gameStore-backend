@@ -213,11 +213,13 @@
   .compare .col.bad .dot { background: var(--danger); }
   .compare .col.good .dot { background: var(--new); }
   .compare .col pre { border: 0; border-radius: 0; background: #0a0d13; }
+  /* Callout without a colored side-tab. The tinted background + <strong>
+     label is enough to mark it as an aside; symmetric radius replaces the
+     asymmetric one that was paired with the old left border. */
   .why {
     background: var(--panel-2);
-    border-left: 3px solid var(--accent);
     padding: 10px 14px;
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border-radius: var(--radius-sm);
     color: var(--ink-soft);
     font-size: .93rem;
   }
@@ -313,12 +315,13 @@
   .quiz .opt:disabled { cursor: default; opacity: .78; }
   .quiz .opt.correct { border-color: var(--new); background: var(--new-wash); color: var(--new); }
   .quiz .opt.wrong { border-color: var(--danger); background: var(--danger-wash); color: var(--danger); }
+  /* Same "no side-tab" treatment as .why. The .cite line at the bottom
+     already carries the mono/ink-faint signal that this is an explanation. */
   .quiz .exp {
     margin-top: 10px;
     padding: 10px 14px;
     background: var(--panel-2);
-    border-left: 3px solid var(--info);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border-radius: var(--radius-sm);
     color: var(--ink-soft);
     font-size: .92rem;
   }
@@ -417,10 +420,14 @@
   }
 
   /* ── Reading progress (injected by script) ── */
+  /* Full-width bar scaled from 0 via transform, so scroll-driven updates
+     never touch layout. JS setter uses style.transform below. */
   #readProgress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    position: fixed; top: 0; left: 0; height: 3px; width: 100%;
     background: linear-gradient(90deg, var(--accent), var(--spring));
-    z-index: 40; transition: width .12s linear; pointer-events: none;
+    transform: scaleX(0); transform-origin: left;
+    z-index: 40; transition: transform .12s linear; pointer-events: none;
+    will-change: transform;
   }
 
   /* ── Back to top (injected by script) ── */
@@ -2140,7 +2147,8 @@ jwt.secret=${JWT_SECRET}
       requestAnimationFrame(() => {
         const doc = document.documentElement;
         const max = doc.scrollHeight - doc.clientHeight;
-        progress.style.width = (max > 0 ? (doc.scrollTop / max) * 100 : 0) + "%";
+        // scaleX(0..1) instead of width % — matches the transform-based CSS above.
+        progress.style.transform = "scaleX(" + (max > 0 ? doc.scrollTop / max : 0) + ")";
         toTop.classList.toggle("show", doc.scrollTop > 600);
         ticking = false;
       });
