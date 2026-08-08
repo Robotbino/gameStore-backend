@@ -59,6 +59,18 @@
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
+		<!-- Flyway owns the schema now. flyway-core runs migrations at startup;
+		     flyway-mysql supplies the MySQL 8 dialect module Flyway 10+ requires
+		     as a separate artifact (Postgres, SQL Server etc. each have their own).
+		     Versions are managed by spring-boot-starter-parent 3.3.4. -->
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-mysql</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
