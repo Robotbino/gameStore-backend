@@ -144,23 +144,18 @@ properties do not read them yet. Moving the CORS origin to an env var is roadmap
 ## How a request flows
 
 ```mermaid
-flowchart LR
-    C[Client] --> CF[CorsFilter]
-    CF --> JF[JWTAuthenticationFilter]
-    JF -->|Bearer token| JS[JwtService<br/>verify + extract subject]
-    JS --> UD[userDetailsService<br/>findByEmail]
-    UD --> SC[SecurityContext]
-    JF --> FC{"SecurityFilterChain<br/>rules — first match wins"}
-    SC --> FC
-    FC -->|401 no/bad token| C
-    FC -->|403 wrong role| C
-    FC --> CTRL[Controller<br/>@Valid request DTO]
-    CTRL --> SVC[Service<br/>@Transactional]
-    SVC --> REPO[Spring Data JPA]
-    REPO --> DB[(MySQL)]
-    CTRL -->|entity to response DTO| C
-    SVC -.throws.-> GEH[GlobalExceptionHandler]
-    GEH -.JSON message.-> C
+flowchart TD
+    C["Client"] -->|"Authorization: Bearer"| SEC
+    subgraph SEC["Security filter chain"]
+        direction LR
+        CF["CorsFilter"] --> JF["JWTAuthenticationFilter<br/>verify token, load user"] --> AUTH{"Route rules<br/>first match wins"}
+    end
+    SEC -->|"401 no or bad token<br/>403 wrong role"| C
+    SEC --> CTRL["Controller<br/>validates request DTO"]
+    CTRL --> SVC["Service<br/>transactional logic"]
+    SVC --> REPO["Spring Data JPA"] --> DB[("MySQL")]
+    CTRL -->|"entity mapped to response DTO"| C
+    SVC -.->|"throws"| GEH["GlobalExceptionHandler"] -.->|"JSON message"| C
 ```
 
 Three things worth knowing about that chain:
