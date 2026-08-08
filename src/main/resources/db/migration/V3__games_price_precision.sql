@@ -1,5 +1,5 @@
 -- ============================================================
--- V2 — Give games.price a real precision
+-- V3 — Give games.price a real precision
 -- ------------------------------------------------------------
 -- V1 recorded `price decimal(38,2)` because an unannotated
 -- BigDecimal defaults to (38,2) under Hibernate — plenty of
