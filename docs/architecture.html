@@ -242,6 +242,25 @@
   .sw-auth { background: var(--auth-dim); border-color: var(--auth); }
   .sw-danger { background: var(--danger-dim); border-color: var(--danger); }
 
+  /* ── Auto-generated diagram key ──
+     Built from the classes each diagram actually uses (see buildLegend), so it
+     can't drift out of step with the diagram the way a hand-written one does.
+     Nothing is emitted for a diagram that colours nothing. */
+  .dg-legend {
+    display: flex; flex-wrap: wrap; gap: 8px;
+    margin: 12px 2px 0; padding: 0; list-style: none;
+  }
+  .dg-legend li {
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+    background: var(--panel-2); border: 1px solid var(--line);
+    border-radius: 999px; padding: 3px 10px 3px 7px;
+  }
+  .dg-key {
+    width: 10px; height: 10px; border-radius: 3px;
+    border: 1.5px solid currentColor; flex: none;
+  }
+
   /* ── Interactive Layer Explorer ── */
   .layer-grid {
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
@@ -527,6 +546,14 @@
   .pill.s200 { color: var(--sky); border:1px solid var(--sky-dim); background: var(--sky-wash); }
   .pill.s201 { color: var(--new); border:1px solid var(--new-dim); background: var(--new-wash); }
   .pill.s204 { color: var(--ink-soft); border:1px solid var(--line-2); background: var(--panel-2); }
+  /* 501 is a deliberate answer here, not a fault — amber rather than red. */
+  .pill.s501 { color: var(--auth); border:1px solid var(--auth-dim); background: var(--auth-wash); }
+  /* Query params, subordinate to the path they hang off. */
+  .qp {
+    display: inline-block; margin-top: 3px;
+    font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+    white-space: nowrap;
+  }
   .pill.s400 { color: var(--auth); border:1px solid var(--auth-dim); background: var(--auth-wash); }
   .pill.s401 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
   .pill.s403 { color: var(--danger); border:1px solid var(--danger-dim); background: var(--danger-wash); }
@@ -1126,26 +1153,26 @@
     <div class="diagram-shell">
       <pre class="mermaid">
 flowchart TB
-  Client["🌐 React SPA :5173<br/>Authorization: Bearer JWT"]
+  Client["🌐 React SPA :5173&lt;br/&gt;Authorization: Bearer JWT"]
 
   subgraph Boot["⚙️ Spring Boot Application :8181"]
     direction TB
 
     subgraph FilterChain["Servlet Filter Chain"]
       direction TB
-      Cors["CorsFilter<br/>HIGHEST_PRECEDENCE"]:::spring
-      JwtF["JWTAuthenticationFilter<br/>token → SecurityContext"]:::auth
-      Authz["SecurityFilterChain<br/>authorizeHttpRequests · role rules"]:::auth
+      Cors["CorsFilter&lt;br/&gt;HIGHEST_PRECEDENCE"]:::spring
+      JwtF["JWTAuthenticationFilter&lt;br/&gt;token → SecurityContext"]:::auth
+      Authz["SecurityFilterChain&lt;br/&gt;authorizeHttpRequests · role rules"]:::auth
       Cors --> JwtF --> Authz
     end
 
-    Disp["DispatcherServlet<br/>routes to @RestController"]:::spring
+    Disp["DispatcherServlet&lt;br/&gt;routes to @RestController"]:::spring
 
     subgraph Web["Controllers (@RestController)"]
       direction TB
-      AuthC["AuthenticationController<br/>/api/v2/auth/**"]
-      GamesC["GamesControllers<br/>/games/**"]
-      UsersC["UsersController<br/>/users/**"]
+      AuthC["AuthenticationController&lt;br/&gt;/api/v2/auth/**"]
+      GamesC["GamesControllers&lt;br/&gt;/games/**"]
+      UsersC["UsersController&lt;br/&gt;/users/**"]
     end
 
     subgraph Svc["Services (@Service)"]
@@ -1158,7 +1185,7 @@ flowchart TB
 
     subgraph Data["Repositories (Spring Data JPA)"]
       direction TB
-      Repos["UserRepository · GamesRepository<br/>PurchaseRepository"]
+      Repos["UserRepository · GamesRepository&lt;br/&gt;PurchaseRepository"]
     end
 
     Authz --> Disp
@@ -1172,15 +1199,12 @@ flowchart TB
     UsersS --> Repos
   end
 
-  DB[("🗄️ MySQL · gamestore_db<br/>users · games · purchases")]
+  DB[("🗄️ MySQL · gamestore_db&lt;br/&gt;users · games · purchases")]
 
   Client -->|HTTP/JSON| Cors
   AuthC -.->|signed JWT| Client
   Repos -->|Hibernate SQL| DB
-
-  classDef auth stroke:#f5a623,stroke-width:2px;
-  classDef spring stroke:#6db33f,stroke-width:2px;
-      </pre>
+</pre>
     </div>
     <p class="caption">Diagram 1 · the request path — amber is the auth boundary, green is Spring framework machinery.</p>
   </div>
@@ -1843,11 +1867,11 @@ erDiagram
     Long id PK
     String title
     String genre "comma-separated"
-    BigDecimal price
+    BigDecimal price "decimal(10,2)"
     Double rating
     String description "TEXT"
-    String image_url
-    String hero_image
+    String image_url "600x900 capsule"
+    String hero_image "21:9 banner"
   }
   PURCHASES {
     Long id PK
@@ -1993,20 +2017,31 @@ erDiagram
         <tbody>
           <tr><td><span class="pill post">POST</span></td><td class="mono">/api/v2/auth/register</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">AuthenticationController.register</td></tr>
           <tr><td><span class="pill post">POST</span></td><td class="mono">/api/v2/auth/authenticate</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">…authenticate</td></tr>
-          <tr><td><span class="pill get">GET</span></td><td class="mono">/games/all</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">GamesControllers.getAllGames</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/games/all<br><span class="qp">?q= &amp;genre= &amp;page= &amp;size= &amp;sort=</span></td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">GamesControllers.getAllGames → PagedResponse&lt;GameResponse&gt;</td></tr>
           <tr><td><span class="pill get">GET</span></td><td class="mono">/games/find/{id}</td><td><span class="pill public">public</span></td><td><span class="pill s200">200</span></td><td class="mono">…getGameById</td></tr>
           <tr><td><span class="pill post">POST</span></td><td class="mono">/games/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addGame</td></tr>
           <tr><td><span class="pill put">PUT</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateGame</td></tr>
           <tr><td><span class="pill del">DELETE</span></td><td class="mono">/games/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteGame</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/games/sync/rawg</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s501">501</span></td><td class="mono">…syncFromRawg — deliberate placeholder</td></tr>
+          <tr><td><span class="pill post">POST</span></td><td class="mono">/purchases</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s201">201</span></td><td class="mono">PurchaseController.checkout → CheckoutResponse</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/purchases/me</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s200">200</span></td><td class="mono">…myPurchases → List&lt;PurchaseResponse&gt;</td></tr>
           <tr><td><span class="pill get">GET</span></td><td class="mono">/users/me</td><td><span class="pill authn">authenticated</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getMe</td></tr>
-          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/all</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getAllUsers → List&lt;UserResponse&gt;</td></tr>
+          <tr><td><span class="pill get">GET</span></td><td class="mono">/users/all<br><span class="qp">?q= &amp;page= &amp;size= &amp;sort=</span></td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">UsersController.getAllUsers → PagedResponse&lt;UserResponse&gt;</td></tr>
           <tr><td><span class="pill post">POST</span></td><td class="mono">/users/add</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s201">201</span></td><td class="mono">…addUser</td></tr>
           <tr><td><span class="pill put">PUT</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s200">200</span></td><td class="mono">…updateUser</td></tr>
           <tr><td><span class="pill del">DELETE</span></td><td class="mono">/users/{id}</td><td><span class="pill admin">ADMIN</span></td><td><span class="pill s204">204</span></td><td class="mono">…deleteUser</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="caption">Every <code>/users</code> response is mapped to the <code>UserResponse</code> DTO, so the password hash can't leak. <code>/users/me</code> is matched before <code>/users/**</code> in the security config (first-match-wins), so any authenticated user can read their own record while everything else stays ADMIN-only.</p>
+    <p class="caption">Every <code>/users</code> response is mapped to the <code>UserResponse</code> DTO, so the password hash can't leak. <code>/users/me</code> is matched before <code>/users/**</code> in the security config (first-match-wins), so any authenticated user can read their own record while everything else stays ADMIN-only. <code>/purchases</code> has no rule of its own — it falls through to <code>anyRequest().authenticated()</code>, and scoping is done in the service from the token's subject rather than from anything the caller sends.</p>
+    <div class="callout warn">
+      <b>Both list endpoints are paginated.</b> <code>@PageableDefault(size = 20, sort = "id")</code>
+      means no params returns page 0 of 20, id ascending — not the whole table. They return
+      <code>PagedResponse</code> rather than Spring's <code>Page</code>, because Boot 3.3 warns that
+      <code>PageImpl</code>'s JSON "is not supported to guard against unintentional API breakage".
+      The envelope is five fields we own: <code>content</code>, <code>page</code>, <code>size</code>,
+      <code>totalElements</code>, <code>totalPages</code>.
+    </div>
   </div>
 </section>
 
@@ -2112,16 +2147,13 @@ erDiagram
     <div class="diagram-shell">
       <pre class="mermaid">
 flowchart LR
-  U["Request<br/>GET /api/catalog"] --> C{"Caffeine<br/>hit?"}
-  C -->|yes| R1["Return ~0 ms"]:::good
-  C -->|no| D{"Fresh shadow<br/>row in MySQL?"}
-  D -->|yes| R2["Return + warm Caffeine"]:::good
-  D -->|no| X["Call RAWG<br/>2s / 4s timeout"]:::ext
-  X --> S["Batch upsert to MySQL<br/>+ warm Caffeine"]:::chg
-  S --> R3["Return"]:::good
-  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
-  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
-  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
+  U["Request&lt;br/&gt;GET /api/catalog"] --> C{"Caffeine&lt;br/&gt;hit?"}
+  C -->|yes| R1["Return ~0 ms"]:::ok
+  C -->|no| D{"Fresh shadow&lt;br/&gt;row in MySQL?"}
+  D -->|yes| R2["Return + warm Caffeine"]:::ok
+  D -->|no| X["Call RAWG&lt;br/&gt;2s / 4s timeout"]:::ext
+  X --> S["Batch upsert to MySQL&lt;br/&gt;+ warm Caffeine"]:::work
+  S --> R3["Return"]:::ok
       </pre>
     </div>
     <p class="caption">Diagram 1 · every layer answers before the next is touched, so quota is spent only on genuinely new games.</p>
@@ -2138,7 +2170,7 @@ sequenceDiagram
   S->>DB: SELECT by (source, external_id) IN (…)
   DB-->>S: existing ids (some already present)
   S->>DB: saveAll — insert new, refresh stale
-  Note over DB: UNIQUE(source, external_id)<br/>makes re-fetch idempotent
+  Note over DB: UNIQUE(source, external_id)&lt;br/&gt;makes re-fetch idempotent
   DB-->>S: 40 rows, each with a local Long id
       </pre>
     </div>
@@ -2148,17 +2180,13 @@ sequenceDiagram
     <div class="diagram-shell">
       <pre class="mermaid">
 flowchart TB
-  A["Shadow row read"] --> B{"cached_at<br/>&lt; 14 days?"}
-  B -->|yes| Serve["Serve as-is"]:::good
-  B -->|no| Stale["Serve stale immediately"]:::chg
-  Stale --> Q["Queue background refresh"]:::chg
+  A["Shadow row read"] --> B{"cached_at&lt;br/&gt;&lt; 14 days?"}
+  B -->|yes| Serve["Serve as-is"]:::ok
+  B -->|no| Stale["Serve stale immediately"]:::work
+  Stale --> Q["Queue background refresh"]:::work
   Q --> RAWG["RAWG re-fetch"]:::ext
-  RAWG --> Up["Update row + cached_at"]:::good
-  Cron["@Scheduled nightly<br/>(optional warm-up)"]:::auth --> Q
-  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
-  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
-  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
-  classDef auth stroke:#60a5fa,stroke-width:2px,color:#e3f0ff,fill:#12203a;
+  RAWG --> Up["Update row + cached_at"]:::ok
+  Cron["@Scheduled nightly&lt;br/&gt;(optional warm-up)"]:::async --> Q
       </pre>
     </div>
     <p class="caption">Diagram 3 · reads never block on a refresh — stale data is served instantly while the update happens behind it.</p>
@@ -2168,15 +2196,11 @@ flowchart TB
       <pre class="mermaid">
 flowchart LR
   Req["Catalog request"] --> Try["Call RAWG"]:::ext
-  Try -->|timeout / 5xx| Fall["Fall back to MySQL"]:::chg
-  Fall --> Ban["Response + degraded flag"]:::good
-  Ban --> UI["'Showing cached results' banner"]:::good
-  Try -->|repeated failures| CB["Circuit breaker opens 60 s"]:::auth
+  Try -->|timeout / 5xx| Fall["Fall back to MySQL"]:::work
+  Fall --> Ban["Response + degraded flag"]:::ok
+  Ban --> UI["'Showing cached results' banner"]:::ok
+  Try -->|repeated failures| CB["Circuit breaker opens 60 s"]:::fail
   CB --> Fall
-  classDef good stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
-  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
-  classDef ext stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
-  classDef auth stroke:#f0637a,stroke-width:2px,color:#ffe1e7,fill:#2a1015;
       </pre>
     </div>
     <p class="caption">Diagram 4 · a store that degrades to cached data is a better store than one that returns a 500. The banner is honest; the page still works.</p>
@@ -2325,17 +2349,13 @@ flowchart LR
     <div class="diagram-shell">
       <pre class="mermaid">
 flowchart TB
-  Internet(("Internet")) -->|443| Caddy["caddy<br/>reverse proxy · TLS"]:::auth
+  Internet(("Internet")) -->|443| Caddy["caddy&lt;br/&gt;reverse proxy · TLS"]:::auth
   subgraph net["Docker network · gamestore-net (internal)"]
-    Caddy -->|/api → :8181| API["api<br/>Spring Boot"]:::chg
-    API -->|jdbc:3306| DB["db<br/>MySQL 8"]:::core
-    DB --- Vol[("volume<br/>mysql-data")]:::vol
-    Caddy -.->|static SPA*| Web["web<br/>built assets (or Cloudflare Pages)"]:::core
+    Caddy -->|/api → :8181| API["api&lt;br/&gt;Spring Boot"]:::work
+    API -->|jdbc:3306| DB["db&lt;br/&gt;MySQL 8"]:::muted
+    DB --- Vol[("volume&lt;br/&gt;mysql-data")]:::data
+    Caddy -.->|static SPA*| Web["web&lt;br/&gt;built assets (or Cloudflare Pages)"]:::muted
   end
-  classDef auth stroke:#f5a623,stroke-width:2px,color:#fff3dd,fill:#2a2110;
-  classDef chg stroke:#6d5efc,stroke-width:2px,color:#eae7ff,fill:#1a1830;
-  classDef core stroke:#98a1b5,stroke-width:1.5px,color:#e7ebf3,fill:#1b2130;
-  classDef vol stroke:#34d399,stroke-width:2px,color:#eafff6,fill:#12241d;
       </pre>
     </div>
     <p class="caption">*In the $0 plan the SPA is served by Cloudflare Pages, so the <code>web</code>
@@ -2432,7 +2452,8 @@ flowchart TB
     <div class="score-grid">
       <div class="score-row"><div class="s-label">Layering &amp; structure<small>controller · service · repo · dto</small></div><div class="score-bar"><div class="score-fill" style="width:90%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">9 → <b>9</b></div></div>
       <div class="score-row"><div class="s-label">Security<small>JWT · RBAC · hardening</small></div><div class="score-bar"><div class="score-fill" style="width:70%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">7 → <b>9</b></div></div>
-      <div class="score-row"><div class="s-label">Data integrity<small>constraints · migrations</small></div><div class="score-bar"><div class="score-fill" style="width:50%"></div><div class="score-tgt" style="left:85%"></div></div><div class="score-num">5 → <b>8.5</b></div></div>
+      <div class="score-row"><div class="s-label">Data integrity<small>Flyway owns schema · validate · no price snapshot</small></div><div class="score-bar"><div class="score-fill" style="width:70%"></div><div class="score-tgt" style="left:85%"></div></div><div class="score-num">7 → <b>8.5</b></div></div>
+      <div class="score-row"><div class="s-label">API design<small>paged DTO envelope · non-REST paths remain</small></div><div class="score-bar"><div class="score-fill" style="width:80%"></div><div class="score-tgt" style="left:88%"></div></div><div class="score-num">8 → <b>8.8</b></div></div>
       <div class="score-row"><div class="s-label">Caching<small>Caffeine · shadow rows</small></div><div class="score-bar"><div class="score-fill" style="width:15%"></div><div class="score-tgt" style="left:85%"></div></div><div class="score-num">1.5 → <b>8.5</b></div></div>
       <div class="score-row"><div class="s-label">Testing<small>H2 integration tests</small></div><div class="score-bar"><div class="score-fill" style="width:70%"></div><div class="score-tgt" style="left:82%"></div></div><div class="score-num">7 → <b>8.2</b></div></div>
       <div class="score-row"><div class="s-label">Deployability<small>docker · CI · public</small></div><div class="score-bar"><div class="score-fill" style="width:20%"></div><div class="score-tgt" style="left:90%"></div></div><div class="score-num">2 → <b>9</b></div></div>
@@ -2440,10 +2461,15 @@ flowchart TB
     </div>
 
     <div class="callout spring">
-      <b>Order of operations.</b> ① CORS + secrets from env → ② Dockerise → ③ deploy + docs on Pages →
-      ④ Flyway + prod profile → ⑤ purchases/library endpoints → ⑥ server-side search &amp; pagination →
-      ⑦ the RAWG catalog + cache (§11) → ⑧ cart &amp; checkout. Deploy comes <em>before</em> the flashy
-      features on purpose: a reachable modest app beats an unreachable impressive one every time.
+      <b>Order of operations.</b> ① CORS + secrets from env → ② Dockerise → ③ deploy + docs on
+      Pages → <s>④ Flyway + prod profile</s> → <s>⑤ purchases/library endpoints</s> →
+      <s>⑥ server-side search &amp; pagination</s> → ⑦ the RAWG catalog + cache (§11) →
+      <s>⑧ cart &amp; checkout</s>. Struck items have landed, which makes the shape of what is left
+      awkward: the <em>features</em> ran ahead and the <em>deployment</em> work did not move. ① is
+      still open on the CORS half specifically — <code>DB_PASSWORD</code> and <code>JWT_SECRET</code>
+      already come from the environment, but <code>CorsConfig</code> still hardcodes
+      <code>http://localhost:5173</code>, so nothing else can be reached from a deployed origin until
+      that is a variable too.
     </div>
   </div>
 </section>
@@ -2508,9 +2534,18 @@ flowchart TB
     .getPropertyValue("--scheme").trim() === "light";
 
   mermaid.initialize({
-    startOnLoad: true,
+    // Rendered by hand below, not on load: Mermaid cannot lay out a diagram
+    // inside a display:none container — it fails silently and stamps a
+    // misleading "Syntax error" bomb — so hidden flow tabs render on reveal.
+    startOnLoad: false,
     securityLevel: "loose",
     theme: "base",
+    // Rounded edges read as flow rather than circuitry, and the extra rank
+    // spacing is what stops edge labels from sitting on top of the arrowheads.
+    flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14 },
+    // mirrorActors doubles every participant along the bottom, which on these
+    // diagrams is a second row of names and no extra information.
+    sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
     themeVariables: prefersLight ? {
       background: "#ffffff",
       primaryColor: "#f4f6fa",
@@ -2558,21 +2593,124 @@ flowchart TB
     }
   });
 
-  // classDef fills inside the diagram sources are authored dark; remap them to
-  // their light equivalents before Mermaid reads the text (this script runs
-  // before the load event that startOnLoad renders on).
-  if (prefersLight) {
-    const swap = {
-      "#12241d": "#e7f6ef", "#eafff6": "#0a5c3f",
-      "#1a1830": "#edeaff", "#eae7ff": "#3f33ad",
-      "#2a2110": "#faf0dd", "#fff3dd": "#7a4a05"
-    };
-    document.querySelectorAll(".mermaid").forEach((el) => {
-      el.textContent = el.textContent.replace(
-        /#(?:12241d|eafff6|1a1830|eae7ff|2a2110|fff3dd)/g, (m) => swap[m]
-      );
+  // ── Diagram palette ─────────────────────────────────────────────
+  // One vocabulary for every diagram in the doc set — this file and the
+  // frontend brief share it, so a colour means the same thing in both.
+  // [stroke, fill, text] per class, per scheme.
+  //
+  // Generated and injected at render time rather than written into each
+  // diagram. Mermaid resolves colours while laying a diagram out and cannot
+  // read the CSS variables the rest of the page themes with, so the values
+  // have to be handed to it either way. Doing it from one table also removes
+  // a whole bug class: the previous approach authored dark hexes inline and
+  // string-replaced them for light mode, and the map was missing three of
+  // them — `core`, and the two diagrams that gave `auth` its own colour — so
+  // those nodes stayed near-black on a white page.
+  const PALETTE = {
+    dark: {
+      auth:   ["#f5a623", "#2e2410", "#ffdfa6"],
+      spring: ["#6db33f", "#16240f", "#cdeeb4"],
+      ok:     ["#34d399", "#10261f", "#9bf0cf"],
+      work:   ["#8b7dff", "#1c1a33", "#cfc8ff"],
+      data:   ["#22b8cf", "#0e2429", "#9fe6f2"],
+      ext:    ["#d946ef", "#271033", "#f0bdfa"],
+      async:  ["#60a5fa", "#101f33", "#bcd9ff"],
+      fail:   ["#f0637a", "#2b1119", "#ffc2cd"],
+      muted:  ["#8b94a9", "#1b2130", "#d6dbe7"]
+    },
+    light: {
+      auth:   ["#b8770c", "#fdf3e0", "#6b4205"],
+      spring: ["#4d8f24", "#eef7e6", "#2c5410"],
+      ok:     ["#0f9d70", "#e6f7f0", "#08543a"],
+      work:   ["#4c3fd0", "#eeebff", "#33269e"],
+      data:   ["#0e7490", "#e3f6fa", "#0b4d5f"],
+      ext:    ["#a21caf", "#fbeafd", "#6b127a"],
+      async:  ["#2563eb", "#e8f0fe", "#1a3f8f"],
+      fail:   ["#be123c", "#fdeaee", "#8a0f2c"],
+      muted:  ["#64748b", "#f1f3f8", "#333c4e"]
+    }
+  };
+
+  const PRELUDE = Object.entries(PALETTE[prefersLight ? "light" : "dark"])
+    .map(([name, [stroke, fill, text]]) =>
+      `  classDef ${name} stroke:${stroke},stroke-width:2px,fill:${fill},color:${text};`)
+    .join("\n");
+
+  // classDef is a flowchart/state-diagram feature — a sequence or ER diagram
+  // rejects it outright, so only those two get the prelude, and it goes after
+  // the type declaration because nothing may precede that line.
+  document.querySelectorAll(".mermaid").forEach((el) => {
+    const lines = el.textContent.split("\n");
+    const head = lines.findIndex((l) => l.trim());
+    if (head === -1) return;
+    if (!/^(flowchart|graph|stateDiagram)/.test(lines[head].trim())) return;
+    lines.splice(head + 1, 0, PRELUDE);
+    el.textContent = lines.join("\n");
+  });
+
+  // What each palette class means, in words.
+  const LEGEND_TEXT = {
+    auth:   "auth / trust boundary",
+    spring: "Spring machinery",
+    ok:     "fast path · already correct",
+    work:   "write · added by this design",
+    data:   "persistent store",
+    ext:    "third party",
+    async:  "background · scheduled",
+    fail:   "failure path · guard",
+    muted:  "unchanged infrastructure"
+  };
+
+  // Read the classes off the rendered SVG rather than the source text, so the
+  // key lists exactly what the reader can see — no entry for a class that was
+  // defined but never applied. A diagram may relabel a colour for its own
+  // context via data-legend; the colour still means one thing per diagram.
+  function buildLegend(el) {
+    const shell = el.closest(".diagram-shell");
+    if (!shell || shell.nextElementSibling?.classList.contains("dg-legend")) return;
+
+    let local = {};
+    try { local = JSON.parse(shell.dataset.legend || "{}"); } catch (e) {}
+
+    const used = new Set();
+    el.querySelectorAll(".node").forEach((n) => {
+      n.getAttribute("class").split(/\s+/).forEach((c) => {
+        if (LEGEND_TEXT[c]) used.add(c);
+      });
     });
+    if (!used.size) return;
+
+    const pal = PALETTE[prefersLight ? "light" : "dark"];
+    const ul = document.createElement("ul");
+    ul.className = "dg-legend";
+    ul.setAttribute("aria-label", "Diagram key");
+    Object.keys(pal).filter((c) => used.has(c)).forEach((c) => {
+      const [stroke, fill] = pal[c];
+      const li = document.createElement("li");
+      const sw = document.createElement("span");
+      sw.className = "dg-key";
+      sw.style.color = stroke;
+      sw.style.background = fill;
+      li.append(sw, document.createTextNode(local[c] || LEGEND_TEXT[c]));
+      ul.appendChild(li);
+    });
+    shell.after(ul);
   }
+
+  function renderMermaid(nodes) {
+    const pending = nodes.filter((n) => !n.dataset.processed);
+    if (pending.length && window.mermaid) {
+      window.mermaid.run({ nodes: pending }).then(() => pending.forEach(buildLegend));
+    }
+  }
+
+  // On load, render every diagram that is NOT inside a hidden flow panel.
+  renderMermaid(
+    [...document.querySelectorAll(".mermaid")].filter((n) => {
+      const panel = n.closest(".flow-panel");
+      return !panel || !panel.hidden;
+    })
+  );
 
   // The stylesheet flips live when the OS scheme changes, but Mermaid bakes
   // its palette at render time — reload once so the diagrams match again.
@@ -2613,12 +2751,10 @@ flowchart TB
       const key = tab.dataset.flow;
       tabs.forEach((t) => t.classList.toggle("active", t === tab));
       panels.forEach((p) => { p.hidden = p.dataset.flowPanel !== key; });
-      // Mermaid renders hidden diagrams at 0 width; re-run for the shown panel.
+      // The panel is now visible, so its diagram can finally be laid out.
+      // renderMermaid skips any node already processed, so this runs once.
       const active = document.querySelector(`.flow-panel[data-flow-panel="${key}"]`);
-      if (active && window.mermaid) {
-        const nodes = active.querySelectorAll(".mermaid");
-        try { window.mermaid.run({ nodes: Array.from(nodes) }); } catch (_) {}
-      }
+      if (active) renderMermaid([...active.querySelectorAll(".mermaid")]);
     });
   });
 
