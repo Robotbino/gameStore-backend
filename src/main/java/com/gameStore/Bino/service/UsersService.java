@@ -6,10 +6,10 @@ import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.repositories.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
@@ -17,38 +17,37 @@ public class UsersService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public List<Users> findAllUsers()
-    {
-        return userRepository.findAll();
+    /**
+     * Paginated user listing with optional username keyword. Replaces the
+     * unbounded findAllUsers() and the never-called searchUsers() with a
+     * single method that covers /users/all and future admin search UIs.
+     */
+    public Page<Users> search(String q, Pageable pageable) {
+        return userRepository.search(q, pageable);
     }
 
     // id params are Integer now — must match JpaRepository<Users, Integer>
-    public Users findUserByID(Integer id){
+    public Users findUserByID(Integer id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: "+ id));
-    }
-    //Search Users by username (comment said "Game" — copy-paste ghost)
-    public List<Users> searchUsers(String keyword) {
-        return userRepository.findByUserNameContainingIgnoreCase(keyword);
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
     }
 
     //Add a User
-    public Users addUser(Users user)
-    {
-        if(userRepository.existsByEmail(user.getEmail())){
+    public Users addUser(Users user) {
+        if (userRepository.existsByEmail(user.getEmail())) {
             throw new DuplicateResourceException("Email already in use");
         }
-        if(userRepository.existsByUserName(user.getUserName())){
+        if (userRepository.existsByUserName(user.getUserName())) {
             throw new DuplicateResourceException("Username already in use");
         }
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         return userRepository.save(user);
-    };
+    }
 
     //Delete User record
     @Transactional
-    public void deleteUser(Integer id){
-        if(!userRepository.existsById(id)){
+    public void deleteUser(Integer id) {
+        if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found with id: " + id);
         }
         userRepository.deleteById(id);
@@ -70,7 +69,7 @@ public class UsersService {
 
         // The frontend omits the password on edits; only replace it when a new one
         // is provided, otherwise the stored hash would be wiped on a normal edit.
-        if(updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()){
+        if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
             existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 

@@ -1,6 +1,7 @@
 package com.gameStore.Bino.controllers;
 
 import com.gameStore.Bino.dto.CreateUserRequest;
+import com.gameStore.Bino.dto.PagedResponse;
 import com.gameStore.Bino.dto.UpdateUserRequest;
 import com.gameStore.Bino.dto.UserResponse;
 import com.gameStore.Bino.models.Role;
@@ -8,12 +9,13 @@ import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.service.UsersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 // @RestController = @Controller + @ResponseBody, so returns go through Jackson.
 // QUIZ Q1: under a plain @Controller (no @ResponseBody), a handler returning
@@ -48,12 +50,19 @@ public class UsersController {
 
     // Map entities -> DTOs at the controller edge. That single change stops the hash
     // leak AND defuses the Jackson entity-cycle. Path stays /all — the frontend calls it.
+    //
+    // Now paginated: the previous unbounded findAllUsers() would happily serialise
+    // the entire users table on every admin dashboard load. Optional ?q= filters
+    // by username substring; ?page=/?size=/?sort= are the standard Spring Data
+    // params; default sort is id ASC so pagination is deterministic across pages.
+    // Response wrapped in PagedResponse (our own record) rather than Page<T>
+    // because Spring Boot 3.3 warns that PageImpl's JSON shape is not a contract.
     @GetMapping("/all")
-    public ResponseEntity<List<UserResponse>> getAllUsers() {
-        List<UserResponse> users = usersService.findAllUsers().stream()
-                .map(UserResponse::from)
-                .toList();
-        return new ResponseEntity<>(users, HttpStatus.OK);
+    public ResponseEntity<PagedResponse<UserResponse>> getAllUsers(
+            @RequestParam(required = false) String q,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<Users> page = usersService.search(q, pageable);
+        return ResponseEntity.ok(PagedResponse.from(page, UserResponse::from));
     }
 
     @DeleteMapping("/{id}")

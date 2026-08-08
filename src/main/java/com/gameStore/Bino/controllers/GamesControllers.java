@@ -1,15 +1,19 @@
 package com.gameStore.Bino.controllers;
 
 import com.gameStore.Bino.dto.GameRequest;
+import com.gameStore.Bino.dto.GameResponse;
+import com.gameStore.Bino.dto.PagedResponse;
 import com.gameStore.Bino.models.Games;
 import com.gameStore.Bino.service.GamesService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -30,21 +34,38 @@ public class GamesControllers {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<Games> addGame(@Valid @RequestBody GameRequest request) {
+    public ResponseEntity<GameResponse> addGame(@Valid @RequestBody GameRequest request) {
         Games newGame = gamesService.addGame(toEntity(request));
-        return new ResponseEntity<>(newGame, HttpStatus.CREATED);
+        return new ResponseEntity<>(GameResponse.from(newGame), HttpStatus.CREATED);
     }
 
+    /**
+     * Paginated catalogue browse with optional keyword and genre filters. Any of
+     * ?q= / ?genre= / ?page= / ?size= / ?sort=field,dir combine freely; a bare
+     * GET /games/all returns page 0, 20 rows, sorted by id ASC.
+     *
+     * The default sort is deliberate: an unsorted paginated query returns rows
+     * in DB order, which is stable for a single request but not across requests
+     * — flipping page 2 → page 3 could show the same row twice or skip one.
+     * Sorting by the id PK avoids that with zero server cost.
+     *
+     * The response is wrapped in PagedResponse (a small record we own) instead
+     * of Spring Data's PageImpl — Spring Boot 3.3 explicitly warns that
+     * PageImpl's JSON shape isn't a stable contract.
+     */
     @GetMapping("/all")
-    public ResponseEntity<List<Games>> getAllGames() {
-        List<Games> games = gamesService.findAllGames();
-        return new ResponseEntity<>(games, HttpStatus.OK);
+    public ResponseEntity<PagedResponse<GameResponse>> getAllGames(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String genre,
+            @PageableDefault(size = 20, sort = "id") Pageable pageable) {
+        Page<Games> page = gamesService.search(q, genre, pageable);
+        return ResponseEntity.ok(PagedResponse.from(page, GameResponse::from));
     }
 
     @GetMapping("find/{id}")
-    public ResponseEntity<Games> getGameById(@PathVariable("id") Long id) {
+    public ResponseEntity<GameResponse> getGameById(@PathVariable("id") Long id) {
         Games games = gamesService.getGameById(id);
-        return new ResponseEntity<>(games, HttpStatus.OK);
+        return new ResponseEntity<>(GameResponse.from(games), HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
@@ -54,9 +75,10 @@ public class GamesControllers {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Games> updateGame(@PathVariable("id") Long id, @Valid @RequestBody GameRequest request) {
+    public ResponseEntity<GameResponse> updateGame(@PathVariable("id") Long id,
+                                                    @Valid @RequestBody GameRequest request) {
         Games games = gamesService.updateGame(id, toEntity(request));
-        return new ResponseEntity<>(games, HttpStatus.OK);
+        return new ResponseEntity<>(GameResponse.from(games), HttpStatus.OK);
     }
 
     // Map the inbound DTO onto a transient entity the service can persist. rating

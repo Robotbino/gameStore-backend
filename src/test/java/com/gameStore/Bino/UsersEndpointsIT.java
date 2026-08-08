@@ -28,9 +28,14 @@ class UsersEndpointsIT extends AbstractIntegrationTest {
         String token = adminToken();
         mockMvc.perform(get("/users/all").header(HttpHeaders.AUTHORIZATION, bearer(token)))
                 .andExpect(status().isOk())
+                // Response is now a PagedResponse envelope; rows live at $.content[*].
                 // The DTO has no password component — the hash can't leak even by accident.
-                .andExpect(jsonPath("$[0].password").doesNotExist())
-                .andExpect(jsonPath("$[0].email").exists());
+                .andExpect(jsonPath("$.content[0].password").doesNotExist())
+                .andExpect(jsonPath("$.content[0].email").exists())
+                // The paging metadata should surface too so the frontend can render a counter.
+                .andExpect(jsonPath("$.page", is(0)))
+                .andExpect(jsonPath("$.size", is(20)))
+                .andExpect(jsonPath("$.totalElements").exists());
     }
 
     @Test

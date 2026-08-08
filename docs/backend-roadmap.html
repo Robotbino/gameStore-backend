@@ -806,16 +806,25 @@
 
       <article class="rm-card v-do">
         <div class="rm-head">
-          <label class="rm-tick"><input type="checkbox" data-ck="B10" /><span class="rm-id">B10</span></label>
+          <label class="rm-tick"><input type="checkbox" data-ck="B10" checked /><span class="rm-id">B10</span></label>
           <h3>Expose server-side search, sort &amp; pagination</h3>
-          <span class="rm-verdict v-do">Do it</span>
+          <span class="rm-verdict v-do">Shipped ✓</span>
         </div>
-        <p>The logic is already written and completely unreachable — no controller calls it, so the frontend
-          downloads the entire catalogue and filters in the browser. Return a <code>Page</code>, not a
-          <code>List</code>.</p>
-        <p class="rm-anchor"><code>service/GamesService.java:32</code> <code>searchGames()</code> and
-          <code>:36</code> <code>getGamesByGenre()</code> are dead code. <code>findAllGames()</code> returns an
-          unbounded list. Same story for <code>UsersService.searchUsers()</code>.</p>
+        <p><b>Done (2026-08-08).</b> One repository method backs three UX modes now:
+          <code>GamesRepository.search(q, genre, Pageable)</code> — a JPQL query with optional filters, so
+          <code>?q=</code> alone, <code>?genre=</code> alone, both together, or neither all use the same
+          code path. Same treatment for <code>UsersRepository.search(q, Pageable)</code>. The old dead
+          methods (<code>searchGames</code>, <code>getGamesByGenre</code>, <code>searchUsers</code>) are
+          gone; the unbounded <code>findAllGames</code> / <code>findAllUsers</code> are gone with them.</p>
+        <p class="rm-anchor"><code>GET /games/all</code> and <code>GET /users/all</code> now accept the
+          standard Spring Data params (<code>page</code>, <code>size</code>, <code>sort</code>) plus
+          <code>q</code> and <code>genre</code>. Default sort is <code>id</code> ASC so pagination is
+          deterministic across pages. Max page size is capped at 100 in
+          <code>application.properties</code> so a client can't ask for the whole table back and defeat
+          the fix. Response envelope is a <code>PagedResponse&lt;T&gt;</code> record we own — Spring Boot
+          3.3 explicitly warns that <code>PageImpl</code>'s JSON shape is not a stable contract.
+          Pair-partner is <code>F13</code>: the frontend needs to stop consuming a raw array and start
+          reading <code>{ content, page, size, totalElements, totalPages }</code>.</p>
         <div class="rm-meta">
           <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~half day</span></div>
           <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Medium</span></div>
@@ -825,15 +834,20 @@
 
       <article class="rm-card v-do">
         <div class="rm-head">
-          <label class="rm-tick"><input type="checkbox" data-ck="B11" /><span class="rm-id">B11</span></label>
+          <label class="rm-tick"><input type="checkbox" data-ck="B11" checked /><span class="rm-id">B11</span></label>
           <h3>Add a <code>GameResponse</code> DTO</h3>
-          <span class="rm-verdict v-do">Do it</span>
+          <span class="rm-verdict v-do">Shipped ✓</span>
         </div>
-        <p>Every <code>/users</code> route returns a <code>UserResponse</code> record; every
-          <code>/games</code> route returns the raw JPA entity. That asymmetry is the kind of thing a reviewer
-          spots immediately — and pagination will bake the entity shape into the contract if it lands first.</p>
-        <p class="rm-anchor">Mirror the existing <code>dto/UserResponse.java</code> pattern. Do this
-          <b>before or with</b> <code>B10</code>.</p>
+        <p><b>Done (2026-08-08).</b> Landed alongside <code>B10</code> because shipping pagination first
+          would have baked the raw <code>Games</code> entity into the paginated contract — exactly the
+          asymmetry this card was created to fix. <code>dto/GameResponse.java</code> is a record
+          mirroring <code>UserResponse</code>, with a static <code>from(Games)</code> factory; every
+          <code>/games/*</code> route now returns <code>GameResponse</code> or
+          <code>PagedResponse&lt;GameResponse&gt;</code>, never a raw entity.</p>
+        <p class="rm-anchor">The <code>purchases</code> back-reference is deliberately absent from the DTO
+          — serialising it from a detached entity would throw
+          <code>LazyInitializationException</code>. The DTO makes the omission a compile-time property
+          instead of a runtime landmine.</p>
         <div class="rm-meta">
           <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~2 hrs</span></div>
           <div class="rm-metric"><span class="m-k">Impact</span><span class="m-v">Consistency</span></div>

@@ -5,47 +5,49 @@ import com.gameStore.Bino.models.Games;
 import com.gameStore.Bino.repositories.GamesRepository;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @AllArgsConstructor
 @Service
 public class GamesService {
     private final GamesRepository gamesRepository;
 
-    //Read-Operations
-    //Show all games
-    public List<Games> findAllGames()
-    {
-        return gamesRepository.findAll();
+    // ---------------------------------------------------------------
+    // Read
+    // ---------------------------------------------------------------
+
+    /**
+     * Paginated list with optional keyword + genre filters. Replaces three
+     * previously separate methods (findAllGames / searchGames / getGamesByGenre)
+     * that all did roughly the same thing — a single repository query now covers
+     * every /games/all shape the frontend needs.
+     *
+     * Pageable carries page/size/sort from the request; the controller supplies
+     * a default (id ASC) so pagination is deterministic when the caller omits
+     * a sort.
+     */
+    public Page<Games> search(String q, String genre, Pageable pageable) {
+        return gamesRepository.search(q, genre, pageable);
     }
 
-    //Get game by id
     public Games getGameById(Long id) {
         return gamesRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Game not found with id: " + id));
     }
-    //Search Game by title
-    public List<Games> searchGames(String keyword) {
-        return gamesRepository.findByTitleContainingIgnoreCase(keyword);
-    }
-    //find game by genre
-    public List<Games> getGamesByGenre(String genre) {
-        return gamesRepository.findByGenre(genre);
-    }
 
-    //Write operations
-    //Add a game
-    public Games addGame(Games game)
-    {
+    // ---------------------------------------------------------------
+    // Write
+    // ---------------------------------------------------------------
+
+    public Games addGame(Games game) {
         return gamesRepository.save(game);
-    };
+    }
 
-    //Delete Game records
     @Transactional
-    public void deleteGames(Long id){
-        if(!gamesRepository.existsById(id)){
+    public void deleteGames(Long id) {
+        if (!gamesRepository.existsById(id)) {
             throw new ResourceNotFoundException("Game not found with id: " + id);
         }
         gamesRepository.deleteById(id);
