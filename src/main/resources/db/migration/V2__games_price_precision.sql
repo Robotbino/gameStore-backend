@@ -1,0 +1,24 @@
+-- ============================================================
+-- V2 — Give games.price a real precision
+-- ------------------------------------------------------------
+-- V1 recorded `price decimal(38,2)` because an unannotated
+-- BigDecimal defaults to (38,2) under Hibernate — plenty of
+-- room for a game priced in kilotons, none of the intent that
+-- money columns should carry.
+--
+-- decimal(10,2) tops out at 99,999,999.99. Real game prices
+-- live at $0.99–$99.99, so ~$100M of headroom per row is
+-- absurdly generous while still catching a stray decimal-shift
+-- bug at insert time instead of ten years from now.
+--
+-- MODIFY narrows the type in place — safe here because the
+-- seeded catalogue's prices are all under $100. If a live DB
+-- ever had a row above 99,999,999.99, MySQL would refuse the
+-- ALTER and this migration would fail loudly at deploy — the
+-- correct failure mode.
+--
+-- The matching @Column(precision = 10, scale = 2) lands on
+-- Games.java in the same commit so ddl-auto=validate passes.
+-- ============================================================
+
+ALTER TABLE `games` MODIFY COLUMN `price` DECIMAL(10, 2) NOT NULL;

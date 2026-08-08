@@ -746,18 +746,22 @@
 
       <article class="rm-card v-do">
         <div class="rm-head">
-          <label class="rm-tick"><input type="checkbox" data-ck="B8" /><span class="rm-id">B8</span></label>
+          <label class="rm-tick"><input type="checkbox" data-ck="B8" checked /><span class="rm-id">B8</span></label>
           <h3>Give <code>games.price</code> a real precision</h3>
-          <span class="rm-verdict v-do">Do it</span>
+          <span class="rm-verdict v-do">Shipped ✓</span>
         </div>
-        <p>An unannotated <code>BigDecimal</code> becomes <code>decimal(38,2)</code> — Hibernate's default,
-          which the baseline migration itself calls out as "not a considered choice". Money should be
-          <code>decimal(10,2)</code>.</p>
-        <p class="rm-anchor"><code>models/Games.java</code> — bare <code>@Column private BigDecimal price</code>.
-          Ship this <b>inside a V2 migration</b>, never as a standalone entity edit.</p>
+        <p><b>Done (2026-08-08).</b> <code>V2__games_price_precision.sql</code> narrows the column to
+          <code>decimal(10,2)</code> via an in-place <code>MODIFY</code>, and <code>Games.java</code> gains
+          <code>@Column(nullable = false, precision = 10, scale = 2)</code> so
+          <code>ddl-auto=validate</code> stays happy.</p>
+        <p class="rm-anchor">$99,999,999.99 of headroom per row — absurdly generous for a store where
+          real prices live at $0.99–$99.99, but tight enough to catch a stray decimal-shift bug at insert
+          time instead of ten years from now. The migration is MySQL-only (<code>MODIFY COLUMN</code>);
+          Flyway is off in tests, so H2 keeps building the schema from the entity mapping and sees the new
+          precision that way. First real use of the V-numbered pipeline B7 built.</p>
         <div class="rm-meta">
           <div class="rm-metric"><span class="m-k">Effort</span><span class="m-v">~30 min</span></div>
-          <div class="rm-metric"><span class="m-k">Depends on</span><span class="m-v">B7</span></div>
+          <div class="rm-metric"><span class="m-k">Depends on</span><span class="m-v">B7 ✓</span></div>
         </div>
       </article>
 

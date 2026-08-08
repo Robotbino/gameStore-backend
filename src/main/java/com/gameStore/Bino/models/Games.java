@@ -30,7 +30,11 @@ public class Games {
     @JsonDeserialize(using = GenreDeserializer.class)
     private String genre;
 
-    @Column(nullable = false)
+    // precision/scale must match V2__games_price_precision.sql — otherwise
+    // ddl-auto=validate refuses to start. An unannotated BigDecimal would
+    // regress to Hibernate's decimal(38,2) default and diverge from the
+    // schema Flyway now owns.
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
     @Column
