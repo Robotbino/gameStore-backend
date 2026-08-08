@@ -4,6 +4,18 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Game Store — Backend Roadmap</title>
 
+<script>
+  /* Apply a stored theme choice before first paint so the page never flashes
+     the wrong scheme. No stored value means "follow the OS" — which the
+     stylesheet already handles on its own. */
+  try {
+    var storedTheme = localStorage.getItem("gs-docs-theme");
+    if (storedTheme === "light" || storedTheme === "dark") {
+      document.documentElement.dataset.theme = storedTheme;
+    }
+  } catch (e) {}
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -15,6 +27,10 @@
      backend-only accent (the framework's green).
      ══════════════════════════════════════════════════════════════ */
   :root {
+    /* Which scheme is actually rendering. Declared in every theme block so JS
+       can read the resolved answer with one getComputedStyle call instead of
+       re-deriving the OS-preference / data-theme precedence rules. */
+    --scheme: dark;
     --bg:        #0d1016;
     --panel:     #151a24;
     --panel-2:   #1b2130;
@@ -58,6 +74,7 @@
      directions (same contract as catalog-architecture.html). */
   @media (prefers-color-scheme: light) {
     :root {
+      --scheme: light;
       --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
       --line: #d3d8e4; --line-2: #b4bccd;
       --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
@@ -76,6 +93,7 @@
     }
   }
   :root[data-theme="dark"] {
+    --scheme: dark;
     --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
     --line: #262d3d; --line-2: #333c52;
     --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
@@ -93,6 +111,7 @@
     --glow-b: rgba(109,179,63,.10);
   }
   :root[data-theme="light"] {
+    --scheme: light;
     --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
     --line: #d3d8e4; --line-2: #b4bccd;
     --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
@@ -159,6 +178,23 @@
     font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
     text-transform: uppercase; color: var(--ink-faint);
   }
+  /* Theme toggle — same pill as the doc links, parked on the far right.
+     Icon and label name the scheme you get on click, not the current one. */
+  .doc-switch .theme-toggle {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px;
+    background: transparent; cursor: pointer; white-space: nowrap;
+  }
+  .doc-switch .theme-toggle:hover { color: var(--ink); background: var(--panel-2); }
+  .doc-switch .theme-toggle:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+  .doc-switch .theme-toggle svg { width: 13px; height: 13px; flex: none; }
+  /* SVGElement doesn't inherit the HTML `hidden` IDL property, so the UA
+     [hidden] rule alone doesn't hide them — force it here. */
+  .doc-switch .theme-toggle svg[hidden] { display: none; }
 
   /* ── Sticky nav ── */
   .subnav {
@@ -415,6 +451,7 @@
   @media (max-width: 860px) {
     .doc-switch-inner { padding: 9px 18px; gap: 6px; }
     .doc-switch .ds-repo { display: none; }
+    .doc-switch .theme-toggle .tt-label { display: none; }
     #toTop { right: 14px; bottom: 14px; }
   }
   @media (max-width: 780px) {
@@ -461,6 +498,18 @@
     <a href="architecture.html">Backend Architecture</a>
     <a href="architecture-and-learning-guide.html">Learning Guide</a>
     <a href="backend-roadmap.html" class="is-here" aria-current="page">Backend Roadmap</a>
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch theme">
+      <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4" />
+        <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
+      </svg>
+      <svg class="tt-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 14.5A8 8 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z" />
+      </svg>
+      <span class="tt-label">Light</span>
+    </button>
   </div>
 </nav>
 
@@ -1133,6 +1182,47 @@
 </footer>
 
 <script>
+  // Theme toggle. The stylesheet already answers to :root[data-theme] in both
+  // directions, so this only flips that attribute and remembers the choice.
+  // Pages carrying Mermaid diagrams reload instead of repainting: Mermaid bakes
+  // its palette at init and cannot be re-themed in place.
+  (function () {
+    const root = document.documentElement;
+    const btn = document.getElementById("themeToggle");
+    if (!btn) return;
+
+    const label = btn.querySelector(".tt-label");
+    const sun = btn.querySelector(".tt-sun");
+    const moon = btn.querySelector(".tt-moon");
+
+    // The rendered scheme, straight from CSS — no need to re-derive the
+    // data-theme / OS-preference precedence here.
+    const rendered = () =>
+      getComputedStyle(root).getPropertyValue("--scheme").trim() === "light" ? "light" : "dark";
+
+    function sync() {
+      const next = rendered() === "dark" ? "light" : "dark";
+      label.textContent = next === "light" ? "Light" : "Dark";
+      // toggleAttribute — the IDL `hidden` property is HTMLElement-only, so
+      // assigning to sun.hidden on an <svg> silently no-ops. Set the attribute
+      // itself and pair it with the svg[hidden] rule in the stylesheet.
+      sun.toggleAttribute("hidden", next !== "light");
+      moon.toggleAttribute("hidden", next !== "dark");
+      btn.setAttribute("aria-label", "Switch to " + next + " theme");
+      btn.title = "Switch to " + next + " theme";
+    }
+
+    btn.addEventListener("click", function () {
+      const next = rendered() === "dark" ? "light" : "dark";
+      root.dataset.theme = next;
+      try { localStorage.setItem("gs-docs-theme", next); } catch (e) {}
+      if (document.querySelector(".mermaid")) { window.location.reload(); return; }
+      sync();
+    });
+
+    sync();
+  })();
+
   /* ══════════════════════════════════════════════════════════════
      Checkbox persistence — same pattern as the recruiter checklist
      in architecture.html, but under its own key so the two roadmaps
