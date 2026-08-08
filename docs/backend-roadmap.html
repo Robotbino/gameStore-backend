@@ -284,10 +284,11 @@
   .caption { font-family: var(--mono); font-size: 12px; color: var(--ink-faint); margin: 18px 2px 0; line-height: 1.7; }
 
   /* ── Gate callout ── */
+  /* No colored side-tab: the mono "GATE:" label (.g-k) already carries the
+     categorical accent color, which is enough to mark this as a callout. */
   .gate {
     display: flex; gap: 12px; align-items: flex-start;
-    background: var(--panel); border: 1px solid var(--line);
-    border-left: 3px solid var(--auth); border-radius: var(--radius);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 14px 18px; margin: 0 0 24px;
   }
   .gate .g-k {
@@ -313,27 +314,32 @@
     height: 6px; background: var(--panel-2); border: 1px solid var(--line);
     border-radius: 999px; overflow: hidden;
   }
+  /* Animates via transform: scaleX() rather than width so the browser skips
+     layout on every frame — same visual, cheaper paint. JS sets scaleX below. */
   .check-bar-fill {
-    height: 100%; width: 0;
+    height: 100%; width: 100%;
     background: linear-gradient(90deg, var(--accent), var(--new));
-    transition: width .4s ease;
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .4s ease;
+    will-change: transform;
   }
 
   /* ── Task cards ── */
+  /* No colored side-tab. The verdict badge in the card header already carries
+     the categorical color (v-do / v-crit / v-later / v-skip), so the border
+     accent was doubling up the signal. The .v-* classes stay on the card
+     because .v-skip still needs to dim it and future variants may want to
+     tint the surface — they no longer set border colors. */
   .rm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
   .rm-card {
-    background: var(--panel); border: 1px solid var(--line);
-    border-left: 3px solid var(--line-2); border-radius: var(--radius);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
     box-shadow: var(--shadow-sm);
     transition: transform .24s var(--ease), box-shadow .24s var(--ease),
                 border-color .24s var(--ease), background .24s var(--ease);
   }
   .rm-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
-  .rm-card.v-do    { border-left-color: var(--new); }
-  .rm-card.v-crit  { border-left-color: var(--danger); }
-  .rm-card.v-later { border-left-color: var(--auth); }
-  .rm-card.v-skip  { border-left-color: var(--danger); opacity: .82; }
+  .rm-card.v-skip  { opacity: .82; }
 
   .rm-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
   .rm-tick { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
@@ -369,16 +375,18 @@
   .rm-metric .m-v { font-size: .84rem; color: var(--ink); }
   .rm-metric .m-v.pair { color: var(--info); font-family: var(--mono); font-size: .8rem; }
 
-  /* Completed state */
-  .rm-card.done { background: rgba(52,211,153,.05); border-left-color: var(--new); }
+  /* Completed state — subtle green tint on the surface, strikethrough on the
+     heading, and the ID chip picks up the accent color. No side-tab. */
+  .rm-card.done { background: rgba(52,211,153,.05); }
   .rm-card.done h3 { color: var(--ink-faint); text-decoration: line-through; }
   .rm-card.done .rm-id { color: var(--new); }
 
   /* ── Pairings ── */
+  /* No colored side-tab: the P-number chip (.pair-no) is already rendered in
+     the same --info accent, which is enough to mark these as pairings. */
   .pair-grid { display: grid; gap: 16px; }
   .pair {
-    background: var(--panel); border: 1px solid var(--line);
-    border-left: 3px solid var(--info); border-radius: var(--radius);
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 18px 20px; display: grid;
     grid-template-columns: 52px 1fr 1fr; gap: 0 18px; align-items: start;
     box-shadow: var(--shadow-sm);
@@ -411,10 +419,14 @@
   }
 
   /* ── Chrome injected by script ── */
+  /* Same trick as .check-bar-fill: full-width bar scaled from 0 via transform,
+     so scroll-driven updates never touch layout. */
   #readProgress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0;
+    position: fixed; top: 0; left: 0; height: 3px; width: 100%;
     background: linear-gradient(90deg, var(--accent), var(--new));
-    z-index: 40; transition: width .12s linear; pointer-events: none;
+    transform: scaleX(0); transform-origin: left;
+    z-index: 40; transition: transform .12s linear; pointer-events: none;
+    will-change: transform;
   }
   #toTop {
     position: fixed; right: 22px; bottom: 22px; z-index: 35;
@@ -1264,7 +1276,8 @@
       if (on && !box.dataset.ck.startsWith("BS")) done++;
     });
     if (ckDone) ckDone.textContent = done;
-    if (ckBar) ckBar.style.width = ckCounted.length ? (done / ckCounted.length * 100) + "%" : "0%";
+    // scaleX(0..1) instead of width % — matches the transform-based CSS above.
+    if (ckBar) ckBar.style.transform = "scaleX(" + (ckCounted.length ? done / ckCounted.length : 0) + ")";
   }
   ckBoxes.forEach((box) => {
     box.addEventListener("change", () => {
@@ -1300,8 +1313,9 @@
 
   function onScroll() {
     const h = document.documentElement.scrollHeight - window.innerHeight;
-    const pct = h > 0 ? (window.scrollY / h) * 100 : 0;
-    progress.style.width = pct + "%";
+    const frac = h > 0 ? window.scrollY / h : 0;
+    // scaleX() instead of width % — the CSS uses transform-based animation.
+    progress.style.transform = "scaleX(" + frac + ")";
     toTop.classList.toggle("show", window.scrollY > 600);
   }
   window.addEventListener("scroll", onScroll, { passive: true });
