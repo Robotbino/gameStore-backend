@@ -20,58 +20,9 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
-<style>
-  :root {
-    /* Which scheme is actually rendering. Declared in every theme block so JS
-       can read the resolved answer with one getComputedStyle call instead of
-       re-deriving the OS-preference / data-theme precedence rules. */
-    --scheme: dark;
-    --bg:        #0d1016;
-    --panel:     #151a24;
-    --panel-2:   #1b2130;
-    --panel-3:   #212838;
-    --line:      #262d3d;
-    --line-2:    #333c52;
-    --ink:       #d6dbe7;
-    --ink-soft:  #98a1b5;
-    --ink-faint: #6b7488;
-    --accent:    #6d5efc;   /* indigo — the app's voice */
-    --accent-2:  #8b7dff;
-    --accent-dim:#3a3570;
-    --spring:    #6db33f;   /* Spring green — the framework */
-    --spring-dim:#2c4a1c;
-    --new:       #34d399;
-    --new-dim:   #1f5745;
-    --auth:      #f5a623;   /* amber — the JWT / auth path */
-    --auth-dim:  #4a3a12;
-    --danger:    #f0637a;
-    --danger-dim:#4a1d27;
-    --info:      #60a5fa;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --maxw: 1140px;
-    --mono: "JetBrains Mono", ui-monospace, monospace;
-    /* Atkinson Hyperlegible — letterforms designed for maximum legibility.
-       Ships only 400/700, so heading weights are normalised to those below. */
-    --display: "Atkinson Hyperlegible", system-ui, sans-serif;
-    --body: "Atkinson Hyperlegible", system-ui, sans-serif;
-    --nav-veil: rgba(13,16,22,.82);
-    --scroll-hover: #46506b;
-    --glow-a: rgba(109,94,252,.16);
-    --glow-b: rgba(109,179,63,.10);
-    --row-odd: #1e2432;
-    --row-even: #171c28;
-    --swatch-ring: rgba(255,255,255,.15);
-    --sky:      #7dd3fc;   /* HTTP GET / 2xx info hue */
-    --sky-dim:  #24506b;
-    --sky-wash: #0e2536;
-    --accent-wash: #17152b;
-    --spring-wash: #14200c;
-    --new-wash:    #0f2019;
-    --auth-wash:   #241c0c;
-    --danger-wash: #2a1015;
-  }
+<link rel="stylesheet" href="../../../GameStore/docs/docs-theme.css" />
 
+<style>
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
@@ -424,20 +375,20 @@
   .step-item .body { color: var(--ink-soft); font-size: .92rem; margin: 0 0 8px; }
   .step-item pre {
     margin: 8px 0 0;
-    background: #0a0d13;
-    border: 1px solid var(--line);
+    background: var(--code-bg);
+    border: 1px solid var(--code-line);
     border-radius: 6px;
     padding: 10px 12px;
     font-family: var(--mono); font-size: 12px; line-height: 1.5;
-    color: var(--ink);
+    color: var(--code-ink);
     overflow-x: auto;
     white-space: pre;
   }
   .step-item pre .k { color: #c792ea; }
   .step-item pre .s { color: #7dd3fc; }
   .step-item pre .n2 { color: #f0abfc; }
-  .step-item pre .c { color: var(--ink-faint); font-style: italic; }
-  .step-item pre .an { color: var(--spring); }
+  .step-item pre .c { color: var(--code-ink-faint); font-style: italic; }
+  .step-item pre .an { color: var(--code-ok); }
   .step-item .file {
     font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
     margin-top: 6px;
@@ -485,9 +436,9 @@
     content: attr(data-tip);
     position: absolute;
     left: 0; top: calc(100% + 8px);
-    background: #0a0d13;
-    color: var(--ink);
-    border: 1px solid var(--line-2);
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border: 1px solid var(--code-line);
     border-radius: 6px;
     padding: 8px 10px;
     font-family: var(--body);
@@ -804,14 +755,6 @@
           and 1.6 heading leading fight it. Retuned here.
      ══════════════════════════════════════════════════════════════════ */
 
-  :root {
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
-    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
-    --shadow-lg: 0 20px 52px -14px rgba(0,0,0,.62);
-    --ring: 0 0 0 3px rgba(109,94,252,.4);
-    --ease: cubic-bezier(.2,.7,.3,1);
-    --nav-h: 56px;
-  }
 
   /* ── Type scale, retuned for Atkinson ── */
   h1 { line-height: 1.08; letter-spacing: -.018em; }
@@ -935,118 +878,17 @@
   }
 
   /* ══════════════════════════════════════════════
-     LIGHT THEME — OS preference first; an explicit
-     data-theme attribute wins both directions (same
-     contract as catalog-architecture.html). Mermaid
-     picks its matching theme at init in the script
-     below. Code panels stay dark in both themes —
-     a terminal stays a terminal.
-     ══════════════════════════════════════════════ */
-  @media (prefers-color-scheme: light) {
-    :root {
-      --scheme: light;
-      --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-      --line: #d3d8e4; --line-2: #b4bccd;
-      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-      --spring: #4d8b28; --spring-dim: #cfe0bf;
-      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
-      --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
-      --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
-      --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
-      --shadow-lg: 0 20px 52px -14px rgba(16,20,32,.22);
-      --ring: 0 0 0 3px rgba(76,63,208,.35);
-      --nav-veil: rgba(246,247,251,.85);
-      --scroll-hover: #9aa4bb;
-      --glow-a: rgba(85,70,232,.08);
-      --glow-b: rgba(77,139,40,.07);
-      --row-odd: #eef1f7;
-      --row-even: #f7f8fc;
-      --swatch-ring: rgba(16,19,26,.18);
-      --sky: #0369a1; --sky-dim: #bcd9ec; --sky-wash: #e3f2fb;
-      --accent-wash: #edeaff;
-      --spring-wash: #ecf5e4;
-      --new-wash:    #e7f6ef;
-      --auth-wash:   #faf0dd;
-      --danger-wash: #fbe9ec;
-    }
-  }
-  :root[data-theme="dark"] {
-    --scheme: dark;
-    --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
-    --line: #262d3d; --line-2: #333c52;
-    --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
-    --accent: #6d5efc; --accent-2: #8b7dff; --accent-dim: #3a3570;
-    --spring: #6db33f; --spring-dim: #2c4a1c;
-    --new: #34d399; --new-dim: #1f5745; --auth: #f5a623; --auth-dim: #4a3a12;
-    --danger: #f0637a; --danger-dim: #4a1d27; --info: #60a5fa;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
-    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
-    --shadow-lg: 0 20px 52px -14px rgba(0,0,0,.62);
-    --ring: 0 0 0 3px rgba(109,94,252,.4);
-    --nav-veil: rgba(13,16,22,.82);
-    --scroll-hover: #46506b;
-    --glow-a: rgba(109,94,252,.16);
-    --glow-b: rgba(109,179,63,.10);
-    --row-odd: #1e2432;
-    --row-even: #171c28;
-    --swatch-ring: rgba(255,255,255,.15);
-    --sky: #7dd3fc; --sky-dim: #24506b; --sky-wash: #0e2536;
-    --accent-wash: #17152b;
-    --spring-wash: #14200c;
-    --new-wash:    #0f2019;
-    --auth-wash:   #241c0c;
-    --danger-wash: #2a1015;
-  }
-  :root[data-theme="light"] {
-    --scheme: light;
-    --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-    --line: #d3d8e4; --line-2: #b4bccd;
-    --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-    --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-    --spring: #4d8b28; --spring-dim: #cfe0bf;
-    --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
-    --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
-    --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
-    --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
-    --shadow-lg: 0 20px 52px -14px rgba(16,20,32,.22);
-    --ring: 0 0 0 3px rgba(76,63,208,.35);
-    --nav-veil: rgba(246,247,251,.85);
-    --scroll-hover: #9aa4bb;
-    --glow-a: rgba(85,70,232,.08);
-    --glow-b: rgba(77,139,40,.07);
-    --row-odd: #eef1f7;
-    --row-even: #f7f8fc;
-    --swatch-ring: rgba(16,19,26,.18);
-    --sky: #0369a1; --sky-dim: #bcd9ec; --sky-wash: #e3f2fb;
-    --accent-wash: #edeaff;
-    --spring-wash: #ecf5e4;
-    --new-wash:    #e7f6ef;
-    --auth-wash:   #faf0dd;
-    --danger-wash: #fbe9ec;
-  }
-
-  /* ══════════════════════════════════════════════
-     PRINT — everything styles through tokens, so
-     re-pointing them is the whole light-mode job.
+     PRINT — token re-pointing lives in
+     docs-theme.css; only layout is dropped here.
      ══════════════════════════════════════════════ */
   @media print {
-    :root {
-      --bg: #fff; --panel: #fff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-      --line: #d3d8e4; --line-2: #b4bccd;
-      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-      --spring: #3f7a1f; --spring-dim: #cfe6bd;
-      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
-      --danger: #c22e46; --danger-dim: #f6d3da;
-    }
     body { background: #fff !important; }
     .subnav, .doc-switch, #readProgress, #toTop { display: none !important; }
     section { padding: 26px 0; break-inside: avoid; }
     .c-rung, .persist-col, .sec-card, .panel, .diagram-shell, .kpi,
     table.grid { break-inside: avoid; box-shadow: none; }
     .reveal { opacity: 1 !important; transform: none !important; }
-    a { color: #10131a; text-decoration: underline; }
+    a { color: var(--ink); text-decoration: underline; }
   }
 </style>
 
@@ -2428,7 +2270,7 @@ flowchart TB
         <span class="s-fix">fix · expose only /health, secure the rest</span>
       </div>
       <div class="sec-card" style="border-left-color:var(--accent)">
-        <h3>JWT in localStorage <span class="pill" style="color:var(--accent-2);border:1px solid var(--accent-dim);background:#17152b">Decision</span></h3>
+        <h3>JWT in localStorage <span class="pill authn">Decision</span></h3>
         <p>A 24 h token in <code>localStorage</code>, no refresh, no revocation. XSS-exposed in theory —
           but acceptable for a portfolio with no real user data. Documented as a choice, with the
           httpOnly-cookie + refresh-token upgrade path named. Owning the trade-off beats hiding it.</p>
@@ -2548,48 +2390,48 @@ flowchart TB
     sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
     themeVariables: prefersLight ? {
       background: "#ffffff",
-      primaryColor: "#f4f6fa",
-      primaryBorderColor: "#d3d8e4",
-      primaryTextColor: "#10131a",
-      lineColor: "#8b94a9",
+      primaryColor: "#f2f2f4",
+      primaryBorderColor: "#dcdce1",
+      primaryTextColor: "#131316",
+      lineColor: "#8b8b97",
       fontFamily: "'JetBrains Mono', ui-monospace, monospace",
       fontSize: "14px",
-      clusterBkg: "#f6f7fb",
-      clusterBorder: "#c6cddd",
-      actorBkg: "#f4f6fa",
-      actorBorder: "#c9c2f2",
-      actorTextColor: "#10131a",
-      actorLineColor: "#8b94a9",
-      signalColor: "#4d5670",
-      signalTextColor: "#10131a",
-      labelBoxBkgColor: "#f4f6fa",
-      labelBoxBorderColor: "#c9c2f2",
-      labelTextColor: "#10131a",
-      noteBkgColor: "#edeaff",
-      noteBorderColor: "#4c3fd0",
-      noteTextColor: "#10131a"
+      clusterBkg: "#f7f7f8",
+      clusterBorder: "#c9c9d1",
+      actorBkg: "#f2f2f4",
+      actorBorder: "#c6bffa",
+      actorTextColor: "#131316",
+      actorLineColor: "#8b8b97",
+      signalColor: "#43434e",
+      signalTextColor: "#131316",
+      labelBoxBkgColor: "#f2f2f4",
+      labelBoxBorderColor: "#c6bffa",
+      labelTextColor: "#131316",
+      noteBkgColor: "#eeecff",
+      noteBorderColor: "#5546e8",
+      noteTextColor: "#131316"
     } : {
-      background: "#151a24",
-      primaryColor: "#1b2130",
-      primaryBorderColor: "#262d3d",
-      primaryTextColor: "#d6dbe7",
-      lineColor: "#5b647a",
+      background: "#16161a",
+      primaryColor: "#1d1d22",
+      primaryBorderColor: "#2a2a31",
+      primaryTextColor: "#e7e7ea",
+      lineColor: "#5a5a68",
       fontFamily: "'JetBrains Mono', ui-monospace, monospace",
       fontSize: "14px",
-      clusterBkg: "#12151d",
-      clusterBorder: "#2d3547",
-      actorBkg: "#1b2130",
-      actorBorder: "#3a3570",
-      actorTextColor: "#d6dbe7",
-      actorLineColor: "#5b647a",
-      signalColor: "#98a1b5",
-      signalTextColor: "#d6dbe7",
-      labelBoxBkgColor: "#1b2130",
-      labelBoxBorderColor: "#3a3570",
-      labelTextColor: "#d6dbe7",
-      noteBkgColor: "#1a1830",
-      noteBorderColor: "#6d5efc",
-      noteTextColor: "#d6dbe7"
+      clusterBkg: "#131317",
+      clusterBorder: "#33333c",
+      actorBkg: "#1d1d22",
+      actorBorder: "#363154",
+      actorTextColor: "#e7e7ea",
+      actorLineColor: "#5a5a68",
+      signalColor: "#a2a2ac",
+      signalTextColor: "#e7e7ea",
+      labelBoxBkgColor: "#1d1d22",
+      labelBoxBorderColor: "#363154",
+      labelTextColor: "#e7e7ea",
+      noteBkgColor: "#1a1826",
+      noteBorderColor: "#7b6cff",
+      noteTextColor: "#e7e7ea"
     }
   });
 
@@ -2608,26 +2450,26 @@ flowchart TB
   // those nodes stayed near-black on a white page.
   const PALETTE = {
     dark: {
-      auth:   ["#f5a623", "#2e2410", "#ffdfa6"],
-      spring: ["#6db33f", "#16240f", "#cdeeb4"],
-      ok:     ["#34d399", "#10261f", "#9bf0cf"],
-      work:   ["#8b7dff", "#1c1a33", "#cfc8ff"],
-      data:   ["#22b8cf", "#0e2429", "#9fe6f2"],
-      ext:    ["#d946ef", "#271033", "#f0bdfa"],
-      async:  ["#60a5fa", "#101f33", "#bcd9ff"],
-      fail:   ["#f0637a", "#2b1119", "#ffc2cd"],
-      muted:  ["#8b94a9", "#1b2130", "#d6dbe7"]
+      auth:   ["#f5a623", "#2a2114", "#ffdfa6"],
+      spring: ["#7cc44a", "#1a2113", "#cdeeb4"],
+      ok:     ["#35d399", "#132420", "#9bf0cf"],
+      work:   ["#a094ff", "#1f1c2c", "#d5cfff"],
+      data:   ["#22b8cf", "#122326", "#9fe6f2"],
+      ext:    ["#d946ef", "#26162c", "#f0bdfa"],
+      async:  ["#60a5fa", "#151e2a", "#bcd9ff"],
+      fail:   ["#f2687e", "#2a1519", "#ffc2cd"],
+      muted:  ["#8b8b97", "#1d1d22", "#e7e7ea"]
     },
     light: {
       auth:   ["#b8770c", "#fdf3e0", "#6b4205"],
       spring: ["#4d8f24", "#eef7e6", "#2c5410"],
       ok:     ["#0f9d70", "#e6f7f0", "#08543a"],
-      work:   ["#4c3fd0", "#eeebff", "#33269e"],
+      work:   ["#4c3fd0", "#eeecff", "#33269e"],
       data:   ["#0e7490", "#e3f6fa", "#0b4d5f"],
       ext:    ["#a21caf", "#fbeafd", "#6b127a"],
       async:  ["#2563eb", "#e8f0fe", "#1a3f8f"],
       fail:   ["#be123c", "#fdeaee", "#8a0f2c"],
-      muted:  ["#64748b", "#f1f3f8", "#333c4e"]
+      muted:  ["#6e6e7a", "#f2f2f4", "#3a3a45"]
     }
   };
 

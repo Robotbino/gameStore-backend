@@ -18,56 +18,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
-<style>
-  :root {
-    /* Shared with docs/architecture.html so the two pages read as one system. */
-    /* Which scheme is actually rendering. Declared in every theme block so JS
-       can read the resolved answer with one getComputedStyle call instead of
-       re-deriving the OS-preference / data-theme precedence rules. */
-    --scheme: dark;
-    --bg:        #0d1016;
-    --panel:     #151a24;
-    --panel-2:   #1b2130;
-    --panel-3:   #212838;
-    --line:      #262d3d;
-    --line-2:    #333c52;
-    --ink:       #d6dbe7;
-    --ink-soft:  #98a1b5;
-    --ink-faint: #6b7488;
-    --accent:    #6d5efc;
-    --accent-2:  #8b7dff;
-    --accent-dim:#3a3570;
-    --spring:    #6db33f;
-    --spring-dim:#2c4a1c;
-    --auth:      #f5a623;
-    --auth-dim:  #4a3a12;
-    --new:       #34d399;
-    --new-dim:   #1f5745;
-    --danger:    #f0637a;
-    --danger-dim:#4a1d27;
-    --info:      #60a5fa;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --maxw: 1140px;
-    /* Atkinson Hyperlegible first, then the full system fallback chain so the
-       page still renders correctly if the webfont is blocked or offline. */
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
-    --display: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-    --nav-veil: rgba(13,16,22,.86);
-    --scroll-hover: #46506b;
-    --glow-a: rgba(109,94,252,.16);
-    --glow-b: rgba(109,179,63,.10);
-    --diagram-line: #5b647a;
-    --info-dim:  #1e3a5f;
-    --info-wash: #0f1f2f;
-    --accent-wash: #1a1830;
-    --spring-wash: #14200e;
-    --new-wash:    #0f2820;
-    --auth-wash:   #241c0c;
-    --danger-wash: #2a1015;
-  }
+<link rel="stylesheet" href="../../../GameStore/docs/docs-theme.css" />
 
+<style>
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   body {
@@ -98,13 +51,13 @@
   pre {
     font-family: var(--mono);
     font-size: .86rem;
-    background: #0a0d13;
-    border: 1px solid var(--line);
+    background: var(--code-bg);
+    border: 1px solid var(--code-line);
     border-radius: var(--radius-sm);
     padding: 14px 16px;
     overflow-x: auto;
     line-height: 1.55;
-    color: #cad0dc;
+    color: var(--code-ink);
     margin: 0;
   }
   pre code { background: none; border: 0; padding: 0; color: inherit; font-size: 1em; }
@@ -212,7 +165,7 @@
   .compare .col header .dot { width: 8px; height: 8px; border-radius: 50%; }
   .compare .col.bad .dot { background: var(--danger); }
   .compare .col.good .dot { background: var(--new); }
-  .compare .col pre { border: 0; border-radius: 0; background: #0a0d13; }
+  .compare .col pre { border: 0; border-radius: 0; background: var(--code-bg); }
   /* Callout without a colored side-tab. The tinted background + <strong>
      label is enough to mark it as an aside; symmetric radius replaces the
      asymmetric one that was paired with the old left border. */
@@ -386,24 +339,6 @@
   /* SVGElement doesn't inherit the HTML `hidden` IDL property, so the UA
      [hidden] rule alone doesn't hide them — force it here. */
   .doc-switch .theme-toggle svg[hidden] { display: none; }
-
-  /* ══════════════════════════════════════════════════════════════════
-     REFINEMENT LAYER
-     Last in the stylesheet so it wins on specificity ties. Headings here
-     inherited the 1.6 body leading, which reads as loose and unstructured
-     at display sizes — especially in Atkinson Hyperlegible, whose tall
-     x-height already carries the line. Retuned, plus the anchor offset
-     the sticky TOC needs and shared page chrome.
-     ══════════════════════════════════════════════════════════════════ */
-
-  :root {
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
-    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
-    --ring: 0 0 0 3px rgba(109,94,252,.4);
-    --ease: cubic-bezier(.2,.7,.3,1);
-    --nav-h: 52px;
-  }
-
   /* ── Type scale, retuned for Atkinson ── */
   h1 { line-height: 1.1; letter-spacing: -.016em; }
   section h2 { line-height: 1.2; letter-spacing: -.008em; }
@@ -484,92 +419,7 @@
   /* ── Light theme — OS preference first; an explicit data-theme attribute
         wins both directions (same contract as catalog-architecture.html).
         Code panels stay dark in both themes — a terminal stays a terminal. ── */
-  @media (prefers-color-scheme: light) {
-    :root {
-      --scheme: light;
-      --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-      --line: #d3d8e4; --line-2: #b4bccd;
-      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-      --spring: #4d8b28; --spring-dim: #cfe0bf;
-      --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
-      --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
-      --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
-      --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
-      --ring: 0 0 0 3px rgba(76,63,208,.35);
-      --nav-veil: rgba(246,247,251,.88);
-      --scroll-hover: #9aa4bb;
-      --glow-a: rgba(85,70,232,.08);
-      --glow-b: rgba(77,139,40,.07);
-      --diagram-line: #8b94a9;
-      --info-dim:  #c9dcf7;
-      --info-wash: #e8f0fd;
-      --accent-wash: #edeaff;
-      --spring-wash: #ecf5e4;
-      --new-wash:    #e7f6ef;
-      --auth-wash:   #faf0dd;
-      --danger-wash: #fbe9ec;
-    }
-  }
-  :root[data-theme="dark"] {
-    --scheme: dark;
-    --bg: #0d1016; --panel: #151a24; --panel-2: #1b2130; --panel-3: #212838;
-    --line: #262d3d; --line-2: #333c52;
-    --ink: #d6dbe7; --ink-soft: #98a1b5; --ink-faint: #6b7488;
-    --accent: #6d5efc; --accent-2: #8b7dff; --accent-dim: #3a3570;
-    --spring: #6db33f; --spring-dim: #2c4a1c;
-    --new: #34d399; --new-dim: #1f5745; --auth: #f5a623; --auth-dim: #4a3a12;
-    --danger: #f0637a; --danger-dim: #4a1d27; --info: #60a5fa;
-    --shadow-sm: 0 1px 2px rgba(0,0,0,.28);
-    --shadow-md: 0 6px 20px -6px rgba(0,0,0,.5);
-    --ring: 0 0 0 3px rgba(109,94,252,.4);
-    --nav-veil: rgba(13,16,22,.86);
-    --scroll-hover: #46506b;
-    --glow-a: rgba(109,94,252,.16);
-    --glow-b: rgba(109,179,63,.10);
-    --diagram-line: #5b647a;
-    --info-dim:  #1e3a5f;
-    --info-wash: #0f1f2f;
-    --accent-wash: #1a1830;
-    --spring-wash: #14200e;
-    --new-wash:    #0f2820;
-    --auth-wash:   #241c0c;
-    --danger-wash: #2a1015;
-  }
-  :root[data-theme="light"] {
-    --scheme: light;
-    --bg: #f6f7fb; --panel: #ffffff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-    --line: #d3d8e4; --line-2: #b4bccd;
-    --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-    --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-    --spring: #4d8b28; --spring-dim: #cfe0bf;
-    --new: #0a7d55; --new-dim: #bde8d6; --auth: #a35f06; --auth-dim: #f5e2c2;
-    --danger: #c22e46; --danger-dim: #f6d3da; --info: #1d4ed8;
-    --shadow-sm: 0 1px 2px rgba(16,20,32,.06);
-    --shadow-md: 0 6px 20px -6px rgba(16,20,32,.16);
-    --ring: 0 0 0 3px rgba(76,63,208,.35);
-    --nav-veil: rgba(246,247,251,.88);
-    --scroll-hover: #9aa4bb;
-    --glow-a: rgba(85,70,232,.08);
-    --glow-b: rgba(77,139,40,.07);
-    --diagram-line: #8b94a9;
-    --info-dim:  #c9dcf7;
-    --info-wash: #e8f0fd;
-    --accent-wash: #edeaff;
-    --spring-wash: #ecf5e4;
-    --new-wash:    #e7f6ef;
-    --auth-wash:   #faf0dd;
-    --danger-wash: #fbe9ec;
-  }
-
   @media print {
-    :root {
-      --bg: #fff; --panel: #fff; --panel-2: #f4f6fa; --panel-3: #eceff6;
-      --line: #d3d8e4; --line-2: #b4bccd;
-      --ink: #10131a; --ink-soft: #394154; --ink-faint: #6a7285;
-      --accent: #4c3fd0; --accent-2: #4c3fd0; --accent-dim: #dcd8ff;
-      --spring: #3f7a1f; --auth: #a35f06; --danger: #c22e46;
-    }
     body { background: #fff !important; }
     nav.toc, .doc-switch, #readProgress, #toTop { display: none !important; }
     section { padding: 26px 0; break-inside: avoid; }
@@ -577,7 +427,7 @@
     details { break-inside: avoid; }
     details:not([open]) > *:not(summary) { display: revert; }
     .reveal { opacity: 1 !important; transform: none !important; }
-    a { color: #10131a; text-decoration: underline; }
+    a { color: var(--ink); text-decoration: underline; }
   }
 </style>
 </head>
