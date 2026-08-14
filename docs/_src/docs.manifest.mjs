@@ -66,7 +66,7 @@ export const DOCS = [
     title: "Frontend Roadmap",
     role: "frontend",
     blurb: "Ranked frontend work, with the quick wins that were deliberately discarded.",
-    components: ["roadmap"],
+    components: ["roadmap", "diagram"],
   },
   {
     id: "be-arch",
@@ -84,7 +84,7 @@ export const DOCS = [
     title: "Learning Guide",
     role: "backend",
     blurb: "How to read the codebase: patterns, annotations, and 21 quizzes.",
-    components: ["learning", "tables"],
+    components: ["learning", "tables", "diagram"],
   },
   {
     id: "be-roadmap",
@@ -93,7 +93,7 @@ export const DOCS = [
     title: "Backend Roadmap",
     role: "backend",
     blurb: "Ranked backend work, paired against the frontend roadmap.",
-    components: ["roadmap"],
+    components: ["roadmap", "diagram"],
   },
 ];
 

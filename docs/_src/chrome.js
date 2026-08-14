@@ -624,13 +624,19 @@
     var META = window.GS_SEARCH_META || {};
     if (!Array.isArray(INDEX) || !INDEX.length) return;
 
-    // A trigger button in the doc-switch, and the ⌘K shortcut.
+    // A trigger button in the doc-switch, and the search shortcut. The hint
+    // names the modifier that matches the viewer's OS — these docs are opened
+    // on any platform from GitHub Pages or disk, so a hardcoded ⌘ would be
+    // wrong for most readers. The shortcut itself accepts either modifier
+    // (see keydown below), so only the label is platform-aware.
+    var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent || "");
+    var kbdHint = isMac ? "⌘K" : "Ctrl K";
     var nav = document.querySelector(".doc-switch-inner");
     var btn = document.createElement("button");
     btn.type = "button";
     btn.className = "gs-search-btn";
-    btn.setAttribute("aria-label", "Search the documentation (Ctrl-K)");
-    btn.innerHTML = '<span class="gs-sk-ico" aria-hidden="true">⌕</span><span class="gs-sk-label">Search</span><kbd>⌘K</kbd>';
+    btn.setAttribute("aria-label", "Search the documentation (" + kbdHint + ")");
+    btn.innerHTML = '<span class="gs-sk-ico" aria-hidden="true">⌕</span><span class="gs-sk-label">Search</span><kbd>' + kbdHint + "</kbd>";
     if (nav) {
       var toggle = nav.querySelector(".theme-toggle");
       nav.insertBefore(btn, toggle || null);
