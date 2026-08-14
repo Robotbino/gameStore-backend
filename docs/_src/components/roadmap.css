@@ -1,0 +1,178 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   components/roadmap.css — ranked-work cards, pairings, progress, gates
+   ═══════════════════════════════════════════════════════════════════════════
+
+   SOURCE FILE — stamped into documents by stamp.mjs.
+
+   Used by backend-roadmap.html, frontend-roadmap.html, and the roadmap
+   section of the frontend architecture brief.
+
+   ── The drift this file closes ───────────────────────────────────────────
+   The two roadmaps were 80% identical CSS that had split apart, because the
+   backend one received a design pass (commit 80532d3) the frontend never got:
+
+     · Coloured side-tabs were dropped from .rm-card, .pair and .gate. The
+       verdict badge in the card header already carries the categorical colour
+       (v-do / v-crit / v-later / v-skip), so the left border was doubling a
+       signal that was already there. The .v-* classes stay on the card
+       because .v-skip still dims it.
+
+     · Both progress bars moved from animating `width` to `transform: scaleX()`
+       so the browser skips layout on every frame. The frontend was still on
+       the width version — internally consistent, just older.
+
+   The newer, documented decision won in both cases. The JS in chrome.js sets
+   scaleX to match.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Gate callout ─────────────────────────────────────────────────────────
+   No coloured side-tab: the mono "GATE:" label (.g-k) already carries the
+   categorical accent colour, which is enough to mark this as a callout. */
+.gate {
+  display: flex; gap: 12px; align-items: flex-start;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px 18px; margin: 0 0 24px;
+}
+.gate .g-k {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--auth);
+  flex: none; padding-top: 3px; font-weight: 700;
+}
+.gate p { margin: 0; color: var(--ink-soft); font-size: .92rem; }
+
+
+/* ── Progress header ──────────────────────────────────────────────────── */
+.check-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 14px; flex-wrap: wrap;
+}
+.check-progress { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+.check-progress b { color: var(--new); font-weight: 700; }
+.check-reset {
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  background: none; border: 1px solid var(--line); border-radius: 6px;
+  padding: 4px 10px; cursor: pointer;
+}
+.check-reset:hover { color: var(--ink); border-color: var(--line-2); }
+.check-bar-track {
+  height: 6px; background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 999px; overflow: hidden;
+}
+/* scaleX() rather than width — see the header note. chrome.js sets the
+   transform; the full-width element is scaled down, not grown. */
+.check-bar-fill {
+  height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--new));
+  transform: scaleX(0); transform-origin: left;
+  transition: transform .4s ease;
+  will-change: transform;
+}
+
+
+/* ── Task cards ───────────────────────────────────────────────────────── */
+.rm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.rm-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
+  box-shadow: var(--shadow-sm);
+  transition: transform .24s var(--ease), box-shadow .24s var(--ease),
+              border-color .24s var(--ease), background .24s var(--ease);
+}
+.rm-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+.rm-card.v-skip { opacity: .82; }
+
+.rm-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+.rm-tick { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.rm-tick input {
+  width: 17px; height: 17px; margin: 0; flex: none;
+  accent-color: var(--new); cursor: pointer;
+}
+.rm-id {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em;
+  color: var(--ink-faint); font-weight: 600;
+}
+.rm-verdict {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .08em;
+  text-transform: uppercase; padding: 3px 9px; border-radius: 6px;
+  white-space: nowrap; font-weight: 700;
+}
+.rm-verdict.v-do    { color: var(--new);    border: 1px solid var(--new-dim); }
+.rm-verdict.v-crit  { color: var(--danger); border: 1px solid var(--danger-dim); }
+.rm-verdict.v-later { color: var(--auth);   border: 1px solid var(--auth-dim); }
+.rm-verdict.v-skip  { color: var(--danger); border: 1px solid var(--danger-dim); }
+
+.rm-card p { margin: 0; color: var(--ink-soft); font-size: .91rem; }
+.rm-anchor {
+  font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint);
+  line-height: 1.7; margin: 0;
+}
+.rm-anchor code { font-size: 1em; background: var(--panel-2); }
+.rm-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: auto; padding-top: 8px; }
+.rm-metric { display: flex; flex-direction: column; gap: 2px; }
+.rm-metric .m-k {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.rm-metric .m-v { font-size: .84rem; color: var(--ink); }
+.rm-metric .m-v.pair { color: var(--info); font-family: var(--mono); font-size: .8rem; }
+
+/* Completed state — subtle green tint on the surface, strikethrough on the
+   heading, and the ID chip picks up the accent colour. No side-tab. */
+.rm-card.done { background: var(--new-wash); }
+.rm-card.done h3 { color: var(--ink-faint); text-decoration: line-through; }
+.rm-card.done .rm-id { color: var(--new); }
+
+
+/* ── Pairings ─────────────────────────────────────────────────────────────
+   No coloured side-tab: the P-number chip (.pair-no) is already rendered in
+   the same --info accent, which is enough to mark these as pairings. */
+.pair-grid { display: grid; gap: 16px; }
+.pair {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px; display: grid;
+  grid-template-columns: 52px 1fr 1fr; gap: 0 18px; align-items: start;
+  box-shadow: var(--shadow-sm);
+  transition: transform .24s var(--ease), box-shadow .24s var(--ease), border-color .24s var(--ease);
+}
+.pair:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); border-color: var(--line-2); }
+.pair-no {
+  font-family: var(--mono); font-size: .95rem; font-weight: 700;
+  color: var(--info); grid-row: span 1; padding-top: 2px;
+}
+.pair-side { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.pair-side .ps-k {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em;
+  text-transform: uppercase;
+}
+.pair-side.be .ps-k { color: var(--spring); }
+.pair-side.fe .ps-k { color: var(--info); }
+.pair-side .ps-v { font-size: .92rem; color: var(--ink); }
+.pair-side .ps-sub { font-family: var(--mono); font-size: 10.5px; color: var(--ink-faint); }
+.pair-why {
+  grid-column: 1 / -1; margin: 13px 0 0; padding-top: 12px;
+  border-top: 1px dashed var(--line); color: var(--ink-soft); font-size: .9rem;
+}
+.pair-why b { color: var(--ink); font-weight: 700; }
+
+
+@media (max-width: 980px) {
+  .rm-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 780px) {
+  .pair { grid-template-columns: 1fr; gap: 14px; }
+  .pair-no { padding-top: 0; }
+}
+@media (max-width: 560px) {
+  .rm-meta { gap: 12px; }
+  .rm-head { grid-template-columns: auto 1fr; }
+  .rm-head .rm-verdict { grid-column: 1 / -1; justify-self: start; }
+}
+
+@media print {
+  .rm-card, .pair, .gate { break-inside: avoid; box-shadow: none; }
+  .check-reset { display: none !important; }
+}

@@ -1,0 +1,272 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   components/tables.css — tables, pills, callouts, accordions, compare panels
+   ═══════════════════════════════════════════════════════════════════════════
+
+   SOURCE FILE — stamped into documents by stamp.mjs. Do not edit the copy
+   inside an HTML file.
+
+   Opted into by any document that presents reference data: the two
+   architecture briefs, the learning guide, and the catalog pivot.
+
+   ── Two things were reconciled here ──────────────────────────────────────
+   1. table.grid existed twice with different type. The architecture brief had
+      uppercase mono column headers at 11px; the learning guide had plain
+      sentence-case headers at .92rem. The mono version won — it matches the
+      kickers and micro-labels used everywhere else, and it distinguishes a
+      header row without needing weight alone.
+
+   2. .callout was written with literal rgba(109,94,252,…) — the OLD indigo,
+      from before the palette moved to graphite. It therefore did not follow
+      the theme at all and sat slightly off-hue from every other accent on the
+      page. It now uses the accent tokens like everything else.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Tables ───────────────────────────────────────────────────────────────
+   min-width forces a horizontal scroll inside .table-shell rather than
+   letting a wide table stretch the page — the body must never scroll
+   sideways on a phone. */
+.table-shell {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+  overflow-x: auto;
+}
+table.grid {
+  width: 100%; border-collapse: collapse;
+  font-size: 13.5px;
+  min-width: 640px;
+}
+table.grid th {
+  text-align: left;
+  font-family: var(--mono); font-size: 11px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint);
+  padding: 12px 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+table.grid td {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-soft);
+  vertical-align: top;
+}
+table.grid tr:last-child td { border-bottom: 0; }
+table.grid td.mono, table.grid th.mono, table.grid td .mono {
+  font-family: var(--mono); font-size: 12.5px; color: var(--ink);
+}
+
+
+/* ── Pills ────────────────────────────────────────────────────────────────
+   One base, many modifiers. HTTP verbs, status codes, access levels and the
+   learning guide's exam badges all share it — a pill always means "a short
+   categorical label", and its colour always comes from the semantic set. */
+.pill {
+  display: inline-block;
+  font-family: var(--mono); font-size: 10.5px; font-weight: 600;
+  letter-spacing: .04em; line-height: 1.5;
+  padding: 2px 8px; border-radius: 999px;
+  vertical-align: middle; white-space: nowrap;
+  border: 1px solid var(--line-2);
+  color: var(--ink-soft); background: var(--panel-2);
+}
+
+/* HTTP verbs */
+.pill.get  { color: var(--sky);    border-color: var(--sky-dim);    background: var(--sky-wash); }
+.pill.post { color: var(--new);    border-color: var(--new-dim);    background: var(--new-wash); }
+.pill.put  { color: var(--auth);   border-color: var(--auth-dim);   background: var(--auth-wash); }
+.pill.del  { color: var(--danger); border-color: var(--danger-dim); background: var(--danger-wash); }
+
+/* Access level */
+.pill.public { color: var(--spring);   border-color: var(--spring-dim); background: var(--spring-wash); }
+.pill.authn  { color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-wash); }
+.pill.admin  { color: var(--auth);     border-color: var(--auth-dim);   background: var(--auth-wash); }
+
+/* Status codes. 501 is amber, not red: in this API it is a deliberate
+   answer — the stubbed endpoint — not a fault. */
+.pill.s200 { color: var(--sky);      border-color: var(--sky-dim);    background: var(--sky-wash); }
+.pill.s201 { color: var(--new);      border-color: var(--new-dim);    background: var(--new-wash); }
+.pill.s204 { color: var(--ink-soft); border-color: var(--line-2);     background: var(--panel-2); }
+.pill.s400 { color: var(--auth);     border-color: var(--auth-dim);   background: var(--auth-wash); }
+.pill.s401,
+.pill.s403,
+.pill.s404,
+.pill.s500 { color: var(--danger);   border-color: var(--danger-dim); background: var(--danger-wash); }
+.pill.s501 { color: var(--auth);     border-color: var(--auth-dim);   background: var(--auth-wash); }
+
+/* Learning-guide taxonomy */
+.pill.oca      { color: var(--new);      border-color: var(--new-dim);    background: var(--new-wash); }
+.pill.notoca   { color: var(--auth);     border-color: var(--auth-dim);   background: var(--auth-wash); }
+.pill.ocp,
+.pill.advanced { color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-wash); }
+.pill.spring   { color: var(--spring);   border-color: var(--spring-dim); background: var(--spring-wash); }
+.pill.security { color: var(--danger);   border-color: var(--danger-dim); background: var(--danger-wash); }
+.pill.pattern  { color: var(--info);     border-color: var(--info-dim);   background: var(--info-wash); }
+.pill.core     { color: var(--ink);      border-color: var(--line-2);     background: var(--panel-3); }
+
+/* Query params, subordinate to the path they hang off. */
+.qp {
+  display: inline-block; margin-top: 3px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+  white-space: nowrap;
+}
+
+
+/* ── Generic card ─────────────────────────────────────────────────────── */
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  margin: 16px 0;
+}
+.card h3 { margin: 0 0 6px; font-size: 1.1rem; }
+.card .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+
+
+/* Callouts and the trade-off variant now live in core.css — they are used by
+   all six documents (both roadmaps included), so they can't sit in a component
+   only some documents load. */
+
+
+/* ── Accordion ────────────────────────────────────────────────────────────
+   Native <details>: it is keyboard-accessible, searchable by the browser's
+   own find, and works with JS disabled. The +/− is drawn on ::before so the
+   default triangle can be dropped without losing the affordance. */
+details.acc {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  margin: 8px 0;
+}
+details.acc[open] { background: var(--panel-2); }
+details.acc summary {
+  cursor: pointer;
+  font-family: var(--display); font-weight: 700;
+  color: var(--ink);
+  list-style: none;
+  display: flex; align-items: center; gap: 10px;
+}
+details.acc summary::-webkit-details-marker { display: none; }
+details.acc summary::before {
+  content: "+"; font-family: var(--mono); color: var(--accent);
+  font-size: 18px; line-height: 1; flex: none;
+}
+details.acc[open] summary::before { content: "−"; }
+details.acc .content { color: var(--ink-soft); margin-top: 10px; padding-left: 28px; }
+details.acc .content code { font-size: .85em; }
+
+
+/* ── Compare panels (mistake vs. best practice) ──────────────────────── */
+.compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 14px 0 10px; }
+.compare .col { border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.compare .col header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px;
+  font-family: var(--mono); font-size: .78rem; font-weight: 700;
+}
+.compare .col.bad  header { background: var(--danger-wash); color: var(--danger); border-bottom: 1px solid var(--danger-dim); }
+.compare .col.good header { background: var(--new-wash);    color: var(--new);    border-bottom: 1px solid var(--new-dim); }
+.compare .col header .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.compare .col.bad  .dot { background: var(--danger); }
+.compare .col.good .dot { background: var(--new); }
+.compare .col pre { border: 0; border-radius: 0; background: var(--code-bg); margin: 0; }
+
+/* The "why it matters" note under a compare pair. Tinted surface plus a bold
+   lead-in, no side-tab — same reasoning as .callout. */
+.why {
+  background: var(--panel-2);
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft); font-size: .93rem;
+}
+.why strong { color: var(--ink); }
+
+
+/* ── Code blocks ──────────────────────────────────────────────────────────
+   Locked dark in both schemes: a terminal stays a terminal. Every foreground
+   here comes from the --code-* group, never from --ink, which resolves to
+   near-black in light mode and made snippets unreadable. */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+  color: var(--code-ink);
+  overflow-x: auto;
+}
+pre code {
+  background: none; border: 0; padding: 0;
+  color: inherit; font-size: inherit;
+}
+pre .k  { color: #c792ea; }                    /* keyword    */
+pre .s  { color: #7dd3fc; }                    /* string     */
+pre .n2 { color: #f0abfc; }                    /* number     */
+pre .an { color: var(--code-ok); }             /* annotation */
+pre .c  { color: var(--code-ink-faint); font-style: italic; }
+
+
+/* ── Entity / failure cards ───────────────────────────────────────────── */
+.entities { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 20px; }
+.entity {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.entity h4 {
+  font-family: var(--display); font-weight: 700; font-size: 1rem;
+  margin: 0 0 4px; letter-spacing: -.01em;
+}
+.entity h4 .cls { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); font-weight: 400; }
+.entity .desc { color: var(--ink-soft); font-size: .85rem; margin: 0 0 12px; }
+.entity table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 12px; }
+.entity td { padding: 4px 0; border-top: 1px solid var(--line); color: var(--ink-soft); }
+.entity tr:first-child td { border-top: 0; }
+.entity td.name { color: var(--ink); }
+.entity td.type { color: var(--accent-2); text-align: right; }
+
+/* No side-tab: the .code line ("HTTP 401", "HTTP 500", …) is already coloured
+   per severity, which is the categorical signal. */
+.failure-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 20px; }
+.failure {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.failure h4 { font-family: var(--display); font-size: .98rem; margin: 0 0 4px; color: var(--ink); }
+.failure .code { font-family: var(--mono); font-size: 11px; color: var(--danger); letter-spacing: .06em; }
+.failure p { color: var(--ink-soft); font-size: .9rem; margin: 8px 0 0; }
+.failure.warn .code { color: var(--auth); }
+.failure.info .code { color: var(--info); }
+
+
+/* ── Filter chips ─────────────────────────────────────────────────────────
+   Driven by chrome.js: any container with [data-filter-group] filters the
+   matching [data-filter-target] by the chip's data-filter value. */
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 18px; }
+.filters .chip {
+  cursor: pointer; background: var(--panel-2);
+  border: 1px solid var(--line); color: var(--ink-soft);
+  transition: color .18s var(--ease), background .18s var(--ease),
+              border-color .18s var(--ease);
+}
+.filters .chip:hover { color: var(--ink); border-color: var(--line-2); }
+.filters .chip.active {
+  color: var(--accent-2); background: var(--accent-dim); border-color: var(--accent-dim);
+}
+
+
+@media (max-width: 900px) {
+  .entities, .failure-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 780px) {
+  .compare { grid-template-columns: 1fr; }
+}
+
+@media print {
+  .callout, .reco, .card, table.grid, .entity, .failure { break-inside: avoid; box-shadow: none; }
+  details.acc { break-inside: avoid; }
+  .filters { display: none !important; }
+}

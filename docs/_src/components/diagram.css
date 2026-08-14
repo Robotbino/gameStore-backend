@@ -1,0 +1,280 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   components/diagram.css — diagram shells, keys, and the custom visuals
+   ═══════════════════════════════════════════════════════════════════════════
+
+   SOURCE FILE — stamped into documents by stamp.mjs.
+
+   The animation layer that runs over Mermaid's SVG output lives in core.css
+   (section 5), because it costs nothing on a page with no diagrams. This file
+   is the furniture AROUND a diagram — the frame, the generated key, the
+   toolbar — plus the hand-built visuals that are deliberately not Mermaid.
+
+   ── Why some visuals are not Mermaid ─────────────────────────────────────
+   A flowchart is the right tool for a graph. It is the wrong tool for a
+   ladder (the filter chain), a two-column anatomy (the JWT), or a stepped
+   walkthrough. Those are laid out with CSS grid here, which also means they
+   stay readable at 375px where a wide Mermaid flowchart does not.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Diagram shell ────────────────────────────────────────────────────── */
+.diagram-shell {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 14px;
+  overflow-x: auto;
+}
+.diagram-shell .mermaid { text-align: center; min-width: 640px; }
+
+/* Mermaid stripes ER attribute rows off `background` and lands the odd one at
+   near-white, which is unreadable under the light diagram text. It ignores
+   attributeBackgroundColorOdd/Even, so restate the fills here — CSS beats the
+   presentation attribute. Both tones keep the text above 11:1. */
+.diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: var(--row-odd); }
+.diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: var(--row-even); }
+
+/* ── Diagram toolbar ──────────────────────────────────────────────────────
+   Appears on hover or keyboard focus. Injected by chrome.js, so it is absent
+   entirely without JS — and a diagram with no toolbar is still a diagram. */
+.dg-tools {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  display: flex; gap: 4px;
+  opacity: 0; transition: opacity .18s var(--ease);
+}
+.diagram-shell:hover .dg-tools,
+.diagram-shell:focus-within .dg-tools { opacity: 1; }
+.dg-tools button {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
+  color: var(--ink-soft); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 3px 8px; cursor: pointer;
+}
+.dg-tools button:hover { color: var(--ink); border-color: var(--line-2); }
+
+/* Fullscreen — the fix for wide flowcharts on a phone. Uses the native
+   dialog element so Escape closes it and focus is trapped for free. */
+dialog.dg-full {
+  width: 96vw; max-width: 96vw; height: 92vh; max-height: 92vh;
+  padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--panel); color: var(--ink);
+}
+dialog.dg-full::backdrop { background: light-dark(rgba(16,20,32,.55), rgba(0,0,0,.72)); }
+dialog.dg-full .dg-full-body {
+  width: 100%; height: 100%; overflow: auto; padding: 20px;
+  display: grid; place-items: center;
+}
+dialog.dg-full .mermaid { min-width: 0; }
+dialog.dg-full .dg-full-close {
+  position: absolute; top: 10px; right: 12px;
+  font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 4px 10px; cursor: pointer;
+}
+
+
+/* ── Auto-generated diagram key ───────────────────────────────────────────
+   Built from the classes each diagram actually uses (see buildLegend in
+   chrome.js), so it cannot drift out of step with the diagram the way a
+   hand-written key does. Nothing is emitted for a diagram that colours
+   nothing.
+
+   Each entry is also a filter: clicking one dims every node that is not in
+   that class, which turns the key from a caption into a way of reading a
+   dense graph one concern at a time. */
+.dg-legend {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: 12px 2px 0; padding: 0; list-style: none;
+}
+.dg-legend li {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-soft);
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 3px 10px 3px 7px;
+}
+.dg-legend li[role="button"] { cursor: pointer; }
+.dg-legend li[role="button"]:hover { color: var(--ink); border-color: var(--line-2); }
+.dg-legend li[aria-pressed="true"] { color: var(--ink); border-color: var(--accent); background: var(--accent-wash); }
+.dg-key { width: 10px; height: 10px; border-radius: 3px; border: 1.5px solid currentColor; flex: none; }
+
+/* Dimming is applied to the SVG, not the source, so it survives a re-render. */
+.mermaid .node.dg-dim { opacity: .18; transition: opacity .2s var(--ease); }
+.mermaid .node.dg-lit { opacity: 1; }
+
+/* Static hand-written key, where a diagram needs one Mermaid cannot infer. */
+.legend { display: flex; flex-wrap: wrap; gap: 18px; margin: 22px 0 0; font-size: 13px; color: var(--ink-soft); }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.swatch { width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--swatch-ring); }
+.sw-base   { background: var(--panel-2); }
+.sw-new    { background: var(--new-dim);    border-color: var(--new); }
+.sw-chg    { background: var(--accent-dim); border-color: var(--accent); }
+.sw-auth   { background: var(--auth-dim);   border-color: var(--auth); }
+.sw-danger { background: var(--danger-dim); border-color: var(--danger); }
+
+
+/* ── Prose ↔ diagram binding ──────────────────────────────────────────────
+   A <span data-node="JwtF"> in the prose points at a node id in the adjacent
+   diagram. Hovering or focusing the span lights the node; clicking a node
+   scrolls to its prose. The reference is styled as a quiet link so it reads
+   as interactive without shouting. Wired in chrome.js; with JS off it is
+   simply a piece of emphasised text, which is what it already was. */
+[data-node] {
+  border-bottom: 1px dotted var(--line-2);
+  cursor: help;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+[data-node]:hover, [data-node].dg-active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.mermaid .node.dg-hit > rect,
+.mermaid .node.dg-hit > polygon,
+.mermaid .node.dg-hit > circle,
+.mermaid .node.dg-hit > path {
+  stroke-width: 3.5px;
+  filter: drop-shadow(0 0 6px light-dark(rgba(85,70,232,.45), rgba(139,125,255,.55)));
+}
+/* Only clickable when a matching piece of prose exists to jump to. */
+.mermaid .node.dg-linked { cursor: pointer; }
+
+
+/* ── Interactive layer explorer ───────────────────────────────────────────
+   No side-tab in either state. The active state reads via the surface tint
+   change (panel → panel-2) plus the .label colour flipping to --accent,
+   which together are a strong-enough "this one is selected" signal. */
+.layer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.layer-btn {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px;
+  text-align: left; cursor: pointer;
+  font-family: inherit; color: inherit;
+  transition: border-color .15s, background .15s, transform .15s;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.layer-btn:hover { background: var(--panel-2); transform: translateY(-1px); }
+.layer-btn.active { background: var(--panel-2); border-color: var(--accent-dim); }
+.layer-btn .label {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.layer-btn.active .label { color: var(--accent); }
+.layer-btn .title { font-family: var(--display); font-weight: 700; font-size: 1.02rem; }
+.layer-btn .hint { color: var(--ink-soft); font-size: .85rem; }
+
+.layer-detail {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 22px 24px; min-height: 200px;
+}
+.layer-detail[hidden] { display: none; }
+.layer-detail h3 { font-family: var(--display); font-size: 1.1rem; margin: 0 0 10px; color: var(--accent-2); }
+.layer-detail p { color: var(--ink-soft); margin: 0 0 14px; }
+.layer-detail .files { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.file-row {
+  font-family: var(--mono); font-size: 12px;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 10px; color: var(--ink-soft);
+}
+.file-row .path { color: var(--ink); }
+.file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; }
+
+
+/* ── Filter pipeline ──────────────────────────────────────────────────────
+   A ladder, not a graph — CSS grid renders it better than Mermaid would and
+   it stays readable on a narrow screen. Categorical colour sits on the .s-n
+   mono label ("STAGE 1", "CORS", …) rather than a side-tab: same information,
+   carried by a typographic element that was already there. */
+.pipeline { display: flex; align-items: stretch; gap: 0; overflow-x: auto; padding: 6px 2px 10px; }
+.stage {
+  flex: 1 0 155px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 14px;
+  position: relative; display: flex; flex-direction: column; gap: 6px;
+}
+.stage + .stage { margin-left: 26px; }
+.stage + .stage::before {
+  content: "→";
+  position: absolute; left: -22px; top: 50%; transform: translateY(-50%);
+  color: var(--ink-faint); font-family: var(--mono); font-size: 18px;
+}
+.stage .s-n {
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.stage .s-t { font-family: var(--display); font-weight: 700; font-size: .95rem; }
+.stage .s-d { color: var(--ink-soft); font-size: .82rem; }
+.stage.cors  .s-n { color: var(--spring); }
+.stage.jwt   .s-n { color: var(--auth); }
+.stage.authz .s-n { color: var(--auth); }
+.stage.disp  .s-n { color: var(--accent); }
+.stage.ctrl  .s-n { color: var(--accent); }
+
+
+/* ── Flow tabs ────────────────────────────────────────────────────────── */
+.tabs {
+  display: flex; flex-wrap: wrap; gap: 4px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 6px; margin-bottom: 18px;
+}
+.tab {
+  flex: 1 1 auto;
+  background: transparent; border: 0; cursor: pointer;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-soft);
+  padding: 10px 14px; border-radius: 8px; text-align: center;
+  transition: background .15s, color .15s;
+}
+.tab:hover { color: var(--ink); }
+.tab.active { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
+.tab .step { color: var(--accent); font-weight: 700; margin-right: 6px; }
+
+.flow-panel { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; }
+.flow-panel[hidden] { display: none; }
+.flow-panel > .diagram-shell { margin: 0; }
+
+.steps {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 6px;
+  max-height: 660px; overflow-y: auto;
+}
+/* No side-tab: the step number label (.n) is already rendered in --accent. */
+.step-item {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 6px;
+}
+.step-item + .step-item { margin-top: 8px; }
+.step-item .n {
+  font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
+  color: var(--accent); text-transform: uppercase;
+}
+.step-item .title { font-family: var(--display); font-weight: 700; font-size: 1rem; margin: 4px 0 6px; }
+.step-item .body { color: var(--ink-soft); font-size: .92rem; margin: 0 0 8px; }
+.step-item pre { margin: 8px 0 0; font-size: 12px; line-height: 1.5; white-space: pre; }
+.step-item .file { font-family: var(--mono); font-size: 11px; color: var(--ink-faint); margin-top: 6px; }
+.step-item.auth  .n { color: var(--auth); }
+.step-item.data  .n { color: var(--new); }
+.step-item.error .n { color: var(--danger); }
+
+
+/* ── JWT anatomy ──────────────────────────────────────────────────────── */
+.jwt-anatomy { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.req-block {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px; overflow-x: auto;
+}
+
+
+@media (max-width: 900px) {
+  .layer-grid { grid-template-columns: 1fr 1fr; }
+  .flow-panel, .jwt-anatomy { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .layer-grid { grid-template-columns: 1fr; }
+  .layer-detail .files { grid-template-columns: 1fr; }
+}
+
+@media print {
+  .dg-tools { display: none !important; }
+  .diagram-shell { break-inside: avoid; }
+  .flow-panel[hidden] { display: grid !important; }
+  .steps { max-height: none; overflow: visible; }
+}
