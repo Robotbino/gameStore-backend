@@ -1734,8 +1734,24 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
   }
 
   if (document.querySelector(".mermaid")) {
-    if (window.mermaid) initMermaid();
-    else window.addEventListener("load", initMermaid);
+    var mermaidBooted = false;
+    function bootMermaid() {
+      if (mermaidBooted || !window.mermaid) return;
+      mermaidBooted = true;
+      initMermaid();
+    }
+    // The Mermaid bundle is a deferred external script. Opened over http it is
+    // reliably ready by `load`; opened as a file:// double-click the timing can
+    // differ, so try at every reasonable moment and poll briefly as a backstop
+    // rather than betting on one event firing at the right time.
+    bootMermaid();
+    document.addEventListener("DOMContentLoaded", bootMermaid);
+    window.addEventListener("load", bootMermaid);
+    var mermaidTries = 0;
+    var mermaidPoll = setInterval(function () {
+      bootMermaid();
+      if (mermaidBooted || ++mermaidTries > 50) clearInterval(mermaidPoll);
+    }, 100);
   }
 
 

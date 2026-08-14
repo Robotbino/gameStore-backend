@@ -1771,11 +1771,11 @@ dialog.dg-full .dg-full-close {
       single <code>GET /users/me</code> call:
     </p>
     <ol style="color:var(--ink-soft);">
-      <li><a href="../src/main/java/com/gameStore/Bino/configuration/JWTAuthenticationFilter.java"><code>JWTAuthenticationFilter</code></a> — reads the token and puts the user in the SecurityContext.</li>
-      <li><a href="../src/main/java/com/gameStore/Bino/configuration/SecurityConfiguration.java"><code>SecurityConfiguration</code></a> — matches <code>/users/me</code> and decides "authenticated? yes → proceed".</li>
-      <li><a href="../src/main/java/com/gameStore/Bino/controllers/UsersController.java"><code>UsersController.getMe</code></a> — receives the principal Spring injected for it.</li>
-      <li><a href="../src/main/java/com/gameStore/Bino/dto/UserResponse.java"><code>UserResponse.from</code></a> — maps the entity onto the response record.</li>
-      <li><a href="../src/main/java/com/gameStore/Bino/exceptions/GlobalExceptionHandler.java"><code>GlobalExceptionHandler</code></a> — where a thrown exception would have gone if anything failed.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/configuration/JWTAuthenticationFilter.java"><code>JWTAuthenticationFilter</code></a> — <span data-node="Filter">reads the token and puts the user in the SecurityContext</span>.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/configuration/SecurityConfiguration.java"><code>SecurityConfiguration</code></a> — <span data-node="Sec">matches <code>/users/me</code> and decides "authenticated? yes → proceed"</span>.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/controllers/UsersController.java"><code>UsersController.getMe</code></a> — <span data-node="Ctrl">receives the principal Spring injected for it</span>.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/dto/UserResponse.java"><code>UserResponse.from</code></a> — <span data-node="Map">maps the entity onto the response record</span>.</li>
+      <li><a href="../src/main/java/com/gameStore/Bino/exceptions/GlobalExceptionHandler.java"><code>GlobalExceptionHandler</code></a> — <span data-node="GEH">where a thrown exception would have gone if anything failed</span>.</li>
     </ol>
 
     <div class="diagram-shell" data-legend='{"muted":"the request as it arrives","auth":"security · trust boundary","ok":"happy path · one call per layer","fail":"error path · GlobalExceptionHandler"}'>
@@ -1801,7 +1801,8 @@ flowchart TB
       </pre>
     </div>
     <p class="caption">
-      The same five files, as one path. The numbers match the list above. Everything green is the
+      The same five files, as one path. The numbers match the list above — <b>hover a line in that
+      list to light its box here, or click a box to jump back to it.</b> Everything green is the
       happy path — each layer makes exactly one call to the next; the amber pair is the security gate
       a request clears before your code runs at all; the dotted red edge is where any thrown
       exception is caught and turned into a consistent JSON error.
@@ -3395,8 +3396,24 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
   }
 
   if (document.querySelector(".mermaid")) {
-    if (window.mermaid) initMermaid();
-    else window.addEventListener("load", initMermaid);
+    var mermaidBooted = false;
+    function bootMermaid() {
+      if (mermaidBooted || !window.mermaid) return;
+      mermaidBooted = true;
+      initMermaid();
+    }
+    // The Mermaid bundle is a deferred external script. Opened over http it is
+    // reliably ready by `load`; opened as a file:// double-click the timing can
+    // differ, so try at every reasonable moment and poll briefly as a backstop
+    // rather than betting on one event firing at the right time.
+    bootMermaid();
+    document.addEventListener("DOMContentLoaded", bootMermaid);
+    window.addEventListener("load", bootMermaid);
+    var mermaidTries = 0;
+    var mermaidPoll = setInterval(function () {
+      bootMermaid();
+      if (mermaidBooted || ++mermaidTries > 50) clearInterval(mermaidPoll);
+    }, 100);
   }
 
 
