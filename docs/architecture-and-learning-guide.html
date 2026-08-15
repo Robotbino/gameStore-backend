@@ -7,10 +7,14 @@
 <script>
   /* Pre-paint theme apply — runs BEFORE the stylesheet parses so the page
      never flashes the wrong scheme. Deliberately isolated from chrome.js
-     (which runs after DOM ready) and deliberately unstyled. */
+     (which runs after DOM ready) and deliberately unstyled.
+     Always pins data-theme so light-dark() and the Mermaid palette agree. */
   try {
     var t = localStorage.getItem("gs-docs-theme");
-    if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+    if (t !== "light" && t !== "dark") {
+      t = window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark";
+    }
+    document.documentElement.dataset.theme = t;
   } catch (e) {}
 </script>
 <!-- GS:CORE-CSS:START -->
@@ -334,9 +338,82 @@
 }
 
 /* The viewer's explicit choice outranks the OS, in both directions.
-   Only --scheme and color-scheme change; every colour above follows. */
-:root[data-theme="light"] { color-scheme: light; --scheme: light; }
-:root[data-theme="dark"]  { color-scheme: dark;  --scheme: dark;  }
+   Restate EVERY light-dark() token so the page never depends on the browser
+   resolving light-dark() correctly against color-scheme — some engines
+   (Brave on dark OS) ignore the inherited color-scheme and resolve
+   light-dark() from the OS preference instead. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --scheme: light;
+
+  --bg:#f7f7f8; --panel:#ffffff; --panel-2:#f2f2f4; --panel-3:#eaeaee;
+  --line:#dcdce1; --line-2:#b9b9c2; --line-soft:#eeeef1;
+  --ink:#131316; --ink-soft:#43434e; --ink-faint:#5f5f6a;
+
+  --accent:#5546e8; --accent-2:#4c3fd0; --accent-dim:#dedaff;
+  --accent-wash:#eeecff; --on-accent:#ffffff;
+
+  --spring:#3f7420; --spring-dim:#cfe0bf; --spring-wash:#eef5e7;
+  --new:#0a7d55; --new-dim:#bde8d6; --new-wash:#e7f6ef;
+  --auth:#9c5a05; --auth-dim:#f5e2c2; --auth-wash:#faf0dd;
+  --danger:#c22e46; --danger-dim:#f6d3da; --danger-wash:#fbe9ec;
+  --info:#1d4ed8; --info-dim:#d3e0fb; --info-wash:#e9f0fe;
+  --sky:#0369a1; --sky-dim:#bcd9ec; --sky-wash:#e3f2fb;
+
+  --indigo-wash:rgba(85,70,232,.07);
+  --emerald-wash:rgba(10,125,85,.07);
+  --amber-wash:rgba(180,83,9,.07);
+  --rose-wash:rgba(209,52,79,.07);
+
+  --nav-veil:rgba(247,247,248,.85);
+  --scroll-hover:#a0a0ac;
+  --swatch-ring:rgba(19,19,22,.18);
+  --row-odd:#f0f0f3; --row-even:#f8f8fa;
+  --diagram-line:#8b8b97;
+
+  --glow-a:rgba(85,70,232,.07); --glow-b:rgba(10,125,85,.05);
+
+  --shadow-sm:0 1px 2px rgba(16,20,32,.06);
+  --shadow-md:0 6px 20px -6px rgba(16,20,32,.16);
+  --shadow-lg:0 20px 52px -14px rgba(16,20,32,.22);
+  --ring:0 0 0 3px rgba(85,70,232,.35);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --scheme: dark;
+
+  --bg:#0e0e10; --panel:#16161a; --panel-2:#1d1d22; --panel-3:#24242a;
+  --line:#2a2a31; --line-2:#3a3a44; --line-soft:#212127;
+  --ink:#e7e7ea; --ink-soft:#a2a2ac; --ink-faint:#8c8c98;
+
+  --accent:#8b7dff; --accent-2:#a094ff; --accent-dim:#363154;
+  --accent-wash:#1a1826; --on-accent:#0e0e10;
+
+  --spring:#7cc44a; --spring-dim:#2e4520; --spring-wash:#161c11;
+  --new:#35d399; --new-dim:#1e5442; --new-wash:#0f1f19;
+  --auth:#f5a623; --auth-dim:#4a3a15; --auth-wash:#241c0d;
+  --danger:#f2687e; --danger-dim:#4a2029; --danger-wash:#291217;
+  --info:#60a5fa; --info-dim:#1d3557; --info-wash:#101a29;
+  --sky:#7dd3fc; --sky-dim:#23495e; --sky-wash:#0e2029;
+
+  --indigo-wash:rgba(160,148,255,.10);
+  --emerald-wash:rgba(53,211,153,.09);
+  --amber-wash:rgba(245,166,35,.09);
+  --rose-wash:rgba(242,104,126,.09);
+
+  --nav-veil:rgba(14,14,16,.82);
+  --scroll-hover:#4a4a56;
+  --swatch-ring:rgba(255,255,255,.14);
+  --row-odd:#202027; --row-even:#191920;
+  --diagram-line:#5a5a68;
+
+  --glow-a:rgba(123,108,255,.14); --glow-b:rgba(53,211,153,.07);
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.30);
+  --shadow-md:0 6px 20px -6px rgba(0,0,0,.52);
+  --shadow-lg:0 20px 52px -14px rgba(0,0,0,.64);
+  --ring:0 0 0 3px rgba(123,108,255,.42);
+}
 
 /* No stored choice → --scheme has to track the OS so the Mermaid bootstrap
    reads the same answer the stylesheet settled on. */
@@ -938,12 +1015,10 @@ header.hero { border-bottom: 1px solid var(--line); padding: 64px 0 40px; }
 .mermaid .er.entityBox:hover {
   filter: brightness(1.14) drop-shadow(0 3px 10px rgba(0,0,0,.45));
 }
-@media (prefers-color-scheme: light) {
-  .mermaid .node:hover,
-  .mermaid .actor:hover,
-  .mermaid .er.entityBox:hover {
-    filter: brightness(1.03) drop-shadow(0 3px 10px rgba(16,20,32,.20));
-  }
+:root[data-theme="light"] .mermaid .node:hover,
+:root[data-theme="light"] .mermaid .actor:hover,
+:root[data-theme="light"] .mermaid .er.entityBox:hover {
+  filter: brightness(1.03) drop-shadow(0 3px 10px rgba(16,20,32,.20));
 }
 
 /* A diagram is a figure, not a text block — let the pointer say so. */
@@ -1391,7 +1466,86 @@ pre .c  { color: var(--code-ink-faint); font-style: italic; }
   padding: 14px;
   overflow-x: auto;
 }
-.diagram-shell .mermaid { text-align: center; min-width: 640px; }
+/* A Mermaid diagram is authored inside a <pre>, which means it inherited the
+   code-block skin from tables.css — and that skin is deliberately locked dark
+   in both schemes, because a terminal stays a terminal. A diagram is not a
+   terminal. In light mode the light-palette SVG landed on --code-bg (#0a0d13),
+   where signalTextColor #131316 is invisible and the actor boxes read as white
+   stickers floating on black; only the shell's 14px padding showed through as
+   a light frame. The ground a diagram belongs on is the shell's --panel, which
+   is the surface Mermaid's own palette was picked against in the first place.
+
+   `.mermaid` (0,1,0) outranks `pre` (0,0,1), so this holds whichever order the
+   two component sheets are stamped in — be-arch takes diagram before tables,
+   be-learn takes it after.
+
+   It fixes the no-JS fallback too: the unrendered source now reads as --ink on
+   --panel instead of code colours on a slab that is no longer there. */
+.mermaid {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--ink);
+  overflow: visible;              /* .diagram-shell is the one scroller */
+}
+
+/* Centred when it fits, scrollable from its left edge when it does not.
+   `text-align: center` cannot do the second half: an inline SVG wider than its
+   line box is centred into negative space, and the part that overflows to the
+   left is unreachable in a scroll container. Auto margins on a flex item only
+   consume POSITIVE free space, so they simply resolve to zero once the diagram
+   outgrows the shell.
+
+   `flex: none` is the load-bearing half. An SVG has no min-content width to
+   push back with, so as a shrinkable flex item it collapses to whatever the
+   column offers — a 1611px sequence diagram squashed itself to 582px even with
+   the max-width lifted, which is the same illegible result by another route.
+
+   No min-width: with useMaxWidth:false (chrome.js) the SVG carries its own
+   intrinsic width, so a floor here would only force a pointless scroll on a
+   phone. `max-width: none` overrides core.css `.mermaid svg { max-width:100% }`
+   INSIDE a shell only — the fullscreen clone is not in one, so it still scales
+   down to fit its 96vw dialog. */
+.diagram-shell .mermaid { display: flex; }
+.diagram-shell .mermaid > svg { flex: none; margin: 0 auto; max-width: none; }
+
+/* ── …except on a narrow screen ───────────────────────────────────────────
+   Intrinsic width is the right default in a desktop column, where the shell
+   is ~600–900px and a diagram that overflows it is still mostly on screen.
+   It is the wrong default in portrait: at 375px EVERY diagram overflows,
+   including the four-node flowcharts that would have fit perfectly well
+   scaled down, so the reader has to scroll a chart they could have taken in
+   at a glance. Below 768px the trade flips — scale to the shell, and stop at
+   a floor rather than at whatever width the phone happens to be.
+
+   `min-width: 450px` is that floor, and it binds hard: on a flex item
+   min-width outranks max-width, so wherever the shell is narrower than 450px
+   every diagram renders at exactly 450 and the shell scrolls the difference —
+   138px on a 375px phone. That scroll is the deliberate half of the trade.
+   Fitting all the way down instead put a 1701px sequence diagram at .18
+   scale; the floor holds it at .26 for the price of one short swipe, and
+   whatever is still unreadable there is what the fullscreen button is for.
+
+   Note what a floor costs a SMALL diagram: one whose intrinsic width is under
+   450 is stretched UP to it on a phone rather than left at its own size,
+   because min-width neither knows nor cares about the SVG's natural width.
+   The narrowest diagram across the six documents measures ~550px (Mermaid
+   re-lays out by a few px at each render width), so nothing is stretched
+   today — but a genuinely small diagram added later would be, and the answer
+   then is a floor that varies per shell, not a lower one here.
+
+   `height: auto` is not optional. With useMaxWidth:false Mermaid writes real
+   px width AND height attributes, and constraining only the width would keep
+   the old height and stretch the viewBox. */
+@media (max-width: 768px) {
+  .diagram-shell .mermaid > svg {
+    flex: 0 1 auto;
+    max-width: 100%;
+    height: auto;
+    min-width: 450px;
+  }
+}
 
 /* Mermaid stripes ER attribute rows off `background` and lands the odd one at
    near-white, which is unreadable under the light diagram text. It ignores
@@ -1400,13 +1554,24 @@ pre .c  { color: var(--code-ink-faint); font-style: italic; }
 .diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: var(--row-odd); }
 .diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: var(--row-even); }
 
+/* Mermaid's .actor { fill } paints the actor-box rect but also bleeds into
+   text.actor elements (sequence-diagram participant labels). The companion
+   rule text.actor > tspan { fill } only rescues labels wrapped in a <tspan> —
+   bare text nodes inherit the background colour. Force the text fill to --ink
+   so labels are always readable regardless of wrapper structure. */
+.diagram-shell .mermaid text.actor { fill: var(--ink) !important; }
+
 /* ── Diagram toolbar ──────────────────────────────────────────────────────
-   Appears on hover or keyboard focus. Injected by chrome.js, so it is absent
-   entirely without JS — and a diagram with no toolbar is still a diagram. */
+   Injected by chrome.js, so it is absent entirely without JS — and a diagram
+   with no toolbar is still a diagram.
+
+   It rests at .55 rather than 0 because fullscreen is now load-bearing: a wide
+   diagram is read by scrolling the shell, and a hover-only affordance does not
+   exist at all on touch. Full opacity on hover or keyboard focus. */
 .dg-tools {
   position: absolute; top: 8px; right: 8px; z-index: 2;
   display: flex; gap: 4px;
-  opacity: 0; transition: opacity .18s var(--ease);
+  opacity: .55; transition: opacity .18s var(--ease);
 }
 .diagram-shell:hover .dg-tools,
 .diagram-shell:focus-within .dg-tools { opacity: 1; }
@@ -1418,8 +1583,15 @@ pre .c  { color: var(--code-ink-faint); font-style: italic; }
 }
 .dg-tools button:hover { color: var(--ink); border-color: var(--line-2); }
 
-/* Fullscreen — the fix for wide flowcharts on a phone. Uses the native
-   dialog element so Escape closes it and focus is trapped for free. */
+/* Fullscreen — the fix for wide diagrams, and the answer on a phone where the
+   shell's scroll is workable but cramped. Uses the native dialog element so
+   Escape closes it and focus is trapped for free.
+
+   96vw × 92vh of scrollable canvas at the diagram's own size, NOT a fitted
+   thumbnail. Shrinking to fit is what made a 1758px diagram unreadable in a
+   600px column in the first place; doing it again here would leave the "get a
+   better look" button as the worst view on the page. Same centring rule as the
+   shell, for the same reason — see the flex/margin note above. */
 dialog.dg-full {
   width: 96vw; max-width: 96vw; height: 92vh; max-height: 92vh;
   padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
@@ -1428,9 +1600,9 @@ dialog.dg-full {
 dialog.dg-full::backdrop { background: light-dark(rgba(16,20,32,.55), rgba(0,0,0,.72)); }
 dialog.dg-full .dg-full-body {
   width: 100%; height: 100%; overflow: auto; padding: 20px;
-  display: grid; place-items: center;
+  display: flex;
 }
-dialog.dg-full .mermaid { min-width: 0; }
+dialog.dg-full .dg-full-body > svg { flex: none; margin: auto; max-width: none; }
 dialog.dg-full .dg-full-close {
   position: absolute; top: 10px; right: 12px;
   font-family: var(--mono); font-size: 12px; color: var(--ink-soft);
@@ -1656,9 +1828,9 @@ dialog.dg-full .dg-full-close {
   <div class="doc-switch-inner">
     <span class="ds-label">Docs</span>
     <span class="ds-repo">·&nbsp;frontend&nbsp;·</span>
-    <a href="../../gameStore/docs/architecture.html">Frontend Architecture</a>
-    <a href="../../gameStore/docs/catalog-architecture.html">Catalog Pivot</a>
-    <a href="../../gameStore/docs/frontend-roadmap.html">Frontend Roadmap</a>
+    <a href="../../../GameStore/docs/architecture.html">Frontend Architecture</a>
+    <a href="../../../GameStore/docs/catalog-architecture.html">Catalog Pivot</a>
+    <a href="../../../GameStore/docs/frontend-roadmap.html">Frontend Roadmap</a>
     <span class="ds-repo">·&nbsp;backend&nbsp;·</span>
     <a href="architecture.html">Backend Architecture</a>
     <a class="is-here" aria-current="page">Learning Guide</a>
@@ -2858,7 +3030,11 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
      diagrams are simply drawn again in the new palette. */
 
   function renderedScheme() {
-    return getComputedStyle(root).getPropertyValue("--scheme").trim() === "light" ? "light" : "dark";
+    // Read data-theme directly — the pre-paint <script> in <head> guarantees
+    // it is always set (from localStorage or OS detection) before any other JS
+    // runs.  This is the same signal the CSS [data-theme] selectors key on, so
+    // the Mermaid palette and the CSS tokens can never disagree.
+    return document.documentElement.dataset.theme === "light" ? "light" : "dark";
   }
 
   var themeListeners = [];
@@ -2887,6 +3063,7 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     btn.addEventListener("click", function () {
       var next = renderedScheme() === "dark" ? "light" : "dark";
       root.dataset.theme = next;
+      root.dataset.themePinned = "1";
       // Written as a raw string (not JSON) so the pre-paint inline script in
       // every document can read it back with one localStorage.getItem call
       // before any parser is available. This is the one key that does NOT go
@@ -2899,12 +3076,16 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     sync();
 
     // The stylesheet flips live when the OS scheme changes; tell the diagram
-    // layer so it can repaint too. An explicit choice outranks the OS.
+    // layer so it can repaint too. An explicit viewer choice outranks the OS,
+    // but the pre-paint script also sets data-theme (to avoid the ambiguous
+    // "light dark" state), so we distinguish via data-theme-pinned.
     if (window.matchMedia) {
       window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
-        if (root.dataset.theme) return;
+        if (root.dataset.themePinned) return;
+        var next = this.matches ? "light" : "dark";
+        root.dataset.theme = next;
         sync();
-        themeListeners.forEach(function (fn) { try { fn(renderedScheme()); } catch (e) {} });
+        themeListeners.forEach(function (fn) { try { fn(next); } catch (e) {} });
       });
     }
   })();
@@ -2976,8 +3157,31 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
         if (visible[spied[i].id]) { current = spied[i]; break; }
       }
       navLinks.forEach(function (a) { a.classList.remove("active"); });
-      if (current && linkFor[current.id]) linkFor[current.id].classList.add("active");
+      if (current && linkFor[current.id]) {
+        linkFor[current.id].classList.add("active");
+        keepInView(linkFor[current.id]);
+      }
     }, { rootMargin: "-76px 0px -55% 0px", threshold: 0 });
+
+    /* The bar is a horizontal scroller with sixteen entries, so the section you
+       are actually in is regularly the one clipped at an edge — reading as a
+       truncated "CAC" rather than "CACHING". Nudge it back into the strip.
+
+       Deliberately not scrollIntoView(): that walks every scrollable ancestor,
+       so it would also scroll the document vertically and fight the anchor the
+       reader just clicked. Only scrollLeft on the strip itself moves here. */
+    function keepInView(link) {
+      var strip = link.parentNode;
+      if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+      var pad = 24;
+      var left = link.offsetLeft - strip.offsetLeft;
+      var right = left + link.offsetWidth;
+      var to = null;
+      if (left - pad < strip.scrollLeft) to = left - pad;
+      else if (right + pad > strip.scrollLeft + strip.clientWidth) to = right + pad - strip.clientWidth;
+      if (to === null) return;
+      strip.scrollTo({ left: Math.max(0, to), behavior: motionOK ? "smooth" : "auto" });
+    }
 
     spied.forEach(function (s) { spy.observe(s); });
   })();
@@ -3299,7 +3503,7 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
       var dlg = document.createElement("dialog");
       dlg.className = "dg-full";
       var body = document.createElement("div");
-      body.className = "dg-full-body";
+      body.className = "dg-full-body mermaid";
       body.innerHTML = shell.querySelector(".mermaid").innerHTML;
       var close = document.createElement("button");
       close.type = "button";
@@ -3309,6 +3513,15 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
       dlg.appendChild(close);
       dlg.appendChild(body);
       dlg.addEventListener("close", function () { dlg.remove(); });
+      // Close the fullscreen on theme change so stale-palette SVG is never
+      // left sitting on a freshly re-themed background.
+      var closeFull = function () { if (dlg.open) dlg.close(); };
+      onThemeChange(closeFull);
+      dlg.addEventListener("close", function () {
+        var idx = themeListeners.indexOf(closeFull);
+        if (idx !== -1) themeListeners.splice(idx, 1);
+        dlg.remove();
+      });
       document.body.appendChild(dlg);
       dlg.showModal();
     });
@@ -3340,25 +3553,43 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     } catch (e) { /* a broken diagram must not take the document with it */ }
   }
 
-  function initMermaid() {
-    if (!window.mermaid) return;
-    var light = renderedScheme() === "light";
+  /* One config, read by the first render and by every re-theme after it. It
+     used to be written out twice, which is two places for a setting to be
+     added to and one place for it to be forgotten.
 
-    window.mermaid.initialize({
-      // Rendered by hand below, not on load: Mermaid cannot lay out a diagram
-      // inside a display:none container — it fails silently and stamps a
-      // misleading "Syntax error" bomb — so hidden flow tabs render on reveal.
+     ── useMaxWidth: false ──
+     Mermaid defaults it to true, which emits width="100%" and leaves the
+     browser to scale the SVG down to whatever box it lands in. In the flow
+     tabs that box is a ~574px grid column, and a seven-participant sequence
+     diagram is ~1450px wide — so it rendered at 44% and the 14px type came out
+     at about 6px. Off, the diagram keeps its authored size and the shell
+     scrolls instead (see diagram.css), which trades a scrollbar for text you
+     can actually read. Set per diagram type, because there is no global. */
+  function mermaidConfig(light) {
+    return {
+      // Rendered by hand, not on load: Mermaid cannot lay out a diagram inside
+      // a display:none container — it fails silently and stamps a misleading
+      // "Syntax error" bomb — so hidden flow tabs render on reveal instead.
       startOnLoad: false,
       securityLevel: "loose",
       theme: "base",
       // Rounded edges read as flow rather than circuitry, and the extra rank
       // spacing is what stops edge labels sitting on top of the arrowheads.
-      flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14 },
+      flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14, useMaxWidth: false },
       // mirrorActors doubles every participant along the bottom, which on
       // these diagrams is a second row of names and no extra information.
-      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
+      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false },
+      er: { useMaxWidth: false },
+      state: { useMaxWidth: false },
       themeVariables: themeVars(light)
-    });
+    };
+  }
+
+  function initMermaid() {
+    if (!window.mermaid) return;
+    var light = renderedScheme() === "light";
+
+    window.mermaid.initialize(mermaidConfig(light));
 
     function visibleDiagrams() {
       return [].slice.call(document.querySelectorAll(".mermaid")).filter(function (n) {
@@ -3372,12 +3603,7 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     // A theme change now repaints the diagrams instead of reloading the page.
     onThemeChange(function (scheme) {
       var isLight = scheme === "light";
-      window.mermaid.initialize({
-        startOnLoad: false, securityLevel: "loose", theme: "base",
-        flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14 },
-        sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
-        themeVariables: themeVars(isLight)
-      });
+      window.mermaid.initialize(mermaidConfig(isLight));
       renderMermaid([].slice.call(document.querySelectorAll(".mermaid")).filter(function (n) {
         return SRC.has(n);
       }), isLight);
@@ -3495,11 +3721,12 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
       return (file || "") + anchor + q;
     }
     // Cross-document path. Same repo → bare file; different repo → sibling hop.
+    // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
     function crossHref(targetDocId, m) {
       var meHere = META[DOC_ID];
       if (meHere && meHere.role === m.role) return m.file;
-      var repoDir = m.role === "backend" ? "gameStore-backend" : "gameStore";
-      return "../../" + repoDir + "/docs/" + m.file;
+      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
+      return "../../../GameStore/docs/" + m.file;
     }
 
     /* Scoring. Tokenise the query; each token contributes by where it lands.

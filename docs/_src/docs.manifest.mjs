@@ -30,7 +30,7 @@ import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));       // <backend>/docs/_src
 const backend = resolve(here, "..", "..");                   // <backend>
-const frontend = resolve(backend, "..", "gameStore");        // sibling checkout
+const frontend = resolve(backend, "..", "..", "GameStore");   // sibling checkout
 
 export const REPOS = [
   { id: "backend",  root: backend,  label: "backend"  },
@@ -48,7 +48,7 @@ export const DOCS = [
     title: "Frontend Architecture",
     role: "frontend",
     blurb: "React 19 + Vite SPA — routing, state, data access, and the auth lifecycle.",
-    components: ["diagram", "tables"],
+    components: ["roadmap", "diagram", "tables"],
   },
   {
     id: "fe-catalog",
@@ -75,7 +75,7 @@ export const DOCS = [
     title: "Backend Architecture",
     role: "backend",
     blurb: "Stateless JWT-secured Spring Boot API — filter chain to persistence.",
-    components: ["diagram", "tables"],
+    components: ["roadmap", "diagram", "tables"],
   },
   {
     id: "be-learn",
@@ -129,6 +129,9 @@ export const docPath = (doc) => resolve(repoById(doc.repo).root, doc.file);
 export function hrefBetween(from, to) {
   const file = to.file.replace(/^docs\//, "");
   if (from.repo === to.repo) return file;
-  const repoDir = to.repo === "backend" ? "gameStore-backend" : "gameStore";
-  return `../../${repoDir}/docs/${file}`;
+  // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
+  // From frontend → backend needs ../../GameStoreBackEnd/Bino/docs/
+  // From backend → frontend needs ../../../GameStore/docs/  (one extra level)
+  if (to.repo === "backend") return `../../GameStoreBackEnd/Bino/docs/${file}`;
+  return `../../../GameStore/docs/${file}`;
 }

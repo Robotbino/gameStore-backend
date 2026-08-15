@@ -26,7 +26,86 @@
   padding: 14px;
   overflow-x: auto;
 }
-.diagram-shell .mermaid { text-align: center; min-width: 640px; }
+/* A Mermaid diagram is authored inside a <pre>, which means it inherited the
+   code-block skin from tables.css — and that skin is deliberately locked dark
+   in both schemes, because a terminal stays a terminal. A diagram is not a
+   terminal. In light mode the light-palette SVG landed on --code-bg (#0a0d13),
+   where signalTextColor #131316 is invisible and the actor boxes read as white
+   stickers floating on black; only the shell's 14px padding showed through as
+   a light frame. The ground a diagram belongs on is the shell's --panel, which
+   is the surface Mermaid's own palette was picked against in the first place.
+
+   `.mermaid` (0,1,0) outranks `pre` (0,0,1), so this holds whichever order the
+   two component sheets are stamped in — be-arch takes diagram before tables,
+   be-learn takes it after.
+
+   It fixes the no-JS fallback too: the unrendered source now reads as --ink on
+   --panel instead of code colours on a slab that is no longer there. */
+.mermaid {
+  background: none;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  color: var(--ink);
+  overflow: visible;              /* .diagram-shell is the one scroller */
+}
+
+/* Centred when it fits, scrollable from its left edge when it does not.
+   `text-align: center` cannot do the second half: an inline SVG wider than its
+   line box is centred into negative space, and the part that overflows to the
+   left is unreachable in a scroll container. Auto margins on a flex item only
+   consume POSITIVE free space, so they simply resolve to zero once the diagram
+   outgrows the shell.
+
+   `flex: none` is the load-bearing half. An SVG has no min-content width to
+   push back with, so as a shrinkable flex item it collapses to whatever the
+   column offers — a 1611px sequence diagram squashed itself to 582px even with
+   the max-width lifted, which is the same illegible result by another route.
+
+   No min-width: with useMaxWidth:false (chrome.js) the SVG carries its own
+   intrinsic width, so a floor here would only force a pointless scroll on a
+   phone. `max-width: none` overrides core.css `.mermaid svg { max-width:100% }`
+   INSIDE a shell only — the fullscreen clone is not in one, so it still scales
+   down to fit its 96vw dialog. */
+.diagram-shell .mermaid { display: flex; }
+.diagram-shell .mermaid > svg { flex: none; margin: 0 auto; max-width: none; }
+
+/* ── …except on a narrow screen ───────────────────────────────────────────
+   Intrinsic width is the right default in a desktop column, where the shell
+   is ~600–900px and a diagram that overflows it is still mostly on screen.
+   It is the wrong default in portrait: at 375px EVERY diagram overflows,
+   including the four-node flowcharts that would have fit perfectly well
+   scaled down, so the reader has to scroll a chart they could have taken in
+   at a glance. Below 768px the trade flips — scale to the shell, and stop at
+   a floor rather than at whatever width the phone happens to be.
+
+   `min-width: 450px` is that floor, and it binds hard: on a flex item
+   min-width outranks max-width, so wherever the shell is narrower than 450px
+   every diagram renders at exactly 450 and the shell scrolls the difference —
+   138px on a 375px phone. That scroll is the deliberate half of the trade.
+   Fitting all the way down instead put a 1701px sequence diagram at .18
+   scale; the floor holds it at .26 for the price of one short swipe, and
+   whatever is still unreadable there is what the fullscreen button is for.
+
+   Note what a floor costs a SMALL diagram: one whose intrinsic width is under
+   450 is stretched UP to it on a phone rather than left at its own size,
+   because min-width neither knows nor cares about the SVG's natural width.
+   The narrowest diagram across the six documents measures ~550px (Mermaid
+   re-lays out by a few px at each render width), so nothing is stretched
+   today — but a genuinely small diagram added later would be, and the answer
+   then is a floor that varies per shell, not a lower one here.
+
+   `height: auto` is not optional. With useMaxWidth:false Mermaid writes real
+   px width AND height attributes, and constraining only the width would keep
+   the old height and stretch the viewBox. */
+@media (max-width: 768px) {
+  .diagram-shell .mermaid > svg {
+    flex: 0 1 auto;
+    max-width: 100%;
+    height: auto;
+    min-width: 450px;
+  }
+}
 
 /* Mermaid stripes ER attribute rows off `background` and lands the odd one at
    near-white, which is unreadable under the light diagram text. It ignores
@@ -35,13 +114,24 @@
 .diagram-shell .mermaid .row-rect-odd  > path:not([fill="none"]) { fill: var(--row-odd); }
 .diagram-shell .mermaid .row-rect-even > path:not([fill="none"]) { fill: var(--row-even); }
 
+/* Mermaid's .actor { fill } paints the actor-box rect but also bleeds into
+   text.actor elements (sequence-diagram participant labels). The companion
+   rule text.actor > tspan { fill } only rescues labels wrapped in a <tspan> —
+   bare text nodes inherit the background colour. Force the text fill to --ink
+   so labels are always readable regardless of wrapper structure. */
+.diagram-shell .mermaid text.actor { fill: var(--ink) !important; }
+
 /* ── Diagram toolbar ──────────────────────────────────────────────────────
-   Appears on hover or keyboard focus. Injected by chrome.js, so it is absent
-   entirely without JS — and a diagram with no toolbar is still a diagram. */
+   Injected by chrome.js, so it is absent entirely without JS — and a diagram
+   with no toolbar is still a diagram.
+
+   It rests at .55 rather than 0 because fullscreen is now load-bearing: a wide
+   diagram is read by scrolling the shell, and a hover-only affordance does not
+   exist at all on touch. Full opacity on hover or keyboard focus. */
 .dg-tools {
   position: absolute; top: 8px; right: 8px; z-index: 2;
   display: flex; gap: 4px;
-  opacity: 0; transition: opacity .18s var(--ease);
+  opacity: .55; transition: opacity .18s var(--ease);
 }
 .diagram-shell:hover .dg-tools,
 .diagram-shell:focus-within .dg-tools { opacity: 1; }
@@ -53,8 +143,15 @@
 }
 .dg-tools button:hover { color: var(--ink); border-color: var(--line-2); }
 
-/* Fullscreen — the fix for wide flowcharts on a phone. Uses the native
-   dialog element so Escape closes it and focus is trapped for free. */
+/* Fullscreen — the fix for wide diagrams, and the answer on a phone where the
+   shell's scroll is workable but cramped. Uses the native dialog element so
+   Escape closes it and focus is trapped for free.
+
+   96vw × 92vh of scrollable canvas at the diagram's own size, NOT a fitted
+   thumbnail. Shrinking to fit is what made a 1758px diagram unreadable in a
+   600px column in the first place; doing it again here would leave the "get a
+   better look" button as the worst view on the page. Same centring rule as the
+   shell, for the same reason — see the flex/margin note above. */
 dialog.dg-full {
   width: 96vw; max-width: 96vw; height: 92vh; max-height: 92vh;
   padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
@@ -63,9 +160,9 @@ dialog.dg-full {
 dialog.dg-full::backdrop { background: light-dark(rgba(16,20,32,.55), rgba(0,0,0,.72)); }
 dialog.dg-full .dg-full-body {
   width: 100%; height: 100%; overflow: auto; padding: 20px;
-  display: grid; place-items: center;
+  display: flex;
 }
-dialog.dg-full .mermaid { min-width: 0; }
+dialog.dg-full .dg-full-body > svg { flex: none; margin: auto; max-width: none; }
 dialog.dg-full .dg-full-close {
   position: absolute; top: 10px; right: 12px;
   font-family: var(--mono); font-size: 12px; color: var(--ink-soft);

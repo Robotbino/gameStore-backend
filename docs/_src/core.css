@@ -194,9 +194,82 @@
 }
 
 /* The viewer's explicit choice outranks the OS, in both directions.
-   Only --scheme and color-scheme change; every colour above follows. */
-:root[data-theme="light"] { color-scheme: light; --scheme: light; }
-:root[data-theme="dark"]  { color-scheme: dark;  --scheme: dark;  }
+   Restate EVERY light-dark() token so the page never depends on the browser
+   resolving light-dark() correctly against color-scheme — some engines
+   (Brave on dark OS) ignore the inherited color-scheme and resolve
+   light-dark() from the OS preference instead. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --scheme: light;
+
+  --bg:#f7f7f8; --panel:#ffffff; --panel-2:#f2f2f4; --panel-3:#eaeaee;
+  --line:#dcdce1; --line-2:#b9b9c2; --line-soft:#eeeef1;
+  --ink:#131316; --ink-soft:#43434e; --ink-faint:#5f5f6a;
+
+  --accent:#5546e8; --accent-2:#4c3fd0; --accent-dim:#dedaff;
+  --accent-wash:#eeecff; --on-accent:#ffffff;
+
+  --spring:#3f7420; --spring-dim:#cfe0bf; --spring-wash:#eef5e7;
+  --new:#0a7d55; --new-dim:#bde8d6; --new-wash:#e7f6ef;
+  --auth:#9c5a05; --auth-dim:#f5e2c2; --auth-wash:#faf0dd;
+  --danger:#c22e46; --danger-dim:#f6d3da; --danger-wash:#fbe9ec;
+  --info:#1d4ed8; --info-dim:#d3e0fb; --info-wash:#e9f0fe;
+  --sky:#0369a1; --sky-dim:#bcd9ec; --sky-wash:#e3f2fb;
+
+  --indigo-wash:rgba(85,70,232,.07);
+  --emerald-wash:rgba(10,125,85,.07);
+  --amber-wash:rgba(180,83,9,.07);
+  --rose-wash:rgba(209,52,79,.07);
+
+  --nav-veil:rgba(247,247,248,.85);
+  --scroll-hover:#a0a0ac;
+  --swatch-ring:rgba(19,19,22,.18);
+  --row-odd:#f0f0f3; --row-even:#f8f8fa;
+  --diagram-line:#8b8b97;
+
+  --glow-a:rgba(85,70,232,.07); --glow-b:rgba(10,125,85,.05);
+
+  --shadow-sm:0 1px 2px rgba(16,20,32,.06);
+  --shadow-md:0 6px 20px -6px rgba(16,20,32,.16);
+  --shadow-lg:0 20px 52px -14px rgba(16,20,32,.22);
+  --ring:0 0 0 3px rgba(85,70,232,.35);
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --scheme: dark;
+
+  --bg:#0e0e10; --panel:#16161a; --panel-2:#1d1d22; --panel-3:#24242a;
+  --line:#2a2a31; --line-2:#3a3a44; --line-soft:#212127;
+  --ink:#e7e7ea; --ink-soft:#a2a2ac; --ink-faint:#8c8c98;
+
+  --accent:#8b7dff; --accent-2:#a094ff; --accent-dim:#363154;
+  --accent-wash:#1a1826; --on-accent:#0e0e10;
+
+  --spring:#7cc44a; --spring-dim:#2e4520; --spring-wash:#161c11;
+  --new:#35d399; --new-dim:#1e5442; --new-wash:#0f1f19;
+  --auth:#f5a623; --auth-dim:#4a3a15; --auth-wash:#241c0d;
+  --danger:#f2687e; --danger-dim:#4a2029; --danger-wash:#291217;
+  --info:#60a5fa; --info-dim:#1d3557; --info-wash:#101a29;
+  --sky:#7dd3fc; --sky-dim:#23495e; --sky-wash:#0e2029;
+
+  --indigo-wash:rgba(160,148,255,.10);
+  --emerald-wash:rgba(53,211,153,.09);
+  --amber-wash:rgba(245,166,35,.09);
+  --rose-wash:rgba(242,104,126,.09);
+
+  --nav-veil:rgba(14,14,16,.82);
+  --scroll-hover:#4a4a56;
+  --swatch-ring:rgba(255,255,255,.14);
+  --row-odd:#202027; --row-even:#191920;
+  --diagram-line:#5a5a68;
+
+  --glow-a:rgba(123,108,255,.14); --glow-b:rgba(53,211,153,.07);
+
+  --shadow-sm:0 1px 2px rgba(0,0,0,.30);
+  --shadow-md:0 6px 20px -6px rgba(0,0,0,.52);
+  --shadow-lg:0 20px 52px -14px rgba(0,0,0,.64);
+  --ring:0 0 0 3px rgba(123,108,255,.42);
+}
 
 /* No stored choice → --scheme has to track the OS so the Mermaid bootstrap
    reads the same answer the stylesheet settled on. */
@@ -798,12 +871,10 @@ header.hero { border-bottom: 1px solid var(--line); padding: 64px 0 40px; }
 .mermaid .er.entityBox:hover {
   filter: brightness(1.14) drop-shadow(0 3px 10px rgba(0,0,0,.45));
 }
-@media (prefers-color-scheme: light) {
-  .mermaid .node:hover,
-  .mermaid .actor:hover,
-  .mermaid .er.entityBox:hover {
-    filter: brightness(1.03) drop-shadow(0 3px 10px rgba(16,20,32,.20));
-  }
+:root[data-theme="light"] .mermaid .node:hover,
+:root[data-theme="light"] .mermaid .actor:hover,
+:root[data-theme="light"] .mermaid .er.entityBox:hover {
+  filter: brightness(1.03) drop-shadow(0 3px 10px rgba(16,20,32,.20));
 }
 
 /* A diagram is a figure, not a text block — let the pointer say so. */

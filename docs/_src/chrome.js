@@ -63,7 +63,11 @@
      diagrams are simply drawn again in the new palette. */
 
   function renderedScheme() {
-    return getComputedStyle(root).getPropertyValue("--scheme").trim() === "light" ? "light" : "dark";
+    // Read data-theme directly — the pre-paint <script> in <head> guarantees
+    // it is always set (from localStorage or OS detection) before any other JS
+    // runs.  This is the same signal the CSS [data-theme] selectors key on, so
+    // the Mermaid palette and the CSS tokens can never disagree.
+    return document.documentElement.dataset.theme === "light" ? "light" : "dark";
   }
 
   var themeListeners = [];
@@ -92,6 +96,7 @@
     btn.addEventListener("click", function () {
       var next = renderedScheme() === "dark" ? "light" : "dark";
       root.dataset.theme = next;
+      root.dataset.themePinned = "1";
       // Written as a raw string (not JSON) so the pre-paint inline script in
       // every document can read it back with one localStorage.getItem call
       // before any parser is available. This is the one key that does NOT go
@@ -104,12 +109,16 @@
     sync();
 
     // The stylesheet flips live when the OS scheme changes; tell the diagram
-    // layer so it can repaint too. An explicit choice outranks the OS.
+    // layer so it can repaint too. An explicit viewer choice outranks the OS,
+    // but the pre-paint script also sets data-theme (to avoid the ambiguous
+    // "light dark" state), so we distinguish via data-theme-pinned.
     if (window.matchMedia) {
       window.matchMedia("(prefers-color-scheme: light)").addEventListener("change", function () {
-        if (root.dataset.theme) return;
+        if (root.dataset.themePinned) return;
+        var next = this.matches ? "light" : "dark";
+        root.dataset.theme = next;
         sync();
-        themeListeners.forEach(function (fn) { try { fn(renderedScheme()); } catch (e) {} });
+        themeListeners.forEach(function (fn) { try { fn(next); } catch (e) {} });
       });
     }
   })();
@@ -181,8 +190,31 @@
         if (visible[spied[i].id]) { current = spied[i]; break; }
       }
       navLinks.forEach(function (a) { a.classList.remove("active"); });
-      if (current && linkFor[current.id]) linkFor[current.id].classList.add("active");
+      if (current && linkFor[current.id]) {
+        linkFor[current.id].classList.add("active");
+        keepInView(linkFor[current.id]);
+      }
     }, { rootMargin: "-76px 0px -55% 0px", threshold: 0 });
+
+    /* The bar is a horizontal scroller with sixteen entries, so the section you
+       are actually in is regularly the one clipped at an edge — reading as a
+       truncated "CAC" rather than "CACHING". Nudge it back into the strip.
+
+       Deliberately not scrollIntoView(): that walks every scrollable ancestor,
+       so it would also scroll the document vertically and fight the anchor the
+       reader just clicked. Only scrollLeft on the strip itself moves here. */
+    function keepInView(link) {
+      var strip = link.parentNode;
+      if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+      var pad = 24;
+      var left = link.offsetLeft - strip.offsetLeft;
+      var right = left + link.offsetWidth;
+      var to = null;
+      if (left - pad < strip.scrollLeft) to = left - pad;
+      else if (right + pad > strip.scrollLeft + strip.clientWidth) to = right + pad - strip.clientWidth;
+      if (to === null) return;
+      strip.scrollTo({ left: Math.max(0, to), behavior: motionOK ? "smooth" : "auto" });
+    }
 
     spied.forEach(function (s) { spy.observe(s); });
   })();
@@ -504,7 +536,7 @@
       var dlg = document.createElement("dialog");
       dlg.className = "dg-full";
       var body = document.createElement("div");
-      body.className = "dg-full-body";
+      body.className = "dg-full-body mermaid";
       body.innerHTML = shell.querySelector(".mermaid").innerHTML;
       var close = document.createElement("button");
       close.type = "button";
@@ -514,6 +546,15 @@
       dlg.appendChild(close);
       dlg.appendChild(body);
       dlg.addEventListener("close", function () { dlg.remove(); });
+      // Close the fullscreen on theme change so stale-palette SVG is never
+      // left sitting on a freshly re-themed background.
+      var closeFull = function () { if (dlg.open) dlg.close(); };
+      onThemeChange(closeFull);
+      dlg.addEventListener("close", function () {
+        var idx = themeListeners.indexOf(closeFull);
+        if (idx !== -1) themeListeners.splice(idx, 1);
+        dlg.remove();
+      });
       document.body.appendChild(dlg);
       dlg.showModal();
     });
@@ -545,25 +586,43 @@
     } catch (e) { /* a broken diagram must not take the document with it */ }
   }
 
-  function initMermaid() {
-    if (!window.mermaid) return;
-    var light = renderedScheme() === "light";
+  /* One config, read by the first render and by every re-theme after it. It
+     used to be written out twice, which is two places for a setting to be
+     added to and one place for it to be forgotten.
 
-    window.mermaid.initialize({
-      // Rendered by hand below, not on load: Mermaid cannot lay out a diagram
-      // inside a display:none container — it fails silently and stamps a
-      // misleading "Syntax error" bomb — so hidden flow tabs render on reveal.
+     ── useMaxWidth: false ──
+     Mermaid defaults it to true, which emits width="100%" and leaves the
+     browser to scale the SVG down to whatever box it lands in. In the flow
+     tabs that box is a ~574px grid column, and a seven-participant sequence
+     diagram is ~1450px wide — so it rendered at 44% and the 14px type came out
+     at about 6px. Off, the diagram keeps its authored size and the shell
+     scrolls instead (see diagram.css), which trades a scrollbar for text you
+     can actually read. Set per diagram type, because there is no global. */
+  function mermaidConfig(light) {
+    return {
+      // Rendered by hand, not on load: Mermaid cannot lay out a diagram inside
+      // a display:none container — it fails silently and stamps a misleading
+      // "Syntax error" bomb — so hidden flow tabs render on reveal instead.
       startOnLoad: false,
       securityLevel: "loose",
       theme: "base",
       // Rounded edges read as flow rather than circuitry, and the extra rank
       // spacing is what stops edge labels sitting on top of the arrowheads.
-      flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14 },
+      flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14, useMaxWidth: false },
       // mirrorActors doubles every participant along the bottom, which on
       // these diagrams is a second row of names and no extra information.
-      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
+      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false },
+      er: { useMaxWidth: false },
+      state: { useMaxWidth: false },
       themeVariables: themeVars(light)
-    });
+    };
+  }
+
+  function initMermaid() {
+    if (!window.mermaid) return;
+    var light = renderedScheme() === "light";
+
+    window.mermaid.initialize(mermaidConfig(light));
 
     function visibleDiagrams() {
       return [].slice.call(document.querySelectorAll(".mermaid")).filter(function (n) {
@@ -577,12 +636,7 @@
     // A theme change now repaints the diagrams instead of reloading the page.
     onThemeChange(function (scheme) {
       var isLight = scheme === "light";
-      window.mermaid.initialize({
-        startOnLoad: false, securityLevel: "loose", theme: "base",
-        flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14 },
-        sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center" },
-        themeVariables: themeVars(isLight)
-      });
+      window.mermaid.initialize(mermaidConfig(isLight));
       renderMermaid([].slice.call(document.querySelectorAll(".mermaid")).filter(function (n) {
         return SRC.has(n);
       }), isLight);
@@ -700,11 +754,12 @@
       return (file || "") + anchor + q;
     }
     // Cross-document path. Same repo → bare file; different repo → sibling hop.
+    // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
     function crossHref(targetDocId, m) {
       var meHere = META[DOC_ID];
       if (meHere && meHere.role === m.role) return m.file;
-      var repoDir = m.role === "backend" ? "gameStore-backend" : "gameStore";
-      return "../../" + repoDir + "/docs/" + m.file;
+      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
+      return "../../../GameStore/docs/" + m.file;
     }
 
     /* Scoring. Tokenise the query; each token contributes by where it lands.
