@@ -39,7 +39,14 @@ export const REPOS = [
 
 /* `components` names the optional stylesheets from _src/components/ that get
    concatenated after core.css. Keeping them opt-in is why a roadmap does not
-   carry 200 lines of diagram CSS it never uses. */
+   carry 200 lines of diagram CSS it never uses.
+
+   `blocks` is the newest of them, and it exists because ninety class names
+   across three documents — the maturity ladder, the recruiter checklist, the
+   catalog pivot's four-tier system map, the cache ladder, the persistence
+   grid, the security cards, the JWT anatomy — matched no rule in any
+   stylesheet and rendered as unstyled running text. Only those three
+   documents carry hand-built structural markup, so only those three get it. */
 export const DOCS = [
   {
     id: "fe-arch",
@@ -48,7 +55,7 @@ export const DOCS = [
     title: "Frontend Architecture",
     role: "frontend",
     blurb: "React 19 + Vite SPA — routing, state, data access, and the auth lifecycle.",
-    components: ["roadmap", "diagram", "tables"],
+    components: ["roadmap", "diagram", "tables", "blocks"],
   },
   {
     id: "fe-catalog",
@@ -57,7 +64,7 @@ export const DOCS = [
     title: "Catalog Pivot",
     role: "frontend",
     blurb: "The catalogue read-path redesign: tiers, caching, and what it replaces.",
-    components: ["diagram", "tables"],
+    components: ["diagram", "tables", "blocks"],
   },
   {
     id: "fe-roadmap",
@@ -75,7 +82,7 @@ export const DOCS = [
     title: "Backend Architecture",
     role: "backend",
     blurb: "Stateless JWT-secured Spring Boot API — filter chain to persistence.",
-    components: ["roadmap", "diagram", "tables"],
+    components: ["roadmap", "diagram", "tables", "blocks"],
   },
   {
     id: "be-learn",

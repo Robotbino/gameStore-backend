@@ -93,8 +93,7 @@
       btn.title = "Switch to " + next + " theme";
     }
 
-    btn.addEventListener("click", function () {
-      var next = renderedScheme() === "dark" ? "light" : "dark";
+    function apply(next) {
       root.dataset.theme = next;
       root.dataset.themePinned = "1";
       // Written as a raw string (not JSON) so the pre-paint inline script in
@@ -104,6 +103,36 @@
       try { localStorage.setItem("gs-docs-theme", next); } catch (e) {}
       sync();
       themeListeners.forEach(function (fn) { try { fn(next); } catch (e) {} });
+    }
+
+    btn.addEventListener("click", function () {
+      var next = renderedScheme() === "dark" ? "light" : "dark";
+
+      /* Where the browser has view transitions, the flip is a circular wipe
+         out of the button rather than an instant repaint: the same change,
+         but the eye is told where it came from. startViewTransition() calls
+         its argument synchronously and takes the before/after snapshots
+         itself, so the work above is untouched — only its framing is. The
+         stylesheet cancels the default cross-fade so this clip is the
+         whole animation. */
+      if (!motionOK || !document.startViewTransition) return apply(next);
+
+      var r = btn.getBoundingClientRect();
+      var x = r.left + r.width / 2;
+      var y = r.top + r.height / 2;
+      var far = Math.max(
+        Math.hypot(x, y), Math.hypot(window.innerWidth - x, y),
+        Math.hypot(x, window.innerHeight - y), Math.hypot(window.innerWidth - x, window.innerHeight - y)
+      );
+      var run = document.startViewTransition(function () { apply(next); });
+      run.ready.then(function () {
+        root.animate(
+          { clipPath: ["circle(0px at " + x + "px " + y + "px)",
+                       "circle(" + far + "px at " + x + "px " + y + "px)"] },
+          { duration: 480, easing: "cubic-bezier(.2,.7,.3,1)",
+            pseudoElement: "::view-transition-new(root)" }
+        );
+      }, function () {});
     });
 
     sync();
@@ -154,6 +183,10 @@
       // scaleX(0..1) rather than width % — matches the transform-based CSS,
       // and keeps a scroll-driven update off the layout path.
       progress.style.transform = "scaleX(" + frac + ")";
+      // Published once, read by everything that draws progress: the rail
+      // spine scales from it and the back-to-top ring is a conic gradient
+      // swept by it. One number, three pictures of it.
+      root.style.setProperty("--read", frac.toFixed(4));
       toTop.classList.toggle("show", root.scrollTop > 600);
       ticking = false;
     });
@@ -161,18 +194,92 @@
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
 
+  /* ═══════════════════════════════════════════════════════════════════════
+     OUTLINE RAIL
+     ═══════════════════════════════════════════════════════════════════════
+     A fixed list of the document's own sections, in the track the shell grid
+     holds open for it on wide screens. It replaces the horizontal strip up
+     there rather than joining it — two controls for one job is one too many —
+     and it answers the question the strip could not: how much of this is
+     left. The spine beside it is the reading position.
+
+     Built from <h2>s, so a document that gains a section gains a rail entry
+     with no other edit. Only sections carrying an id are listed, because an
+     entry that cannot be linked to is decoration. */
+
+  /* The rail is fixed, so it needs to know where the centred shell actually
+     starts. `50vw` is the obvious answer and the wrong one: `vw` counts the
+     scrollbar and a centred block does not, so the rail would sit a few
+     pixels off on every platform that reserves gutter. Measure the real
+     element instead, and again whenever the viewport changes. */
+  var shellRef = document.querySelector("section > .wrap") || document.querySelector(".wrap");
+  function measureShell() {
+    if (!shellRef) return;
+    var box = shellRef.getBoundingClientRect();
+    var pad = parseFloat(getComputedStyle(shellRef).paddingLeft) || 0;
+    root.style.setProperty("--rail-left", Math.round(box.left + pad) + "px");
+  }
+  measureShell();
+  window.addEventListener("resize", measureShell, { passive: true });
+
+  (function outlineRail() {
+    if (root.dataset.gsRail === "off") return;
+    var secs = [].slice.call(document.querySelectorAll("section[id]")).filter(function (s) {
+      return s.querySelector(":scope > .wrap > h2") || s.querySelector("h2");
+    });
+    // Under three sections there is nothing to navigate and the rail is just
+    // furniture; the strip at the top already covers that case.
+    if (secs.length < 3) return;
+
+    var rail = document.createElement("nav");
+    rail.className = "doc-rail";
+    rail.setAttribute("aria-label", "Sections in this document");
+
+    var list = document.createElement("ol");
+    secs.forEach(function (s, i) {
+      var h2 = s.querySelector(":scope > .wrap > h2") || s.querySelector("h2");
+      var li = document.createElement("li");
+      li.className = "r-sec";
+      li.dataset.for = s.id;
+      var a = document.createElement("a");
+      a.href = "#" + s.id;
+      a.innerHTML = '<span class="r-n">' + (i + 1 < 10 ? "0" : "") + (i + 1) + "</span>";
+      a.appendChild(document.createTextNode(h2.textContent.replace(/#\s*$/, "").trim()));
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+
+    rail.innerHTML = '<span class="rail-spine" aria-hidden="true"><i></i></span>' +
+                     '<p class="rail-h">On this page</p>';
+    rail.appendChild(list);
+
+    var meta = document.createElement("p");
+    meta.className = "rail-meta";
+    rail.appendChild(meta);
+
+    document.body.appendChild(rail);
+    rail.classList.add("ready");
+    measureShell();
+  })();
+
+
   /* ── Scroll-spy ──
-     Tracks which sections are on screen and lights the matching nav link.
+     Tracks which sections are on screen and lights the matching nav link, in
+     the horizontal strip and the outline rail alike — one observer, both
+     controls, so they can never disagree about where the reader is.
      The insets clear the sticky nav at the top and stop the section below
      claiming focus while you are still reading the one above. */
   (function scrollSpy() {
-    var navLinks = [].slice.call(document.querySelectorAll(".subnav a, nav.toc a"));
+    var navLinks = [].slice.call(document.querySelectorAll('.subnav a, nav.toc a, .doc-rail a[href^="#"]'));
     if (!navLinks.length || !("IntersectionObserver" in window)) return;
 
+    // A section can be pointed at from both controls, so this maps to a list.
     var linkFor = {};
     navLinks.forEach(function (a) {
       var href = a.getAttribute("href") || "";
-      if (href.charAt(0) === "#") linkFor[href.slice(1)] = a;
+      if (href.charAt(0) !== "#") return;
+      var id = href.slice(1);
+      (linkFor[id] = linkFor[id] || []).push(a);
     });
 
     var spied = [].slice.call(document.querySelectorAll("section[id], [id][data-spy]"))
@@ -185,16 +292,47 @@
         if (e.isIntersecting) visible[e.target.id] = true;
         else delete visible[e.target.id];
       });
+      paint();
+    }, { rootMargin: "-76px 0px -55% 0px", threshold: 0 });
+
+    function paint() {
+      /* Of the sections on screen, the one being read is the LAST whose top
+         has passed under the sticky bar — not the first that happens to be
+         intersecting. Those differ constantly: scroll to a heading and the
+         previous section is still showing a sliver at the top of the
+         viewport, which is enough to keep it "first" and leave the rail
+         pointing one section behind the reader for the whole of the next
+         screenful. Falls back to the first visible section for the case
+         where the reader is above all of them. */
+      var line = (parseFloat(getComputedStyle(root).getPropertyValue("--sticky-h")) || 46) + 30;
       var current = null;
       for (var i = 0; i < spied.length; i++) {
-        if (visible[spied[i].id]) { current = spied[i]; break; }
+        if (!visible[spied[i].id]) continue;
+        if (current === null) current = spied[i];
+        if (spied[i].getBoundingClientRect().top <= line) current = spied[i];
       }
-      navLinks.forEach(function (a) { a.classList.remove("active"); });
+      navLinks.forEach(function (a) {
+        a.classList.remove("active");
+        var li = a.closest(".r-sec");
+        if (li) li.classList.remove("is-active");
+      });
       if (current && linkFor[current.id]) {
-        linkFor[current.id].classList.add("active");
-        keepInView(linkFor[current.id]);
+        linkFor[current.id].forEach(function (a) {
+          a.classList.add("active");
+          var li = a.closest(".r-sec");
+          if (li) li.classList.add("is-active");
+          keepInView(a);
+        });
       }
-    }, { rootMargin: "-76px 0px -55% 0px", threshold: 0 });
+      // Everything above the section being read is marked as read, which is
+      // what turns the rail from a list of links into a position in a
+      // document.
+      var seen = current === null;
+      railItems.forEach(function (li) {
+        if (current && li.dataset.for === current.id) seen = true;
+        li.classList.toggle("is-read", !seen);
+      });
+    }
 
     /* The bar is a horizontal scroller with sixteen entries, so the section you
        are actually in is regularly the one clipped at an edge — reading as a
@@ -205,7 +343,9 @@
        reader just clicked. Only scrollLeft on the strip itself moves here. */
     function keepInView(link) {
       var strip = link.parentNode;
-      if (!strip || strip.scrollWidth <= strip.clientWidth) return;
+      // The rail is a vertical list; only the horizontal strip needs nudging.
+      if (!strip || strip.classList.contains("r-sec")) return;
+      if (strip.scrollWidth <= strip.clientWidth) return;
       var pad = 24;
       var left = link.offsetLeft - strip.offsetLeft;
       var right = left + link.offsetWidth;
@@ -216,7 +356,19 @@
       strip.scrollTo({ left: Math.max(0, to), behavior: motionOK ? "smooth" : "auto" });
     }
 
+    var railItems = [].slice.call(document.querySelectorAll(".doc-rail .r-sec"));
     spied.forEach(function (s) { spy.observe(s); });
+
+    // The observer fires on boundary crossings only, and these sections run to
+    // several screenfuls — so scrolling within one produces no callback and
+    // the answer above would go stale. Re-run it on scroll as well; it reads
+    // no layout beyond the sections already known to be on screen.
+    var spyTick = false;
+    window.addEventListener("scroll", function () {
+      if (spyTick) return;
+      spyTick = true;
+      requestAnimationFrame(function () { paint(); spyTick = false; });
+    }, { passive: true });
   })();
 
   /* ── Scroll reveal ──
@@ -708,7 +860,7 @@
     btn.setAttribute("aria-label", "Search the documentation (" + kbdHint + ")");
     btn.innerHTML = '<span class="gs-sk-ico" aria-hidden="true">⌕</span><span class="gs-sk-label">Search</span><kbd>' + kbdHint + "</kbd>";
     if (nav) {
-      var toggle = nav.querySelector(".theme-toggle");
+      var toggle = nav.querySelector(".gs-keys-btn") || nav.querySelector(".theme-toggle");
       nav.insertBefore(btn, toggle || null);
     }
 
@@ -756,7 +908,11 @@
     // Cross-document path. Same repo → bare file; different repo → sibling hop.
     // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
     function crossHref(targetDocId, m) {
-      var meHere = META[DOC_ID];
+      // The two front doors are not themselves indexed, so they have no
+      // entry to read a role out of — they declare one on <html> instead.
+      // Without this they resolved every link as cross-repo and sent the
+      // reader to ../../../GameStore/docs/ from inside that very folder.
+      var meHere = META[DOC_ID] || (root.dataset.gsRole ? { role: root.dataset.gsRole } : null);
       if (meHere && meHere.role === m.role) return m.file;
       if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
       return "../../../GameStore/docs/" + m.file;
@@ -933,6 +1089,12 @@
     });
     overlay.addEventListener("click", function (e) { if (e.target === overlay) close(); });
     btn.addEventListener("click", open);
+    // Anything in the page can ask for the palette — the front door's hero
+    // offers it as a call to action rather than hiding it behind a shortcut
+    // most readers will never try.
+    [].slice.call(document.querySelectorAll("[data-gs-open-search]")).forEach(function (el) {
+      el.addEventListener("click", function (ev) { ev.preventDefault(); open(); });
+    });
 
     document.addEventListener("keydown", function (e) {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); open(); }
@@ -943,6 +1105,491 @@
   }
 
   initSearch();
+
+
+  /* ═══════════════════════════════════════════════════════════════════════
+     AFFORDANCES
+     ═══════════════════════════════════════════════════════════════════════
+     Small behaviours that share one rule: the document is complete without
+     any of them. Each one checks for what it needs and returns quietly if it
+     is not there, so a document that never grows a <pre>, a KPI or a hero
+     plate pays nothing for the code that would have decorated it. */
+
+  /* ── Toast ──
+     One line of feedback for the actions that otherwise happen invisibly.
+     A copy that says nothing is indistinguishable from a copy that failed. */
+  var toastEl = null, toastTimer = 0;
+  function say(html) {
+    if (!toastEl) {
+      toastEl = document.createElement("div");
+      toastEl.className = "gs-toast";
+      toastEl.setAttribute("role", "status");
+      toastEl.setAttribute("aria-live", "polite");
+      document.body.appendChild(toastEl);
+    }
+    toastEl.innerHTML = html;
+    toastEl.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.classList.remove("show"); }, 1900);
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    // execCommand is deprecated, but file:// pages are not a secure context in
+    // every browser and navigator.clipboard is undefined there. These documents
+    // are explicitly meant to be opened from disk, so the fallback stays.
+    return new Promise(function (resolve, reject) {
+      try {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.cssText = "position:fixed;opacity:0;pointer-events:none";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        resolve();
+      } catch (e) { reject(e); }
+    });
+  }
+
+  /* ── Document menu ──
+     A native <details>, so it opens, closes and takes focus with no script at
+     all. This adds only the two things the element does not do by itself. */
+  (function docMenu() {
+    var menu = document.querySelector(".ds-menu");
+    if (!menu) return;
+    document.addEventListener("click", function (e) {
+      if (menu.open && !menu.contains(e.target)) menu.open = false;
+    });
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && menu.open) {
+        menu.open = false;
+        var s = menu.querySelector("summary");
+        if (s) s.focus();
+      }
+    });
+  })();
+
+  /* ── Copy affordances ──
+     Anything a reader might otherwise retype: the link to a section, and the
+     contents of a code panel. */
+  (function copyables() {
+    document.addEventListener("click", function (e) {
+      var anchor = e.target.closest && e.target.closest(".h-anchor");
+      if (!anchor) return;
+      var url = location.href.split("#")[0] + anchor.getAttribute("href");
+      copyText(url).then(function () { say("Link copied · <b>" + anchor.getAttribute("href") + "</b>"); },
+                         function () {});
+    });
+
+    [].slice.call(document.querySelectorAll("pre")).forEach(function (pre) {
+      if (pre.querySelector(".gs-copy")) return;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "gs-copy";
+      btn.textContent = "copy";
+      btn.setAttribute("aria-label", "Copy this snippet");
+      btn.addEventListener("click", function () {
+        // The button lives inside the <pre>, so its own label would be copied
+        // along with the snippet if it were read straight off textContent.
+        var clone = pre.cloneNode(true);
+        var b = clone.querySelector(".gs-copy");
+        if (b) b.remove();
+        copyText(clone.textContent.replace(/\s+$/, "")).then(function () {
+          btn.textContent = "copied";
+          btn.classList.add("done");
+          setTimeout(function () { btn.textContent = "copy"; btn.classList.remove("done"); }, 1400);
+        }, function () { btn.textContent = "failed"; });
+      });
+      pre.appendChild(btn);
+    });
+  })();
+
+  /* ── Pointer spotlight ──
+     One listener on the document rather than one per card: these pages carry
+     forty-odd cards between them, and the handler is identical for all of
+     them. The custom properties are written on the card the pointer is over
+     and cleared when it leaves, so a card that is never touched never gets
+     an inline style at all. */
+  (function spotlight() {
+    var SEL = ".kpi, .fd-card, .rm-card, .layer-btn, .pair, .quiz, .callout, .s-card";
+    [].slice.call(document.querySelectorAll(SEL)).forEach(function (el) { el.classList.add("spot"); });
+    if (!window.matchMedia || !window.matchMedia("(hover: hover)").matches) return;
+    document.addEventListener("pointermove", function (e) {
+      var el = e.target.closest && e.target.closest(SEL);
+      if (!el) return;
+      var r = el.getBoundingClientRect();
+      el.style.setProperty("--mx", (((e.clientX - r.left) / r.width) * 100).toFixed(1) + "%");
+      el.style.setProperty("--my", (((e.clientY - r.top) / r.height) * 100).toFixed(1) + "%");
+    }, { passive: true });
+    document.addEventListener("pointerleave", function (e) {
+      var el = e.target.closest && e.target.closest(SEL);
+      if (el) { el.style.removeProperty("--mx"); el.style.removeProperty("--my"); }
+    }, true);
+  })();
+
+  /* ── Counting numbers ──
+     The KPI values animate from zero the first time they are scrolled into
+     view. The markup keeps the real number — this reads it, counts to it and
+     writes it back — so a reader with JS off, reduced motion on, or no
+     IntersectionObserver sees the true value immediately and always. */
+  (function counters() {
+    if (!motionOK || !("IntersectionObserver" in window)) return;
+    var nums = [].slice.call(document.querySelectorAll(".kpi .v"));
+    if (!nums.length) return;
+
+    var obs = new IntersectionObserver(function (entries, o) {
+      entries.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        o.unobserve(e.target);
+        var node = firstTextNode(e.target);
+        if (!node) return;
+        var m = /^\s*(\d[\d,]*)/.exec(node.nodeValue);
+        if (!m) return;
+        var target = parseInt(m[1].replace(/,/g, ""), 10);
+        if (!(target > 0) || target > 100000) return;
+        var rest = node.nodeValue.slice(m[0].length);
+        var lead = /^\s*/.exec(node.nodeValue)[0];
+        var start = performance.now();
+        var dur = 620;
+        (function step(now) {
+          var t = Math.min(1, (now - start) / dur);
+          var eased = 1 - Math.pow(1 - t, 3);
+          node.nodeValue = lead + Math.round(target * eased).toLocaleString() + rest;
+          if (t < 1) requestAnimationFrame(step);
+        })(start);
+      });
+    }, { threshold: 0.5 });
+
+    function firstTextNode(el) {
+      for (var i = 0; i < el.childNodes.length; i++) {
+        if (el.childNodes[i].nodeType === 3 && /\d/.test(el.childNodes[i].nodeValue)) return el.childNodes[i];
+      }
+      return null;
+    }
+    nums.forEach(function (n) { obs.observe(n); });
+  })();
+
+  /* ── Document metrics ──
+     How many sections, how many words, how long. Measured off the rendered
+     page rather than written into it, because a hand-maintained "~20 min
+     read" is wrong the first time the document is edited and nobody ever
+     notices. Feeds both the hero plate and the foot of the rail. */
+  (function docMetrics() {
+    var secs = document.querySelectorAll("section[id]");
+    if (!secs.length) return;
+    var words = 0;
+    [].slice.call(secs).forEach(function (s) {
+      words += (s.textContent.trim().match(/\S+/g) || []).length;
+    });
+    // 220 wpm is the usual estimate for technical prose read attentively; the
+    // diagrams and tables in these documents pull it lower, not higher, so
+    // this rounds up rather than down.
+    var mins = Math.max(1, Math.ceil(words / 220));
+    var kw = words >= 1000 ? (words / 1000).toFixed(1).replace(/\.0$/, "") + "k" : String(words);
+
+    var plate = document.querySelector(".plate-meta");
+    if (plate) {
+      plate.innerHTML =
+        "<div><dt>Sections</dt><dd>" + secs.length + "</dd></div>" +
+        "<div><dt>Words</dt><dd>" + kw + "</dd></div>" +
+        "<div><dt>Read</dt><dd>" + mins + "<small> min</small></dd></div>";
+    }
+    /* The front door describes documents it is not itself inside, so it can
+       only count what the search index holds. The index stores an ABRIDGED
+       extract per section, not the section — so section counts off it are
+       exact and word counts off it are not. Only the exact number is shown.
+       An earlier pass did print a read estimate here and it disagreed with
+       the same document's own hero by a factor of five, which is worse than
+       saying nothing. */
+    var setMeta = document.querySelector("[data-gs-set-meta]");
+    if (setMeta && Array.isArray(window.GS_SEARCH) && window.GS_SEARCH_META) {
+      var docs = Object.keys(window.GS_SEARCH_META).length;
+      var sections = window.GS_SEARCH.filter(function (h) { return h.kind === "section"; }).length;
+      var repos = {};
+      Object.keys(window.GS_SEARCH_META).forEach(function (k) { repos[window.GS_SEARCH_META[k].role] = 1; });
+      setMeta.innerHTML =
+        "<div><dt>Documents</dt><dd>" + docs + "</dd></div>" +
+        "<div><dt>Sections</dt><dd>" + sections + "</dd></div>" +
+        "<div><dt>Repos</dt><dd>" + Object.keys(repos).length + "</dd></div>";
+    }
+
+    var cards = document.querySelectorAll(".fd-card[data-doc]");
+    if (cards.length && Array.isArray(window.GS_SEARCH)) {
+      Array.prototype.forEach.call(cards, function (card) {
+        var id = card.getAttribute("data-doc");
+        var n = window.GS_SEARCH.filter(function (h) {
+          return h.doc === id && h.kind === "section";
+        }).length;
+        var slot = card.querySelector(".fd-meta");
+        if (slot && n) slot.textContent = n + (n === 1 ? " section" : " sections");
+      });
+    }
+
+    var railMeta = document.querySelector(".rail-meta");
+    if (railMeta) railMeta.innerHTML = secs.length + " sections · " + kw + " words" +
+      "<b>~" + mins + " min read</b>";
+
+    // The hero pulse travels the height of the stack it is drawn beside, and
+    // that height depends on how many nodes this document's plate carries.
+    var schema = document.querySelector(".schema");
+    if (schema) {
+      var setH = function () {
+        root.style.setProperty("--spine-h", Math.max(40, schema.offsetHeight - 20) + "px");
+      };
+      setH();
+      window.addEventListener("resize", setH, { passive: true });
+    }
+  })();
+
+  /* ── Cross-document previews ──
+     Every document carries the whole search index, so a link into another
+     document can be answered without leaving this one: what that section is
+     called, and how it opens. The map from href back to document id is built
+     by running crossHref() over the manifest rather than by parsing paths, so
+     it cannot disagree with the links search itself generates.
+
+     Pointer only. On a touch screen there is no hover to preview from, and
+     the tap should just follow the link. */
+  (function peek() {
+    var INDEX = window.GS_SEARCH, META = window.GS_SEARCH_META;
+    if (!Array.isArray(INDEX) || !META) return;
+    if (!window.matchMedia || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+
+    var byHref = {};
+    Object.keys(META).forEach(function (id) { byHref[docHref(id, META[id])] = id; });
+
+    function docHref(id, m) {
+      var mine = META[DOC_ID] || { role: root.dataset.gsRole };
+      if (mine && mine.role === m.role) return m.file;
+      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
+      return "../../../GameStore/docs/" + m.file;
+    }
+
+    var card = null, timer = 0;
+    function build() {
+      card = document.createElement("div");
+      card.className = "gs-peek";
+      card.setAttribute("role", "tooltip");
+      document.body.appendChild(card);
+      return card;
+    }
+
+    function lookup(href) {
+      var hash = href.indexOf("#");
+      var file = hash === -1 ? href : href.slice(0, hash);
+      var id = byHref[file];
+      if (!id) return null;
+      var anchor = hash === -1 ? "" : href.slice(hash + 1);
+      var hit = null;
+      for (var i = 0; i < INDEX.length; i++) {
+        if (INDEX[i].doc !== id) continue;
+        if (!anchor) { hit = INDEX[i]; break; }        // no anchor → the document's first section
+        if (INDEX[i].id === anchor) { hit = INDEX[i]; break; }
+      }
+      return hit ? { hit: hit, meta: META[id] } : null;
+    }
+
+    function show(a) {
+      var found = lookup(a.getAttribute("href") || "");
+      if (!found) return;
+      if (!card) build();
+      card.className = "gs-peek role-" + found.meta.role;
+      card.innerHTML =
+        '<span class="p-doc"><i></i>' + esc(found.meta.title) + "</span>" +
+        '<span class="p-title">' + esc(found.hit.title) + "</span>" +
+        '<span class="p-text">' + esc(trim(found.hit.text, 150)) + "</span>";
+
+      var r = a.getBoundingClientRect();
+      var top = r.bottom + window.scrollY + 10;
+      var left = Math.min(Math.max(12, r.left + window.scrollX), window.innerWidth - 332);
+      card.style.top = top + "px";
+      card.style.left = left + "px";
+      card.classList.add("show");
+    }
+    function hide() { if (card) card.classList.remove("show"); }
+    function esc(s) { var d = document.createElement("div"); d.textContent = s || ""; return d.innerHTML; }
+    function trim(s, n) {
+      s = (s || "").replace(/\s+/g, " ").trim();
+      return s.length > n ? s.slice(0, n).replace(/\s+\S*$/, "") + "…" : s;
+    }
+
+    document.addEventListener("pointerover", function (e) {
+      var a = e.target.closest && e.target.closest('a[href*=".html"]');
+      if (!a || a.closest(".ds-pop") || a.closest(".gs-cmdk")) return hide();
+      clearTimeout(timer);
+      timer = setTimeout(function () { show(a); }, 240);
+    });
+    document.addEventListener("pointerout", function (e) {
+      if (e.target.closest && e.target.closest('a[href*=".html"]')) { clearTimeout(timer); hide(); }
+    });
+    window.addEventListener("scroll", hide, { passive: true });
+  })();
+
+  /* ── Keyboard shortcuts ──
+     Controls that only answer to a key press, and never say so, are controls
+     that do not exist. `?` lists all of them. */
+  (function shortcuts() {
+    var isMac = /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent || "");
+    var mod = isMac ? "⌘" : "Ctrl";
+    var overlay = document.createElement("div");
+    overlay.className = "gs-keys";
+    overlay.hidden = true;
+    overlay.innerHTML =
+      '<div class="gs-keys-box" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">' +
+      '<h2>Keyboard shortcuts<button type="button" class="gs-keys-close">esc</button></h2>' +
+      '<p class="k-sub">Every key this document answers to.</p>' +
+      '<dl class="gs-keys-grid">' +
+      "<dt>Finding things</dt>" +
+      "<dd>Search all documents<kbd>" + mod + " K</kbd></dd>" +
+      "<dd>Search, without the modifier<kbd>/</kbd></dd>" +
+      "<dt>Moving around</dt>" +
+      "<dd>Next section<kbd>j</kbd></dd>" +
+      "<dd>Previous section<kbd>k</kbd></dd>" +
+      "<dd>Top of document<kbd>g g</kbd></dd>" +
+      "<dt>The page itself</dt>" +
+      "<dd>Light / dark<kbd>t</kbd></dd>" +
+      "<dd>This list<kbd>?</kbd></dd>" +
+      "<dd>Close anything open<kbd>esc</kbd></dd>" +
+      "</dl></div>";
+    document.body.appendChild(overlay);
+
+    var lastFocus = null;
+    function open() {
+      lastFocus = document.activeElement;
+      overlay.hidden = false;
+      overlay.querySelector(".gs-keys-close").focus();
+    }
+    function close() {
+      overlay.hidden = true;
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay || e.target.closest(".gs-keys-close")) close();
+    });
+    // A modal that lets focus wander behind it is not modal. Two stops here
+    // (the close button and the box), so the cycle is short and explicit.
+    overlay.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { e.preventDefault(); close(); }
+      if (e.key === "Tab") { e.preventDefault(); overlay.querySelector(".gs-keys-close").focus(); }
+    });
+
+    var btn = document.querySelector(".gs-keys-btn");
+    if (btn) btn.addEventListener("click", open);
+
+    var secs = [].slice.call(document.querySelectorAll("section[id]"));
+    function step(dir) {
+      if (!secs.length) return;
+      var y = window.scrollY + (parseFloat(getComputedStyle(root).getPropertyValue("--sticky-h")) || 46) + 30;
+      var i = 0;
+      for (var n = 0; n < secs.length; n++) if (secs[n].offsetTop <= y) i = n;
+      var next = Math.min(secs.length - 1, Math.max(0, i + dir));
+      secs[next].scrollIntoView({ behavior: motionOK ? "smooth" : "auto", block: "start" });
+    }
+
+    var lastG = 0;
+    document.addEventListener("keydown", function (e) {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      var t = e.target;
+      if (t && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable)) return;
+      var openOverlay = document.querySelector(".gs-cmdk:not([hidden]), .gs-keys:not([hidden])");
+      if (openOverlay && openOverlay !== overlay) return;
+
+      if (e.key === "?") { e.preventDefault(); overlay.hidden ? open() : close(); }
+      else if (overlay.hidden && e.key === "j") { e.preventDefault(); step(1); }
+      else if (overlay.hidden && e.key === "k") { e.preventDefault(); step(-1); }
+      else if (overlay.hidden && e.key === "t") {
+        e.preventDefault();
+        var tt = document.getElementById("themeToggle");
+        if (tt) tt.click();
+      } else if (overlay.hidden && e.key === "g") {
+        var now = Date.now();
+        if (now - lastG < 600) { window.scrollTo({ top: 0, behavior: motionOK ? "smooth" : "auto" }); lastG = 0; }
+        else lastG = now;
+      }
+    });
+  })();
+
+  /* ── Resume reading ──
+     Which section you were last in, per document. The front door reads it
+     back and offers the way in; everything else just records it. Stored
+     through the same namespaced wrapper as every other preference, so
+     private mode throwing on write costs nothing. */
+  (function resume() {
+    var secs = [].slice.call(document.querySelectorAll("section[id]"));
+    if (secs.length) {
+      var save = 0;
+      window.addEventListener("scroll", function () {
+        clearTimeout(save);
+        save = setTimeout(function () {
+          if (window.scrollY < 300) return;
+          var y = window.scrollY + 120, cur = null;
+          for (var i = 0; i < secs.length; i++) if (secs[i].offsetTop <= y) cur = secs[i];
+          if (!cur) return;
+          var h2 = cur.querySelector("h2");
+          store.set("last", {
+            doc: DOC_ID,
+            id: cur.id,
+            title: h2 ? h2.textContent.replace(/#\s*$/, "").trim() : cur.id,
+            at: Date.now()
+          });
+        }, 700);
+      }, { passive: true });
+    }
+
+    var slot = document.querySelector("[data-gs-resume]");
+    if (!slot) return;
+    var last = store.get("last", null);
+    var META = window.GS_SEARCH_META || {};
+    if (!last || !last.id || !META[last.doc]) return;
+    var m = META[last.doc];
+    var mine = META[DOC_ID] || { role: root.dataset.gsRole };
+    var href = (mine && mine.role === m.role) ? m.file
+             : (m.role === "backend" ? "../../GameStoreBackEnd/Bino/docs/" + m.file
+                                     : "../../../GameStore/docs/" + m.file);
+    var a = document.createElement("a");
+    a.className = "fd-resume";
+    a.href = href + "#" + last.id;
+    a.innerHTML = '<span class="fr-k">Pick up where you left off</span>' +
+                  '<span class="fr-t">' + m.title + " · " + last.title.replace(/</g, "&lt;") + "</span>" +
+                  '<span class="fr-go" aria-hidden="true">→</span>';
+    slot.appendChild(a);
+    slot.hidden = false;
+  })();
+
+  /* ── One easter egg ──
+     The product these documents describe is a near-black storefront with a
+     single gold light over the door (DESIGN.md calls it the Midnight
+     Marquee). The docs deliberately do not wear that identity — they are
+     documentation, and the semantic diagram hues need the room. But the
+     konami code lends them the marquee for as long as you want it, and it
+     costs a dozen tokens to offer. It is listed in the shortcut sheet, so it
+     is findable rather than merely hidden. */
+  (function marquee() {
+    var SEQ = "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a".split(" ");
+    var at = 0, wasTheme = null;
+    document.addEventListener("keydown", function (e) {
+      at = (e.key === SEQ[at] || e.key === (SEQ[at] || "").toLowerCase()) ? at + 1 : 0;
+      if (at < SEQ.length) return;
+      at = 0;
+      if (root.dataset.skin === "marquee") {
+        delete root.dataset.skin;
+        if (wasTheme) { root.dataset.theme = wasTheme; wasTheme = null; }
+        say("Marquee off");
+      } else {
+        // The marquee is a dark identity — there is no light half of it — and
+        // Mermaid resolves its palette from the rendered theme. Pin dark for
+        // the duration so the diagrams do not end up light-on-black, and put
+        // the reader's own choice back on the way out. Never persisted: the
+        // egg is a mood, not a preference.
+        wasTheme = renderedScheme();
+        root.dataset.theme = "dark";
+        root.dataset.skin = "marquee";
+        say("<b>Midnight Marquee</b> · konami again to undo");
+      }
+      themeListeners.forEach(function (fn) { try { fn(renderedScheme()); } catch (err) {} });
+    });
+  })();
 
 
   /* ── Public surface ──
@@ -957,3 +1604,4 @@
     renderMermaid: function (nodes) { renderMermaid(nodes, renderedScheme() === "light"); }
   };
 })();
+

@@ -60,31 +60,71 @@ function stampRegion(html, name, body) {
 }
 
 /* ── The cross-document switcher ──────────────────────────────────────────
-   Generated from the manifest, grouped by which side of the system each
-   document describes, with the current one marked. Nine links used to be
-   hand-maintained in six files and had rotted in both directions at once. */
+   Generated from the manifest, with the current document marked. Nine links
+   used to be hand-maintained in six files and had rotted in both directions
+   at once.
+
+   The row of pills this used to emit listed every document by name and, at
+   1440px, wrapped onto a second row — which is how a navigation strip
+   announces it has outgrown its shape. The list moved into a menu, which
+   also gave it room to say what each document actually holds.
+
+   The menu is a native <details>. That is the whole reason it works with
+   scripting off: the summary is focusable and operable from the keyboard for
+   free, and the popover is ordinary flow content. chrome.js adds only
+   click-outside and Escape, neither of which the document needs to be
+   navigable.
+
+   The skip link ahead of it is the first focusable thing on the page. Its
+   rule had been in core.css for as long as the documents had existed, with
+   no document ever carrying the markup — so the first Tab on a 4,000-line
+   brief walked the entire top bar before reaching a word of prose. */
 function navFor(doc) {
   const groups = [
-    ["frontend", DOCS.filter((d) => d.role === "frontend")],
-    ["backend", DOCS.filter((d) => d.role === "backend")],
+    ["Frontend · React 19 + Vite", DOCS.filter((d) => d.role === "frontend")],
+    ["Backend · Spring Boot", DOCS.filter((d) => d.role === "backend")],
   ];
 
-  const parts = ['<nav class="doc-switch" aria-label="Documentation set">', '  <div class="doc-switch-inner">'];
-  parts.push('    <span class="ds-label">Docs</span>');
+  // A front door has no role of its own; it belongs to the repo it sits in.
+  const role = doc.role || (doc.repo === "backend" ? "backend" : "frontend");
+  const home = { id: "__index__", repo: doc.repo, file: "docs/index.html", role: null };
+  const label = doc.role ? doc.title : "All documents";
 
-  for (const [role, docs] of groups) {
-    parts.push(`    <span class="ds-repo">·&nbsp;${role}&nbsp;·</span>`);
+  const parts = [
+    '<a class="skip-link" href="#gs-main">Skip to content</a>',
+    '<nav class="doc-switch" aria-label="Documentation set">',
+    '  <div class="doc-switch-inner">',
+    `    <a class="ds-brand" href="${hrefBetween(doc, home)}">`,
+    '      <span class="ds-dot" aria-hidden="true"></span>',
+    '      <span class="ds-name">Game Store <b>docs</b></span>',
+    "    </a>",
+    `    <details class="ds-menu role-${role === "backend" ? "be" : "fe"}">`,
+    '      <summary aria-label="Choose a document">',
+    '        <span class="ds-role-dot" aria-hidden="true"></span>',
+    `        <span class="ds-cur">${label}</span>`,
+    '        <svg class="ds-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor"',
+    '             stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">',
+    '          <path d="M6 9l6 6 6-6" />',
+    "        </svg>",
+    "      </summary>",
+    '      <div class="ds-pop">',
+  ];
+
+  for (const [heading, docs] of groups) {
+    parts.push(`        <p class="ds-pop-h">${heading}</p>`);
     for (const d of docs) {
       const here = d.id === doc.id;
-      const href = here ? "" : ` href="${hrefBetween(doc, d)}"`;
-      const attrs = here ? ' class="is-here" aria-current="page"' : "";
-      // The current document is still an <a> so the row reads as one set of
-      // peers; it just has no href, which also removes it from the tab order.
-      parts.push(`    <a${href}${attrs}>${d.title}</a>`);
+      // The current document keeps its <a> so the list reads as one set of
+      // peers; it just has no href, which also takes it out of the tab order.
+      const open = here ? '<a aria-current="page"' : `<a href="${hrefBetween(doc, d)}"`;
+      parts.push(`        ${open}><span class="t">${d.title}</span><span class="d">${d.blurb}</span></a>`);
     }
   }
 
   parts.push(
+    "      </div>",
+    "    </details>",
+    '    <button type="button" class="gs-keys-btn" aria-label="Keyboard shortcuts (?)" title="Keyboard shortcuts">?</button>',
     '    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Switch theme">',
     '      <svg class="tt-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"',
     '           stroke-linecap="round" aria-hidden="true">',
@@ -124,7 +164,26 @@ async function cssFor(doc) {
     pieces.push(await read(p));
   }
 
-  return `<style>\n${pieces.join("\n\n")}\n</style>`;
+  /* Everything the shell reserves for script-built chrome, given back when
+     there is no script to build it. <noscript> applies only in that case, so
+     there is no first-paint shift for the readers who do have it — which a
+     :has() rule or a class set by chrome.js could not promise. */
+  const noscript = [
+    "<noscript><style>",
+    "  /* No script means no outline rail and no theme toggle, so the shell",
+    "     holds no track open for the one and does not offer the other. */",
+    "  @media (min-width: 1180px) {",
+    "    header.hero > .wrap, section > .wrap, footer > .wrap {",
+    "      grid-template-columns:",
+    "        [rail-s rail-e prose-s] minmax(0, var(--prose-w))",
+    "        [prose-e] minmax(0, 1fr) [bleed-e];",
+    "    }",
+    "  }",
+    "  .doc-switch .theme-toggle, .doc-switch .gs-keys-btn { display: none; }",
+    "</style></noscript>",
+  ].join("\n");
+
+  return `<style>\n${pieces.join("\n\n")}\n</style>\n${noscript}`;
 }
 
 async function jsFor(doc) {

@@ -21,8 +21,7 @@
 <!-- GS:CORE-CSS:START -->
 <style>
 /* ══════════════════════════════════════════════════════════════════
-   SHARED LAYER — byte-identical in all 8 Game Store documents.
-   Edit every copy together; they are diffed against each other in review.
+   GENERATED — edit docs/_src/core.css and run: node docs/_src/stamp.mjs
    Layers: fonts + core + roadmap + diagram + tables + blocks
    ══════════════════════════════════════════════════════════════════ */
 
@@ -3218,11 +3217,11 @@ tr.is-pick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
         </svg>
       </summary>
       <div class="ds-pop">
-      <p class="ds-pop-h">Frontend · React 19 + Vite</p>
-        <a href="../../../GameStore/docs/architecture.html"><span class="t">Frontend Architecture</span><span class="d">React 19 + Vite SPA — routing, state, data access, auth lifecycle.</span></a>
-        <a href="../../../GameStore/docs/catalog-architecture.html"><span class="t">Catalog Pivot</span><span class="d">The catalogue read-path redesign: tiers, caching, what it replaces.</span></a>
-        <a href="../../../GameStore/docs/frontend-roadmap.html"><span class="t">Frontend Roadmap</span><span class="d">Ranked frontend work, and the quick wins deliberately discarded.</span></a>
-      <p class="ds-pop-h">Backend · Spring Boot</p>
+        <p class="ds-pop-h">Frontend · React 19 + Vite</p>
+        <a href="../../../GameStore/docs/architecture.html"><span class="t">Frontend Architecture</span><span class="d">React 19 + Vite SPA — routing, state, data access, and the auth lifecycle.</span></a>
+        <a href="../../../GameStore/docs/catalog-architecture.html"><span class="t">Catalog Pivot</span><span class="d">The catalogue read-path redesign: tiers, caching, and what it replaces.</span></a>
+        <a href="../../../GameStore/docs/frontend-roadmap.html"><span class="t">Frontend Roadmap</span><span class="d">Ranked frontend work, with the quick wins that were deliberately discarded.</span></a>
+        <p class="ds-pop-h">Backend · Spring Boot</p>
         <a aria-current="page"><span class="t">Backend Architecture</span><span class="d">Stateless JWT-secured Spring Boot API — filter chain to persistence.</span></a>
         <a href="architecture-and-learning-guide.html"><span class="t">Learning Guide</span><span class="d">How to read the codebase: patterns, annotations, and 21 quizzes.</span></a>
         <a href="backend-roadmap.html"><span class="t">Backend Roadmap</span><span class="d">Ranked backend work, paired against the frontend roadmap.</span></a>
@@ -4678,7 +4677,7 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
 <!-- GS:CHROME-JS:START -->
 <script src="vendor/mermaid.min.js" defer></script>
 <script>
-/* SHARED LAYER — byte-identical in every document. Edit every copy together. */
+/* GENERATED — edit docs/_src/chrome.js and run: node docs/_src/stamp.mjs */
 /* ═══════════════════════════════════════════════════════════════════════════
    chrome.js — the behaviour every Game Store document gets
    ═══════════════════════════════════════════════════════════════════════════
@@ -6285,6 +6284,8 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     renderMermaid: function (nodes) { renderMermaid(nodes, renderedScheme() === "light"); }
   };
 })();
+
+
 </script>
 <!-- GS:CHROME-JS:END -->
 <script>
