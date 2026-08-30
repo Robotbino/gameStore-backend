@@ -1,0 +1,440 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   components/blocks.css — the sections that had no stylesheet at all
+   ═══════════════════════════════════════════════════════════════════════════
+
+   SHARED LAYER — byte-identical in every document that opts in. Edit every
+   copy together.
+
+   Opted into by the three documents that carry hand-built structural markup:
+   the frontend brief, the catalog pivot, and the backend brief.
+
+   ── Why this file exists ─────────────────────────────────────────────────
+   Ninety class names across those three documents matched no rule anywhere.
+   The frontend brief's maturity ladder, recruiter checklist, scorecard
+   toolbar and increment cards; the catalog pivot's four-tier system map — the
+   centrepiece of the document — its comparison panels, identity ladder and
+   verdict rows; the backend brief's cache ladder, persistence grid, security
+   cards and JWT anatomy. All of it rendered as unstyled running text: bullet
+   lists where a diagram was meant, a "You are here" badge as a bare sentence,
+   three tiers of a system map as forty lines of stacked prose.
+
+   Nothing here changes a word of that markup. It is all styling the shapes
+   the documents were already written to have, in the vocabulary the rest of
+   the set uses: mono micro-labels, hairline borders, the semantic hues for
+   meaning and the accent for position.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* ── Maturity ladder ──────────────────────────────────────────────────────
+   Four stages, left to right, on a track. The stage the project is actually
+   at is the only one that carries the accent, because the whole point of the
+   section is that the other three have not happened yet. */
+.ladder-track {
+  display: grid; gap: 14px; margin-top: 10px;
+  grid-template-columns: repeat(4, 1fr);
+  position: relative;
+}
+.ladder-track::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 34px; height: 2px;
+  background: linear-gradient(90deg, var(--accent) 0, var(--accent-dim) 22%, var(--line) 30%, var(--line));
+  border-radius: 2px;
+}
+.ladder-track > .rung {
+  position: relative; padding: 54px 16px 16px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.ladder-track > .rung::before {
+  content: ""; position: absolute; left: 16px; top: 28px;
+  width: 13px; height: 13px; border-radius: 50%;
+  background: var(--panel-3); border: 2px solid var(--line-2);
+}
+.ladder-track > .rung.here { border-color: var(--accent-dim); background: var(--accent-wash); }
+.ladder-track > .rung.here::before { background: var(--accent); border-color: var(--accent); }
+.ladder-track .here-badge {
+  position: absolute; top: 14px; right: 14px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--on-accent); background: var(--accent);
+  border-radius: 999px; padding: 3px 9px; font-weight: 700;
+}
+.ladder-track .stage-no {
+  display: block; font-family: var(--mono); font-size: 10px;
+  letter-spacing: .14em; text-transform: uppercase; color: var(--ink-faint);
+}
+.ladder-track > .rung.here .stage-no { color: var(--accent); }
+.ladder-track h3 { margin: 5px 0 2px; }
+.ladder-track .stage-sub {
+  display: block; font-family: var(--mono); font-size: 11px;
+  color: var(--ink-faint); margin-bottom: 10px;
+}
+.ladder-track ul { margin: 0; padding-left: 17px; color: var(--ink-soft); font-size: .87rem; line-height: 1.6; }
+.ladder-track li { margin: 3px 0; }
+.ladder-track .proves {
+  margin: 12px 0 0; padding-top: 10px; border-top: 1px solid var(--line);
+  color: var(--ink-soft); font-size: .84rem; line-height: 1.55;
+}
+.ladder-track .proves b { color: var(--ink); }
+
+
+/* ── Tier ladder ──────────────────────────────────────────────────────────
+   A different shape sharing the .rung name: three numbered tiers read top to
+   bottom, each with the hit-rate or outcome it buys on the right. Scoped
+   under its own parent so the two ladders never collide. */
+.ladder { display: grid; gap: 10px; margin-top: 10px; }
+.ladder > .rung {
+  display: grid; align-items: baseline; gap: 4px 16px;
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  padding: 14px 16px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 3px solid var(--line-2);
+  border-radius: var(--radius-sm);
+}
+.ladder > .rung.t1 { border-left-color: var(--new); }
+.ladder > .rung.t2 { border-left-color: var(--auth); }
+.ladder > .rung.t3 { border-left-color: var(--danger); }
+.ladder .tierno {
+  grid-row: 1 / span 2;
+  font-family: var(--mono); font-size: 1.1rem; color: var(--ink-faint);
+  font-feature-settings: "tnum";
+}
+.ladder > .rung.t1 .tierno { color: var(--new); }
+.ladder > .rung.t2 .tierno { color: var(--auth); }
+.ladder > .rung.t3 .tierno { color: var(--danger); }
+.ladder h3 { grid-column: 2; }
+.ladder p { grid-column: 2; margin: 4px 0 0; color: var(--ink-soft); font-size: .9rem; line-height: 1.55; }
+.ladder .hit {
+  grid-column: 3; grid-row: 1;
+  font-family: var(--mono); font-size: 11px; white-space: nowrap;
+  color: var(--ink); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px;
+}
+
+/* The backend brief's cache ladder is the same idea with its own names. */
+.cache-ladder { display: grid; gap: 10px; margin-top: 10px; }
+.c-rung {
+  display: grid; align-items: baseline; gap: 4px 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 14px 16px;
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 3px solid var(--line-2); border-radius: var(--radius-sm);
+}
+.c-rung.t1 { border-left-color: var(--new); }
+.c-rung.t2 { border-left-color: var(--auth); }
+.c-rung.t3 { border-left-color: var(--danger); }
+.c-tier {
+  grid-column: 1; display: block;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.c-rung.t1 .c-tier { color: var(--new); }
+.c-rung.t2 .c-tier { color: var(--auth); }
+.c-rung.t3 .c-tier { color: var(--danger); }
+.c-rung h3 { grid-column: 1; margin-top: 3px; }
+.c-rung p { grid-column: 1; margin: 5px 0 0; color: var(--ink-soft); font-size: .9rem; line-height: 1.55; }
+.c-hit {
+  grid-column: 2; grid-row: 1 / span 2; align-self: center;
+  font-family: var(--mono); font-size: 11px; white-space: nowrap;
+  color: var(--ink); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px;
+}
+
+
+/* ── Increment cards ──────────────────────────────────────────────────────
+   .card itself is styled in tables.css; what was missing was the grid that
+   holds them and the micro-labels inside. */
+.cards { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.cards > .card { margin: 0; }
+.card .num {
+  display: block; margin-bottom: 8px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--accent);
+}
+.card p { color: var(--ink-soft); font-size: .92rem; line-height: 1.6; margin: 0 0 14px; }
+.tag {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .05em;
+  color: var(--ink-soft); background: var(--panel-2);
+  border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px;
+  white-space: nowrap;
+}
+.tag.effort { color: var(--auth); border-color: var(--auth-dim); background: var(--auth-wash); }
+.tag.win    { color: var(--new);  border-color: var(--new-dim);  background: var(--new-wash); }
+
+
+/* ── Recruiter checklist ──────────────────────────────────────────────────
+   A tick list whose state is remembered per browser. The checkbox is the
+   real control — it is styled with accent-color rather than replaced, so it
+   keeps its native keyboard behaviour and its native focus ring. */
+.check-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.check-item {
+  display: flex; gap: 13px; align-items: flex-start;
+  padding: 12px 15px; cursor: pointer;
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  transition: border-color .18s var(--ease), background .18s var(--ease);
+}
+.check-item:hover { border-color: var(--line-2); }
+.check-item input[type="checkbox"] {
+  width: 16px; height: 16px; margin: 2px 0 0; flex: none;
+  accent-color: var(--accent); cursor: pointer;
+}
+.ci-body { min-width: 0; }
+.ci-title { display: block; color: var(--ink); font-size: .94rem; line-height: 1.4; }
+.ci-sub {
+  display: block; margin-top: 2px;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+}
+.check-item:has(input:checked) { background: var(--new-wash); border-color: var(--new-dim); }
+.check-item:has(input:checked) .ci-title { color: var(--ink-soft); text-decoration: line-through; }
+
+
+/* ── Scorecard toolbar ────────────────────────────────────────────────────
+   The bars and numbers live in roadmap.css; the control that flips them
+   between "now" and "target", and the key that says which is which, did not
+   exist. The two legend swatches use the same colours the bars do. */
+.score-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 14px;
+  margin: 0 0 18px;
+}
+.score-toggle {
+  font-family: var(--mono); font-size: 12px;
+  color: var(--ink); background: var(--panel-2);
+  border: 1px solid var(--line-2); border-radius: 999px;
+  padding: 6px 14px; cursor: pointer;
+  transition: border-color .18s var(--ease), color .18s var(--ease), background .18s var(--ease);
+}
+.score-toggle:hover { border-color: var(--accent); }
+.score-toggle[aria-pressed="true"] {
+  color: var(--accent-2); border-color: var(--accent-dim); background: var(--accent-wash);
+}
+.score-legend {
+  display: flex; gap: 16px; align-items: center;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-faint);
+}
+.score-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.score-legend span::before {
+  content: ""; width: 16px; height: 4px; border-radius: 2px; background: var(--line-2);
+}
+.sl-now::before { background: var(--accent) !important; }
+.sl-tgt::before { background: var(--new) !important; }
+
+
+/* ── The system map ───────────────────────────────────────────────────────
+   The catalog pivot's centrepiece: three tiers side by side with the
+   contract between them drawn in the gap. It was written as nested divs with
+   every class it needed and no rule for any of them, so the document's main
+   diagram was forty lines of stacked text.
+
+   Flex rather than grid: the tiers share the space and the connectors take
+   only what their labels need, which no single grid track definition can
+   express when the two alternate. Wrapped in a scroller so it keeps its
+   shape on a phone rather than collapsing into the same stack of text it
+   was mistaken for before it had any styling at all. */
+.scroller { overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.map { display: flex; align-items: stretch; min-width: 760px; }
+.map > .tier { flex: 1 1 0; min-width: 200px; }
+.map > .link { flex: 0 0 auto; }
+
+.tier {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 14px;
+}
+.tier-head {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 2px;
+}
+.tier-head .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; background: var(--line-2); }
+.dot.d-indigo  { background: var(--accent); }
+.dot.d-amber   { background: var(--auth); }
+.dot.d-emerald { background: var(--new); }
+.dot.d-sky     { background: var(--sky); }
+
+.map .node {
+  background: var(--panel); border: 1px solid var(--line);
+  border-left: 3px solid var(--line-2);
+  border-radius: var(--radius-sm); padding: 9px 12px;
+  transition: border-color .18s var(--ease), transform .18s var(--ease);
+}
+.map .node:hover { transform: translateX(2px); border-color: var(--line-2); }
+.map .node.is-core { border-left-color: var(--accent); }
+.map .node.is-new  { border-left-color: var(--new); }
+.map .node.is-auth { border-left-color: var(--auth); }
+.map .node.is-ext  { border-left-color: var(--sky); border-style: dashed; }
+.n-title { display: block; font-family: var(--display); font-weight: 700; font-size: .88rem; color: var(--ink); }
+.n-sub {
+  display: block; margin-top: 3px;
+  font-family: var(--mono); font-size: 10.5px; line-height: 1.5; color: var(--ink-faint);
+}
+
+/* The contract between two tiers, drawn in the gap between them. */
+.map > .link {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; padding: 0 14px; min-width: 96px;
+  font-family: var(--mono); font-size: 10px; line-height: 1.4;
+  color: var(--ink-faint); text-align: center;
+}
+.map > .link .arrow { font-size: 17px; color: var(--line-2); }
+.map > .link.is-auth .arrow { color: var(--auth); }
+.map > .link.is-ext  .arrow { color: var(--sky); }
+.map > .link .lbl { white-space: nowrap; }
+
+.swatch.sw-core { background: var(--accent); }
+.swatch.sw-ext  { background: var(--sky); }
+
+
+/* ── Comparison panels ────────────────────────────────────────────────────
+   Two documents use the same shape to weigh one option against another: a
+   headed panel, a verdict chip, and rows of key/value where the rows that
+   decide the argument are tinted. */
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 18px 20px; margin: 16px 0;
+}
+.panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 14px; margin-bottom: 8px;
+}
+.panel-head h3 { margin: 0; }
+.panel > p { color: var(--ink-soft); font-size: .92rem; line-height: 1.6; margin: 0 0 14px; }
+.verdict {
+  font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; font-weight: 700; white-space: nowrap;
+  border-radius: 999px; padding: 3px 10px;
+  color: var(--ink-soft); background: var(--panel-2); border: 1px solid var(--line-2);
+}
+.verdict.good { color: var(--new);    background: var(--new-wash);    border-color: var(--new-dim); }
+.verdict.bad  { color: var(--danger); background: var(--danger-wash); border-color: var(--danger-dim); }
+
+.rows { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius-sm); overflow: hidden; }
+.rows > .row {
+  display: grid; grid-template-columns: minmax(0, 210px) minmax(0, 1fr); gap: 14px;
+  padding: 9px 14px; background: var(--panel);
+  font-size: .88rem; line-height: 1.5;
+}
+.rows > .row > .k { font-family: var(--mono); font-size: 11.5px; color: var(--ink-faint); }
+.rows > .row > .v { color: var(--ink-soft); }
+.rows > .row.hl-good { background: var(--new-wash); }
+.rows > .row.hl-good > .k { color: var(--new); }
+.rows > .row.hl-bad  { background: var(--danger-wash); }
+.rows > .row.hl-bad  > .k { color: var(--danger); }
+.fk-note {
+  display: flex; gap: 9px; align-items: baseline;
+  margin: 14px 0 0; font-size: .88rem; color: var(--ink-soft); line-height: 1.55;
+}
+.fk-note .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--auth); flex: none; }
+@media (max-width: 620px) { .rows > .row { grid-template-columns: 1fr; gap: 2px; } }
+
+
+/* ── Persistence & security grids ─────────────────────────────────────────
+   Three columns of "what is stored where", and a set of cards each pairing
+   the current state of a security control with the fix for it. */
+.persist-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.persist-col {
+  background: var(--panel); border: 1px solid var(--line);
+  border-top: 3px solid var(--line-2);
+  border-radius: var(--radius); padding: 16px 18px;
+}
+.persist-col.k-perm  { border-top-color: var(--new); }
+.persist-col.k-cache { border-top-color: var(--auth); }
+.persist-col.k-sess  { border-top-color: var(--accent); }
+.persist-col.k-none  { border-top-color: var(--danger); }
+.p-head { margin-bottom: 10px; }
+.p-title { display: block; font-family: var(--display); font-weight: 700; font-size: 1rem; color: var(--ink); }
+.p-sub {
+  display: block; margin-top: 2px;
+  font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em;
+  text-transform: uppercase; color: var(--ink-faint);
+}
+.persist-col ul { margin: 0; padding-left: 17px; color: var(--ink-soft); font-size: .88rem; line-height: 1.65; }
+
+.sec-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.sec-card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.sec-card h3 { margin: 0; }
+.sec-card p { margin: 0; color: var(--ink-soft); font-size: .9rem; line-height: 1.55; flex: 1; }
+.s-now, .s-fix {
+  display: block; position: relative; padding-left: 22px;
+  font-family: var(--mono); font-size: 11px; line-height: 1.55;
+}
+.s-now { color: var(--danger); }
+.s-fix { color: var(--new); }
+.s-now::before, .s-fix::before {
+  position: absolute; left: 0; top: 0;
+  font-size: 11px; letter-spacing: .1em;
+}
+.s-now::before { content: "now"; color: var(--ink-faint); }
+.s-fix::before { content: "fix"; color: var(--ink-faint); }
+
+/* Row picked out of a comparison table as the option actually taken. */
+tr.is-pick { background: var(--accent-wash) !important; }
+tr.is-pick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+.rate { font-family: var(--mono); font-size: 11.5px; color: var(--ink); white-space: nowrap; }
+.now    { color: var(--danger); }
+.target { color: var(--new); }
+/* The recommendation banner's leading chip — named in core.css's comment for
+   .reco but never actually defined there. */
+.r-tag {
+  flex: none; font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
+  text-transform: uppercase; font-weight: 700; color: var(--new);
+  border: 1px solid var(--new-dim); border-radius: 999px; padding: 2px 9px;
+}
+
+
+/* ── Annotated snippets ───────────────────────────────────────────────────
+   Spans inside a code panel that carry an explanation in data-tip. They are
+   marked with a dotted underline in the colour of what they mean, and the
+   note itself is shown on hover and on keyboard focus.
+
+   The panel is locked dark in both themes, so every colour here comes from
+   the --code-* group; a themed ink would vanish in light mode. */
+.anatomy { display: grid; gap: 14px; }
+.anno {
+  position: relative; cursor: help;
+  border-bottom: 1px dotted var(--code-ink-faint);
+}
+.anno[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute; left: 0; top: calc(100% + 8px); z-index: 5;
+  width: max-content; max-width: 300px;
+  background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line-2); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  padding: 9px 12px;
+  font-family: var(--body); font-size: 12px; line-height: 1.5;
+  white-space: normal; text-align: left;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transition: opacity .16s var(--ease), visibility .16s;
+}
+.anno[data-tip]:hover::after, .anno[data-tip]:focus-visible::after { opacity: 1; visibility: visible; }
+.anno.err  { border-bottom-color: var(--danger); color: var(--danger); }
+.anno.auth { border-bottom-color: var(--auth); }
+.anno.data { border-bottom-color: var(--code-ok); }
+/* The three JWT segments, coloured the way the document's prose names them. */
+.jwt-h { color: var(--code-ok); }
+.jwt-p { color: #f5a623; }
+.jwt-s { color: #f2687e; }
+
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .ladder-track { grid-template-columns: repeat(2, 1fr); }
+  .ladder-track::before { display: none; }
+}
+@media (max-width: 560px) {
+  .ladder-track { grid-template-columns: 1fr; }
+  .ladder > .rung { grid-template-columns: 28px minmax(0, 1fr); }
+  .ladder .hit { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 6px; }
+  .score-toolbar { gap: 10px; }
+}
+
+@media print {
+  .ladder-track { grid-template-columns: repeat(2, 1fr); }
+  .scroller { overflow: visible; }
+  .map { min-width: 0; }
+  .anno[data-tip]::after { display: none; }
+  .check-item, .sec-card, .persist-col, .panel, .ladder-track > .rung { break-inside: avoid; }
+}

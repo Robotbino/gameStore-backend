@@ -58,6 +58,35 @@ table.grid td.mono, table.grid th.mono, table.grid td .mono {
   font-family: var(--mono); font-size: 12.5px; color: var(--ink);
 }
 
+/* The header row stays put while the body scrolls under it. These tables run
+   to twenty rows of endpoints and status codes, and a column called "403"
+   means nothing once its heading has scrolled off. */
+.table-shell { overflow-y: auto; max-height: min(78vh, 720px); }
+table.grid thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--panel-2);
+  box-shadow: inset 0 -1px 0 var(--line);
+}
+
+/* Hovering a row picks it out across its whole width, which is what you want
+   when you are tracing one endpoint across six columns. */
+table.grid tbody tr { transition: background .14s var(--ease); }
+table.grid tbody tr:hover { background: var(--row-odd); }
+
+/* Scroll affordance: a shadow on each edge that the table can still scroll
+   toward. `background-attachment: local` is what makes them appear and
+   disappear on their own — the two white "cover" layers are painted with the
+   scroller, the two shadows are fixed to the frame, so a cover only clears a
+   shadow when that end is actually reached. No scroll handler. */
+.table-shell {
+  background:
+    linear-gradient(90deg, var(--panel) 30%, transparent) 0 0 / 34px 100% no-repeat local,
+    linear-gradient(270deg, var(--panel) 30%, transparent) 100% 0 / 34px 100% no-repeat local,
+    linear-gradient(90deg, rgba(0,0,0,.20), transparent) 0 0 / 16px 100% no-repeat scroll,
+    linear-gradient(270deg, rgba(0,0,0,.20), transparent) 100% 0 / 16px 100% no-repeat scroll,
+    var(--panel);
+}
+
 
 /* ── Pills ────────────────────────────────────────────────────────────────
    One base, many modifiers. HTTP verbs, status codes, access levels and the
