@@ -514,6 +514,19 @@ h3 {
    clipping is what happens by default. */
 pre { overflow-x: auto; }
 
+/* `overflow-wrap: anywhere` is load-bearing, not cosmetic. An inline <code> in
+   these documents is usually a Java or TypeScript identifier, and an identifier
+   has no break opportunity in it: UsernamePasswordAuthenticationFilter is one
+   372px "word". Left unbreakable it sets the min-content width of every
+   ancestor, and on a 375px phone that pushed the whole document 373px wider
+   than the viewport — the page itself scrolled sideways, carrying the fixed
+   back-to-top button out past the right edge with it.
+
+   `anywhere` rather than `break-word` because only `anywhere` is taken into
+   account when the min-content size is computed; `break-word` breaks the line
+   but still reports the unbroken word as the minimum, which is the half that
+   was causing the overflow. Neither breaks anything that already fits — the
+   property only applies when there is nowhere else to break. */
 code {
   font-family: var(--mono);
   font-size: .9em;
@@ -522,6 +535,7 @@ code {
   padding: 1px 6px;
   border-radius: 5px;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 /* ── Section boundaries ───────────────────────────────────────────────────
@@ -692,7 +706,14 @@ summary:focus-visible, [tabindex]:focus-visible {
 
 .ds-pop {
   position: absolute; top: calc(100% + 8px); left: 0; z-index: 40;
-  width: min(420px, calc(100vw - 32px));
+  /* The popover is absolutely positioned at the LEFT EDGE OF THE MENU, not of
+     the viewport, and the menu is itself inset by the switch bar's padding —
+     35px at phone width. So the budget is the viewport less that inset on the
+     left and a gutter on the right, not less one shell padding: at
+     `100vw - 32px` the pop measured 343px wide starting at x=35 and hung 3px
+     off the screen on every document. It is out of flow but still contributes
+     scrollable overflow, so it did that whether or not the menu was open. */
+  width: min(420px, calc(100vw - 2 * var(--shell-pad) - 24px));
   background: var(--panel); border: 1px solid var(--line-2);
   border-radius: var(--radius); box-shadow: var(--shadow-lg);
   padding: 8px; overflow: hidden;

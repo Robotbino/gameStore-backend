@@ -62,13 +62,25 @@
    column offers — a 1611px sequence diagram squashed itself to 582px even with
    the max-width lifted, which is the same illegible result by another route.
 
-   No min-width: with useMaxWidth:false (chrome.js) the SVG carries its own
-   intrinsic width, so a floor here would only force a pointless scroll on a
-   phone. `max-width: none` overrides core.css `.mermaid svg { max-width:100% }`
-   INSIDE a shell only — the fullscreen clone is not in one, so it still scales
-   down to fit its 96vw dialog. */
+   The floor is `--dg-floor`, published per diagram by fitDiagram() in
+   chrome.js as a share of that diagram's own natural width. It is what makes
+   `flex: 0 1 auto` safe here: the SVG can now be asked to shrink, because the
+   floor is the min-content width it was missing. Above the floor the diagram
+   scales quietly into its column; below it the floor binds and the shell
+   scrolls the remainder, which is the old behaviour for the diagrams that are
+   genuinely too wide to do anything else with. A shell with no diagram in it
+   yet resolves the fallback 0px and behaves exactly as it did before.
+
+   The fullscreen clone copies the <svg> but not the <pre> that carries the
+   property, so it inherits no floor and still scales down to its 96vw dialog. */
 .diagram-shell .mermaid { display: flex; }
-.diagram-shell .mermaid > svg { flex: none; margin: 0 auto; max-width: none; }
+.diagram-shell .mermaid > svg {
+  flex: 0 1 auto;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  min-width: var(--dg-floor, 0px);
+}
 
 /* ── …except on a narrow screen ───────────────────────────────────────────
    Intrinsic width is the right default in a desktop column, where the shell
@@ -99,10 +111,12 @@
    px width AND height attributes, and constraining only the width would keep
    the old height and stretch the viewBox. */
 @media (max-width: 768px) {
+  /* The fixed floor replaces the per-diagram one below this width. A share of
+     natural width is the right floor in a desktop column, where it keeps a
+     wide diagram legible; on a phone it would hold a 1600px diagram at 1300px
+     and hand the reader a scroll they cannot finish. 450px is the deliberate
+     bottom instead — see the note above on what it costs a small diagram. */
   .diagram-shell .mermaid > svg {
-    flex: 0 1 auto;
-    max-width: 100%;
-    height: auto;
     min-width: 450px;
   }
 }
@@ -265,14 +279,20 @@ dialog.dg-full .dg-full-close {
 .layer-detail h3 { font-family: var(--display); font-size: 1.1rem; margin: 0 0 10px; color: var(--accent-2); }
 .layer-detail p { color: var(--ink-soft); margin: 0 0 14px; }
 .layer-detail .files { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+/* min-width:0 because a .file-row is a GRID ITEM of .files, and a grid item's
+   automatic minimum is its min-content width — here a full unbreakable path
+   plus its role on one line, which is wider than a phone. Wrapping lets the
+   role drop under the path instead of forcing the row (and the document) wide;
+   `margin-left: auto` still right-aligns it whenever both do fit on one line. */
 .file-row {
   font-family: var(--mono); font-size: 12px;
   background: var(--panel-2); border: 1px solid var(--line);
   border-radius: 6px; padding: 8px 10px;
   display: flex; align-items: center; gap: 10px; color: var(--ink-soft);
+  flex-wrap: wrap; min-width: 0;
 }
-.file-row .path { color: var(--ink); }
-.file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; }
+.file-row .path { color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; min-width: 0; }
 
 
 /* ── Filter pipeline ──────────────────────────────────────────────────────
@@ -324,21 +344,60 @@ dialog.dg-full .dg-full-close {
 .tab.active { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
 .tab .step { color: var(--accent); font-weight: 700; margin-right: 6px; }
 
-.flow-panel { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; }
+/* Stacked, not side by side. These are seven-to-nine participant sequence
+   diagrams: chrome.js already sizes them as small as they go without
+   hyphenating identifiers, and the widest is still ~2200px. The old
+   `1.15fr 1fr` split offered that ~520px, so every flow tab opened on a
+   diagram drawn a quarter of the way across its own shell.
+
+   Full width is ~1018px in the bleed track — not everything, but twice what
+   the split allowed, and enough for the fit floor to scale the middle of the
+   set in rather than scroll it. The steps move below and spread into columns
+   of their own, so the panel costs little more height than it did while the
+   diagram stops being the thing that pays for the layout. */
+.flow-panel { display: grid; grid-template-columns: 1fr; gap: 18px; }
 .flow-panel[hidden] { display: none; }
 .flow-panel > .diagram-shell { margin: 0; }
 
 .steps {
   background: var(--panel); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 6px;
-  max-height: 660px; overflow-y: auto;
+  display: grid;
+  /* 420px floor, so the bleed width yields two columns of ~500px rather than
+     three of ~333px. The step bodies carry real code, and `pre` scrolls at
+     its own edge (tables.css) — three columns technically fit, and made every
+     snippet scroll to be read. Two columns are wider than the ~470px the
+     side-by-side layout gave them, so the code is better off than before.
+
+     The `min(420px, 100%)` matters: a bare 420px floor is a floor the track
+     cannot go under, so on a 375px phone it pushed the whole document 373px
+     wider than the viewport and the page itself scrolled sideways. Wrapped in
+     min(), the floor stops applying once the container is narrower than it. */
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 8px;
+  align-content: start;
 }
 /* No side-tab: the step number label (.n) is already rendered in --accent. */
 .step-item {
   background: var(--panel-2); border: 1px solid var(--line);
-  border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 6px;
+  border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 0;
 }
-.step-item + .step-item { margin-top: 8px; }
+
+/* A step body is full of long unbreakable identifiers — EmailAlreadyExistsException,
+   @JsonProperty(WRITE_ONLY) — and an inline <code> has no break opportunity
+   inside one. That min-content width used to be absorbed silently: `.steps`
+   carried `overflow-y: auto`, and a box that scrolls on one axis computes the
+   other to `auto` too, so it was an x-scroll container by accident and its
+   contents could not push it wider. Laying the steps out as a grid dropped
+   that side effect, and a 423px token promptly pushed the whole 375px document
+   55px wider than the viewport.
+
+   Break the tokens rather than restoring the accidental scroller: min-width:0
+   lets the track shrink to the column it was given, and anywhere-wrapping
+   keeps the identifier inside its card once it has. Snippets are unaffected —
+   `.step-item pre` keeps `white-space: pre` and scrolls at its own edge. */
+.steps, .step-item { min-width: 0; }
+.step-item .body code, .step-item .title { overflow-wrap: anywhere; }
 .step-item .n {
   font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
   color: var(--accent); text-transform: uppercase;

@@ -716,6 +716,40 @@
     shell.appendChild(tools);
   }
 
+  /* ── Fit floor ──
+     With useMaxWidth:false a diagram carries its intrinsic width and the shell
+     scrolls whatever will not fit (diagram.css). That is the right trade for a
+     diagram far wider than its column and the wrong one for a diagram a few
+     percent over, which then scrolls for a difference no reader would have
+     noticed had it simply scaled.
+
+     So the SVG is allowed to scale down to its column — but only to a floor,
+     because past a point scaling is just a smaller illegible diagram. The
+     floor is a share of THIS diagram's own natural width, not a fixed pixel
+     value: diagram.css already notes that a fixed floor stretches a SMALL
+     diagram UP to meet it, and a per-diagram floor is the answer it points to.
+
+     Published as a custom property on the <pre> rather than as an inline style
+     on the <svg>, for two reasons. The browser re-resolves it on every resize
+     with no listener of ours; and the fullscreen view copies the <svg> markup
+     but not the <pre>, so the clone inherits no floor and still scales freely
+     to its dialog — which is exactly what the button is for. */
+  /* 0.75 is where scaling stops being the better half of the trade: the
+     sequence type is set at 13px, so the floor renders it at ~9.8px — small,
+     but still read at a glance. Below that a scaled diagram is just an
+     illegible diagram that also lost its scrollbar, so the floor binds and the
+     shell scrolls instead. It buys the two flow diagrams sitting at 1282 and
+     1338px a silent fit in a ~1016px column; the ones past ~1355px are wide
+     enough that no scale short of unreadable would have saved them. */
+  var FIT_FLOOR = 0.75;
+  function fitDiagram(el) {
+    var svg = el.querySelector("svg");
+    if (!svg) return;
+    var natural = parseFloat(svg.getAttribute("width"));
+    if (!natural) { el.style.removeProperty("--dg-floor"); return; }
+    el.style.setProperty("--dg-floor", Math.round(natural * FIT_FLOOR) + "px");
+  }
+
   function renderMermaid(nodes, light) {
     if (!window.mermaid || !nodes.length) return;
 
@@ -730,6 +764,7 @@
     try {
       window.mermaid.run({ nodes: nodes }).then(function () {
         nodes.forEach(function (el) {
+          fitDiagram(el);
           buildLegend(el);
           bindProse(el);
           addTools(el);
@@ -761,9 +796,34 @@
       // Rounded edges read as flow rather than circuitry, and the extra rank
       // spacing is what stops edge labels sitting on top of the arrowheads.
       flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14, useMaxWidth: false },
-      // mirrorActors doubles every participant along the bottom, which on
-      // these diagrams is a second row of names and no extra information.
-      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false },
+      /* mirrorActors doubles every participant along the bottom, which on
+         these diagrams is a second row of names and no extra information.
+
+         actorMargin/width/font sizes are tuned down from Mermaid's defaults
+         (50 / 150 / 14 / 16) because these are seven-to-nine participant
+         diagrams: at the defaults the widest measured 2569px, which no column
+         on the page can hold. At these values it is ~2365px and most of the
+         set lands between 640 and 1750 — see fitDiagram() for what happens to
+         whatever is still too wide.
+
+         actorMargin does NOT go below 32. Mermaid sizes an actor box from
+         `width`, not from the name inside it, so a name longer than the box
+         overhangs both edges and the margin is the only thing keeping it off
+         its neighbour. At 12 the saving looked far better — 2205px — because
+         the labels had quietly started overlapping: `AuthenticationController`
+         ran 11px into `AuthenticationService`, and four of the nine diagrams
+         had at least one collision. 32 is the first value that clears every
+         one of them, with 10px to spare.
+
+         `wrap` stays OFF deliberately. Turning it on does cut the widest to
+         ~1100px, but Mermaid breaks mid-word to do it: `GamesContro-ller`,
+         `PagedResponse<GameRespon-se>`, `/games/all?q=wit-cher`. Hyphenating
+         identifiers in an architecture diagram costs more than the scroll it
+         saves, and the wrapped lines then collide with the autonumber badges. */
+      sequence: {
+        mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false,
+        actorMargin: 32, width: 110, actorFontSize: 13, messageFontSize: 13
+      },
       er: { useMaxWidth: false },
       state: { useMaxWidth: false },
       themeVariables: themeVars(light)
@@ -1182,7 +1242,14 @@
                          function () {});
     });
 
-    [].slice.call(document.querySelectorAll("pre")).forEach(function (pre) {
+    /* `pre.mermaid` is deliberately excluded. Mermaid reads its diagram source
+       straight off the element's textContent, so a button appended in here is
+       read as a trailing `copy` line of diagram source: sequence diagrams then
+       fail outright with a "Syntax error" bomb, and flowcharts quietly grow a
+       stray node named "copy". Diagrams get their own copy + fullscreen tools
+       from addTools(), which appends to the .diagram-shell around the <pre>
+       rather than into it. */
+    [].slice.call(document.querySelectorAll("pre:not(.mermaid)")).forEach(function (pre) {
       if (pre.querySelector(".gs-copy")) return;
       var btn = document.createElement("button");
       btn.type = "button";

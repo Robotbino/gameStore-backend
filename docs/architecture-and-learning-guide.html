@@ -658,6 +658,19 @@ h3 {
    clipping is what happens by default. */
 pre { overflow-x: auto; }
 
+/* `overflow-wrap: anywhere` is load-bearing, not cosmetic. An inline <code> in
+   these documents is usually a Java or TypeScript identifier, and an identifier
+   has no break opportunity in it: UsernamePasswordAuthenticationFilter is one
+   372px "word". Left unbreakable it sets the min-content width of every
+   ancestor, and on a 375px phone that pushed the whole document 373px wider
+   than the viewport — the page itself scrolled sideways, carrying the fixed
+   back-to-top button out past the right edge with it.
+
+   `anywhere` rather than `break-word` because only `anywhere` is taken into
+   account when the min-content size is computed; `break-word` breaks the line
+   but still reports the unbroken word as the minimum, which is the half that
+   was causing the overflow. Neither breaks anything that already fits — the
+   property only applies when there is nowhere else to break. */
 code {
   font-family: var(--mono);
   font-size: .9em;
@@ -666,6 +679,7 @@ code {
   padding: 1px 6px;
   border-radius: 5px;
   color: var(--ink);
+  overflow-wrap: anywhere;
 }
 
 /* ── Section boundaries ───────────────────────────────────────────────────
@@ -836,7 +850,14 @@ summary:focus-visible, [tabindex]:focus-visible {
 
 .ds-pop {
   position: absolute; top: calc(100% + 8px); left: 0; z-index: 40;
-  width: min(420px, calc(100vw - 32px));
+  /* The popover is absolutely positioned at the LEFT EDGE OF THE MENU, not of
+     the viewport, and the menu is itself inset by the switch bar's padding —
+     35px at phone width. So the budget is the viewport less that inset on the
+     left and a gutter on the right, not less one shell padding: at
+     `100vw - 32px` the pop measured 343px wide starting at x=35 and hung 3px
+     off the screen on every document. It is out of flow but still contributes
+     scrollable overflow, so it did that whether or not the menu was open. */
+  width: min(420px, calc(100vw - 2 * var(--shell-pad) - 24px));
   background: var(--panel); border: 1px solid var(--line-2);
   border-radius: var(--radius); box-shadow: var(--shadow-lg);
   padding: 8px; overflow: hidden;
@@ -2021,6 +2042,16 @@ table.grid tbody tr:hover { background: var(--row-odd); }
   vertical-align: middle; white-space: nowrap;
   border: 1px solid var(--line-2);
   color: var(--ink-soft); background: var(--panel-2);
+  max-width: 100%;
+}
+/* A pill means "a short categorical label", and nowrap is what keeps it
+   looking like one. But the learning guide puts a whole sentence in one —
+   "This exact question appears on 1Z0-808 exams" — and nowrap made that a
+   361px unbreakable box that pushed the page 41px past a 375px viewport.
+   Below the phone breakpoint a wrapped pill beats a sideways document; above
+   it every pill still fits on its line, so the desktop look is untouched. */
+@media (max-width: 620px) {
+  .pill { white-space: normal; }
 }
 
 /* HTTP verbs */
@@ -2286,13 +2317,25 @@ pre .c  { color: var(--code-ink-faint); font-style: italic; }
    column offers — a 1611px sequence diagram squashed itself to 582px even with
    the max-width lifted, which is the same illegible result by another route.
 
-   No min-width: with useMaxWidth:false (chrome.js) the SVG carries its own
-   intrinsic width, so a floor here would only force a pointless scroll on a
-   phone. `max-width: none` overrides core.css `.mermaid svg { max-width:100% }`
-   INSIDE a shell only — the fullscreen clone is not in one, so it still scales
-   down to fit its 96vw dialog. */
+   The floor is `--dg-floor`, published per diagram by fitDiagram() in
+   chrome.js as a share of that diagram's own natural width. It is what makes
+   `flex: 0 1 auto` safe here: the SVG can now be asked to shrink, because the
+   floor is the min-content width it was missing. Above the floor the diagram
+   scales quietly into its column; below it the floor binds and the shell
+   scrolls the remainder, which is the old behaviour for the diagrams that are
+   genuinely too wide to do anything else with. A shell with no diagram in it
+   yet resolves the fallback 0px and behaves exactly as it did before.
+
+   The fullscreen clone copies the <svg> but not the <pre> that carries the
+   property, so it inherits no floor and still scales down to its 96vw dialog. */
 .diagram-shell .mermaid { display: flex; }
-.diagram-shell .mermaid > svg { flex: none; margin: 0 auto; max-width: none; }
+.diagram-shell .mermaid > svg {
+  flex: 0 1 auto;
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+  min-width: var(--dg-floor, 0px);
+}
 
 /* ── …except on a narrow screen ───────────────────────────────────────────
    Intrinsic width is the right default in a desktop column, where the shell
@@ -2323,10 +2366,12 @@ pre .c  { color: var(--code-ink-faint); font-style: italic; }
    px width AND height attributes, and constraining only the width would keep
    the old height and stretch the viewBox. */
 @media (max-width: 768px) {
+  /* The fixed floor replaces the per-diagram one below this width. A share of
+     natural width is the right floor in a desktop column, where it keeps a
+     wide diagram legible; on a phone it would hold a 1600px diagram at 1300px
+     and hand the reader a scroll they cannot finish. 450px is the deliberate
+     bottom instead — see the note above on what it costs a small diagram. */
   .diagram-shell .mermaid > svg {
-    flex: 0 1 auto;
-    max-width: 100%;
-    height: auto;
     min-width: 450px;
   }
 }
@@ -2489,14 +2534,20 @@ dialog.dg-full .dg-full-close {
 .layer-detail h3 { font-family: var(--display); font-size: 1.1rem; margin: 0 0 10px; color: var(--accent-2); }
 .layer-detail p { color: var(--ink-soft); margin: 0 0 14px; }
 .layer-detail .files { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+/* min-width:0 because a .file-row is a GRID ITEM of .files, and a grid item's
+   automatic minimum is its min-content width — here a full unbreakable path
+   plus its role on one line, which is wider than a phone. Wrapping lets the
+   role drop under the path instead of forcing the row (and the document) wide;
+   `margin-left: auto` still right-aligns it whenever both do fit on one line. */
 .file-row {
   font-family: var(--mono); font-size: 12px;
   background: var(--panel-2); border: 1px solid var(--line);
   border-radius: 6px; padding: 8px 10px;
   display: flex; align-items: center; gap: 10px; color: var(--ink-soft);
+  flex-wrap: wrap; min-width: 0;
 }
-.file-row .path { color: var(--ink); }
-.file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; }
+.file-row .path { color: var(--ink); min-width: 0; overflow-wrap: anywhere; }
+.file-row .role { color: var(--ink-faint); margin-left: auto; text-align: right; min-width: 0; }
 
 
 /* ── Filter pipeline ──────────────────────────────────────────────────────
@@ -2548,21 +2599,60 @@ dialog.dg-full .dg-full-close {
 .tab.active { background: var(--panel-2); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line-2); }
 .tab .step { color: var(--accent); font-weight: 700; margin-right: 6px; }
 
-.flow-panel { display: grid; grid-template-columns: 1.15fr 1fr; gap: 18px; }
+/* Stacked, not side by side. These are seven-to-nine participant sequence
+   diagrams: chrome.js already sizes them as small as they go without
+   hyphenating identifiers, and the widest is still ~2200px. The old
+   `1.15fr 1fr` split offered that ~520px, so every flow tab opened on a
+   diagram drawn a quarter of the way across its own shell.
+
+   Full width is ~1018px in the bleed track — not everything, but twice what
+   the split allowed, and enough for the fit floor to scale the middle of the
+   set in rather than scroll it. The steps move below and spread into columns
+   of their own, so the panel costs little more height than it did while the
+   diagram stops being the thing that pays for the layout. */
+.flow-panel { display: grid; grid-template-columns: 1fr; gap: 18px; }
 .flow-panel[hidden] { display: none; }
 .flow-panel > .diagram-shell { margin: 0; }
 
 .steps {
   background: var(--panel); border: 1px solid var(--line);
   border-radius: var(--radius); padding: 6px;
-  max-height: 660px; overflow-y: auto;
+  display: grid;
+  /* 420px floor, so the bleed width yields two columns of ~500px rather than
+     three of ~333px. The step bodies carry real code, and `pre` scrolls at
+     its own edge (tables.css) — three columns technically fit, and made every
+     snippet scroll to be read. Two columns are wider than the ~470px the
+     side-by-side layout gave them, so the code is better off than before.
+
+     The `min(420px, 100%)` matters: a bare 420px floor is a floor the track
+     cannot go under, so on a 375px phone it pushed the whole document 373px
+     wider than the viewport and the page itself scrolled sideways. Wrapped in
+     min(), the floor stops applying once the container is narrower than it. */
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 8px;
+  align-content: start;
 }
 /* No side-tab: the step number label (.n) is already rendered in --accent. */
 .step-item {
   background: var(--panel-2); border: 1px solid var(--line);
-  border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 6px;
+  border-radius: var(--radius-sm); padding: 12px 14px 14px; margin: 0;
 }
-.step-item + .step-item { margin-top: 8px; }
+
+/* A step body is full of long unbreakable identifiers — EmailAlreadyExistsException,
+   @JsonProperty(WRITE_ONLY) — and an inline <code> has no break opportunity
+   inside one. That min-content width used to be absorbed silently: `.steps`
+   carried `overflow-y: auto`, and a box that scrolls on one axis computes the
+   other to `auto` too, so it was an x-scroll container by accident and its
+   contents could not push it wider. Laying the steps out as a grid dropped
+   that side effect, and a 423px token promptly pushed the whole 375px document
+   55px wider than the viewport.
+
+   Break the tokens rather than restoring the accidental scroller: min-width:0
+   lets the track shrink to the column it was given, and anywhere-wrapping
+   keeps the identifier inside its card once it has. Snippets are unaffected —
+   `.step-item pre` keeps `white-space: pre` and scrolls at its own edge. */
+.steps, .step-item { min-width: 0; }
+.step-item .body code, .step-item .title { overflow-wrap: anywhere; }
 .step-item .n {
   font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
   color: var(--accent); text-transform: uppercase;
@@ -4511,6 +4601,40 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     shell.appendChild(tools);
   }
 
+  /* ── Fit floor ──
+     With useMaxWidth:false a diagram carries its intrinsic width and the shell
+     scrolls whatever will not fit (diagram.css). That is the right trade for a
+     diagram far wider than its column and the wrong one for a diagram a few
+     percent over, which then scrolls for a difference no reader would have
+     noticed had it simply scaled.
+
+     So the SVG is allowed to scale down to its column — but only to a floor,
+     because past a point scaling is just a smaller illegible diagram. The
+     floor is a share of THIS diagram's own natural width, not a fixed pixel
+     value: diagram.css already notes that a fixed floor stretches a SMALL
+     diagram UP to meet it, and a per-diagram floor is the answer it points to.
+
+     Published as a custom property on the <pre> rather than as an inline style
+     on the <svg>, for two reasons. The browser re-resolves it on every resize
+     with no listener of ours; and the fullscreen view copies the <svg> markup
+     but not the <pre>, so the clone inherits no floor and still scales freely
+     to its dialog — which is exactly what the button is for. */
+  /* 0.75 is where scaling stops being the better half of the trade: the
+     sequence type is set at 13px, so the floor renders it at ~9.8px — small,
+     but still read at a glance. Below that a scaled diagram is just an
+     illegible diagram that also lost its scrollbar, so the floor binds and the
+     shell scrolls instead. It buys the two flow diagrams sitting at 1282 and
+     1338px a silent fit in a ~1016px column; the ones past ~1355px are wide
+     enough that no scale short of unreadable would have saved them. */
+  var FIT_FLOOR = 0.75;
+  function fitDiagram(el) {
+    var svg = el.querySelector("svg");
+    if (!svg) return;
+    var natural = parseFloat(svg.getAttribute("width"));
+    if (!natural) { el.style.removeProperty("--dg-floor"); return; }
+    el.style.setProperty("--dg-floor", Math.round(natural * FIT_FLOOR) + "px");
+  }
+
   function renderMermaid(nodes, light) {
     if (!window.mermaid || !nodes.length) return;
 
@@ -4525,6 +4649,7 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
     try {
       window.mermaid.run({ nodes: nodes }).then(function () {
         nodes.forEach(function (el) {
+          fitDiagram(el);
           buildLegend(el);
           bindProse(el);
           addTools(el);
@@ -4556,9 +4681,34 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
       // Rounded edges read as flow rather than circuitry, and the extra rank
       // spacing is what stops edge labels sitting on top of the arrowheads.
       flowchart: { curve: "basis", nodeSpacing: 46, rankSpacing: 62, padding: 14, useMaxWidth: false },
-      // mirrorActors doubles every participant along the bottom, which on
-      // these diagrams is a second row of names and no extra information.
-      sequence: { mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false },
+      /* mirrorActors doubles every participant along the bottom, which on
+         these diagrams is a second row of names and no extra information.
+
+         actorMargin/width/font sizes are tuned down from Mermaid's defaults
+         (50 / 150 / 14 / 16) because these are seven-to-nine participant
+         diagrams: at the defaults the widest measured 2569px, which no column
+         on the page can hold. At these values it is ~2365px and most of the
+         set lands between 640 and 1750 — see fitDiagram() for what happens to
+         whatever is still too wide.
+
+         actorMargin does NOT go below 32. Mermaid sizes an actor box from
+         `width`, not from the name inside it, so a name longer than the box
+         overhangs both edges and the margin is the only thing keeping it off
+         its neighbour. At 12 the saving looked far better — 2205px — because
+         the labels had quietly started overlapping: `AuthenticationController`
+         ran 11px into `AuthenticationService`, and four of the nine diagrams
+         had at least one collision. 32 is the first value that clears every
+         one of them, with 10px to spare.
+
+         `wrap` stays OFF deliberately. Turning it on does cut the widest to
+         ~1100px, but Mermaid breaks mid-word to do it: `GamesContro-ller`,
+         `PagedResponse<GameRespon-se>`, `/games/all?q=wit-cher`. Hyphenating
+         identifiers in an architecture diagram costs more than the scroll it
+         saves, and the wrapped lines then collide with the autonumber badges. */
+      sequence: {
+        mirrorActors: false, boxMargin: 8, noteMargin: 12, messageAlign: "center", useMaxWidth: false,
+        actorMargin: 32, width: 110, actorFontSize: 13, messageFontSize: 13
+      },
       er: { useMaxWidth: false },
       state: { useMaxWidth: false },
       themeVariables: themeVars(light)
@@ -4977,7 +5127,14 @@ window.GS_SEARCH = [{"doc":"fe-arch","id":"overview","title":"The whole system o
                          function () {});
     });
 
-    [].slice.call(document.querySelectorAll("pre")).forEach(function (pre) {
+    /* `pre.mermaid` is deliberately excluded. Mermaid reads its diagram source
+       straight off the element's textContent, so a button appended in here is
+       read as a trailing `copy` line of diagram source: sequence diagrams then
+       fail outright with a "Syntax error" bomb, and flowcharts quietly grow a
+       stray node named "copy". Diagrams get their own copy + fullscreen tools
+       from addTools(), which appends to the .diagram-shell around the <pre>
+       rather than into it. */
+    [].slice.call(document.querySelectorAll("pre:not(.mermaid)")).forEach(function (pre) {
       if (pre.querySelector(".gs-copy")) return;
       var btn = document.createElement("button");
       btn.type = "button";

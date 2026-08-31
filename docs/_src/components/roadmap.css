@@ -91,6 +91,10 @@
   border-radius: var(--radius); border-left: 3px solid var(--line);
   padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;
   box-shadow: var(--shadow-sm);
+  /* Grid item of .rm-grid: without this its automatic minimum is the widest
+     unbreakable thing inside it — a file path in a <code> — and the card
+     refuses to narrow past it. */
+  min-width: 0;
   transition: transform .24s var(--ease), box-shadow .24s var(--ease),
               border-color .24s var(--ease), background .24s var(--ease);
 }
@@ -106,7 +110,10 @@
 .rm-card.v-later:hover { border-left-color: var(--auth); }
 .rm-card.v-skip:hover  { border-left-color: var(--danger); }
 
-.rm-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; }
+/* Same automatic-minimum problem one level down, on the flex item and on the
+   1fr track that holds the title. */
+.rm-head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; min-width: 0; }
+.rm-head > * { min-width: 0; }
 .rm-tick { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
 .rm-tick input {
   width: 17px; height: 17px; margin: 0; flex: none;

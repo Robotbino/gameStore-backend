@@ -425,6 +425,21 @@ tr.is-pick td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
   .ladder-track::before { display: none; }
 }
 @media (max-width: 560px) {
+  /* The tip is hover-only — these spans carry no tabindex, so the
+     :focus-visible half never fires and a touch device has no input that can
+     reach it. Below this width it is also actively harmful: an absolutely
+     positioned ::after that is merely `visibility: hidden` still contributes
+     to scrollable overflow, and nine 300px tips anchored at `left: 0` inside
+     the prose made the frontend architecture document 419px wide on a 375px
+     screen. The page then scrolled sideways and took the fixed back-to-top
+     button off the right edge with it — the button looked like the bug and
+     was only ever following the document.
+
+     `display: none` is what removes a box from that calculation; opacity and
+     visibility do not. The dashed underline stays, so the annotation still
+     reads as one. Same reasoning as the print rule below. */
+  .anno[data-tip]::after { display: none; }
+
   .ladder-track { grid-template-columns: 1fr; }
   .ladder > .rung { grid-template-columns: 28px minmax(0, 1fr); }
   .ladder .hit { grid-column: 2; grid-row: auto; justify-self: start; margin-top: 6px; }

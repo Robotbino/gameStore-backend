@@ -100,6 +100,16 @@ table.grid tbody tr:hover { background: var(--row-odd); }
   vertical-align: middle; white-space: nowrap;
   border: 1px solid var(--line-2);
   color: var(--ink-soft); background: var(--panel-2);
+  max-width: 100%;
+}
+/* A pill means "a short categorical label", and nowrap is what keeps it
+   looking like one. But the learning guide puts a whole sentence in one —
+   "This exact question appears on 1Z0-808 exams" — and nowrap made that a
+   361px unbreakable box that pushed the page 41px past a 375px viewport.
+   Below the phone breakpoint a wrapped pill beats a sideways document; above
+   it every pill still fits on its line, so the desktop look is untouched. */
+@media (max-width: 620px) {
+  .pill { white-space: normal; }
 }
 
 /* HTTP verbs */
