@@ -35,6 +35,35 @@
      One namespace for the whole doc set. The theme is shared across all six;
      everything else is keyed per document so two roadmaps never collide. */
   var DOC_ID = root.getAttribute("data-gs-doc") || "doc";
+
+  /* ── Where another document in the set lives, relative to this one ──
+     The two checkouts sit as siblings under one parent, so the hop out of
+     <repo>/docs/ and into the other's is symmetric: up two, across one. The
+     directory name is not written here — it rides in on the generated index
+     as `dir`, from docs.manifest.mjs, which is the single place the layout is
+     described. Three separate copies of this used to live in this file, all
+     naming folders from before the repos were renamed, so every cross-repo
+     link in the picker, the search palette and the resume chip was dead.
+
+     Same repo → bare filename, because every document lives in docs/. */
+  function gsDocHref(m) {
+    if (!m || !m.file) return "";
+    var META = window.GS_SEARCH_META || {};
+    // Front doors are not indexed and so have no entry to read a role out of;
+    // they declare one on <html> instead.
+    var mine = META[DOC_ID] || (root.dataset.gsRole ? { role: root.dataset.gsRole } : null);
+    if (mine && mine.role === m.role) return m.file;
+    // An index built before `dir` existed leaves the link inside this repo
+    // rather than sending the reader somewhere that does not exist.
+    return m.dir ? "../../" + m.dir + "/docs/" + m.file : m.file;
+  }
+
+  /* Is a search hit in the document being read? By id — never by filename.
+     Both repos have a docs/architecture.html, and the two share five section
+     ids, so a basename test reported frontend hits as local and quietly
+     scrolled to this document's own #overview instead of opening the other
+     brief. */
+  function gsIsHere(docId) { return docId === DOC_ID; }
   var store = {
     get: function (key, fallback) {
       try {
@@ -287,6 +316,11 @@
     if (!spied.length) return;
 
     var visible = {};
+    /* The section the rail was last scrolled to. paint() runs on every scroll
+       frame, so nudging from all of them would re-issue the same scroll every
+       frame AND yank the rail back from a reader who had scrolled it himself
+       to look ahead. Nudge on a change of section only. */
+    var lastNudged = null;
     var spy = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (e.isIntersecting) visible[e.target.id] = true;
@@ -311,18 +345,35 @@
         if (current === null) current = spied[i];
         if (spied[i].getBoundingClientRect().top <= line) current = spied[i];
       }
+      /* The document can run out before the last section's top reaches that
+         line. At maximum scroll it rests at viewport − (its own height + the
+         footer), so it is reachable only while those two together clear the
+         viewport — a fixed number per document against an unbounded one per
+         display. On a 1440p screen the reader hits the bottom of a 16-section
+         brief, fills the screen with §16, watches the progress spine reach
+         1.0, and the rail still says §15. Whatever is last is what you are
+         reading once there is nowhere left to scroll. */
+      if (root.scrollHeight - root.scrollTop - root.clientHeight <= 1) {
+        for (var j = spied.length - 1; j >= 0; j--) {
+          if (visible[spied[j].id]) { current = spied[j]; break; }
+        }
+      }
       navLinks.forEach(function (a) {
         a.classList.remove("active");
         var li = a.closest(".r-sec");
         if (li) li.classList.remove("is-active");
       });
       if (current && linkFor[current.id]) {
+        var moved = current.id !== lastNudged;
+        lastNudged = current.id;
         linkFor[current.id].forEach(function (a) {
           a.classList.add("active");
           var li = a.closest(".r-sec");
           if (li) li.classList.add("is-active");
-          keepInView(a);
+          if (moved) keepInView(a);
         });
+      } else {
+        lastNudged = null;
       }
       // Everything above the section being read is marked as read, which is
       // what turns the rail from a list of links into a position in a
@@ -334,17 +385,28 @@
       });
     }
 
-    /* The bar is a horizontal scroller with sixteen entries, so the section you
-       are actually in is regularly the one clipped at an edge — reading as a
-       truncated "CAC" rather than "CACHING". Nudge it back into the strip.
+    /* Two navigation controls, two shapes of "off screen".
 
-       Deliberately not scrollIntoView(): that walks every scrollable ancestor,
-       so it would also scroll the document vertically and fight the anchor the
-       reader just clicked. Only scrollLeft on the strip itself moves here. */
+       The strip below 1180px is a horizontal scroller with sixteen entries, so
+       the section you are actually in is regularly the one clipped at an edge —
+       reading as a truncated "CAC" rather than "CACHING".
+
+       The rail above 1180px is a vertical list inside its own scroller — the
+       <ol>, not the rail box, which is what keeps the heading and the meta line
+       pinned around it. On a sixteen-section brief that list is taller than any
+       laptop viewport, so the active item — the entire point of the control —
+       spends most of the document below the fold, and its scrollbar is hidden,
+       so nothing admits it. That was the bug: scrollTop stayed 0 forever
+       because this function used to return early for anything in the rail.
+
+       Deliberately not scrollIntoView() in either case: that walks every
+       scrollable ancestor, so it would also scroll the document vertically and
+       fight the anchor the reader just clicked. Only scrollLeft on the strip,
+       or scrollTop on the list, moves here. */
     function keepInView(link) {
       var strip = link.parentNode;
-      // The rail is a vertical list; only the horizontal strip needs nudging.
-      if (!strip || strip.classList.contains("r-sec")) return;
+      if (!strip) return;
+      if (strip.classList.contains("r-sec")) return railNudge(strip);
       if (strip.scrollWidth <= strip.clientWidth) return;
       var pad = 24;
       var left = link.offsetLeft - strip.offsetLeft;
@@ -356,7 +418,47 @@
       strip.scrollTo({ left: Math.max(0, to), behavior: motionOK ? "smooth" : "auto" });
     }
 
+    /* The list is static and the rail is fixed, so both offsetTop values
+       resolve against .doc-rail and their difference is the item's position in
+       the scrolled content — the same trick the strip plays with offsetLeft.
+       The pad leaves a partial neighbour showing, which is what tells you the
+       list continues. Costs nothing on the shorter documents: the first line
+       returns before any geometry is read. */
+    function railNudge(li) {
+      var list = li.parentNode;
+      if (!list || list.scrollHeight <= list.clientHeight) return;
+      var pad = 24;
+      var top = li.offsetTop - list.offsetTop;
+      var bottom = top + li.offsetHeight;
+      var to = null;
+      if (top - pad < list.scrollTop) to = top - pad;
+      else if (bottom + pad > list.scrollTop + list.clientHeight) to = bottom + pad - list.clientHeight;
+      if (to === null) return;
+      list.scrollTo({ top: Math.max(0, to), behavior: motionOK ? "smooth" : "auto" });
+    }
+
+    /* The list's scrollbar is hidden, so the fade is the only thing that says
+       there is more. The mask itself lives in CSS; these two lengths are the
+       only part of it that has to know a scroll position. */
+    function railFade() {
+      if (!railList) return;
+      var over = railList.scrollHeight - railList.clientHeight;
+      var at = railList.scrollTop;
+      railList.style.setProperty("--fade-t", over > 1 && at > 1 ? "16px" : "0px");
+      railList.style.setProperty("--fade-b", over > 1 && at < over - 1 ? "16px" : "0px");
+    }
+
     var railItems = [].slice.call(document.querySelectorAll(".doc-rail .r-sec"));
+    var railList = document.querySelector(".doc-rail ol");
+    if (railList) railList.addEventListener("scroll", railFade, { passive: true });
+    /* A resize can change how many items fit and can cross the 1180px
+       breakpoint in either direction, so re-measure the fade and let the
+       section already active claim one more nudge. The fonts are external and
+       swap in late, so the list's height is not final at first paint either —
+       hence the second sample on load. */
+    window.addEventListener("resize", function () { lastNudged = null; railFade(); }, { passive: true });
+    window.addEventListener("load", railFade);
+    railFade();
     spied.forEach(function (s) { spy.observe(s); });
 
     // The observer fires on boundary crossings only, and these sections run to
@@ -958,26 +1060,13 @@
     function hrefFor(hit) {
       var m = META[hit.doc];
       if (!m) return "#" + hit.id;
-      var here = m.file === (location.pathname.split("/").pop() || "");
-      var file = here ? "" : crossHref(hit.doc, m);
+      var here = gsIsHere(hit.doc);
+      var file = here ? "" : gsDocHref(m);
       var anchor = hit.id ? "#" + hit.id : "";
       // A task result also carries the card id so we can flash it on arrival.
       var q = hit.ref ? (anchor ? "" : "") : "";
       return (file || "") + anchor + q;
     }
-    // Cross-document path. Same repo → bare file; different repo → sibling hop.
-    // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
-    function crossHref(targetDocId, m) {
-      // The two front doors are not themselves indexed, so they have no
-      // entry to read a role out of — they declare one on <html> instead.
-      // Without this they resolved every link as cross-repo and sent the
-      // reader to ../../../GameStore/docs/ from inside that very folder.
-      var meHere = META[DOC_ID] || (root.dataset.gsRole ? { role: root.dataset.gsRole } : null);
-      if (meHere && meHere.role === m.role) return m.file;
-      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
-      return "../../../GameStore/docs/" + m.file;
-    }
-
     /* Scoring. Tokenise the query; each token contributes by where it lands.
        An exact substring of the whole phrase in the title is the strong
        signal a picker wants to reward. */
@@ -1123,7 +1212,7 @@
       close();
       // Same-document jump: set the hash and, for a task, flash the card.
       var m = META[hit.doc] || {};
-      var sameDoc = m.file === (location.pathname.split("/").pop() || "");
+      var sameDoc = gsIsHere(hit.doc);
       if (sameDoc) {
         if (hit.id) location.hash = hit.id;
         if (hit.ref) flashCard(hit.ref);
@@ -1345,6 +1434,16 @@
   (function docMetrics() {
     var secs = document.querySelectorAll("section[id]");
     if (!secs.length) return;
+    /* A section the reader can name is one with a heading, and that is also
+       exactly the set the rail lists. Counting the raw `section[id]` instead
+       put an "8 sections" under a list of seven on the roadmap, whose progress
+       bar is a section element with no heading of its own — and printed the
+       same 8 in the hero plate, so the page contradicted itself twice over.
+       One filtered set now feeds both. Words and reading time still come from
+       the whole document: that text is there to be read either way. */
+    var headed = [].slice.call(secs).filter(function (s) {
+      return s.querySelector(":scope > .wrap > h2") || s.querySelector("h2");
+    });
     var words = 0;
     [].slice.call(secs).forEach(function (s) {
       words += (s.textContent.trim().match(/\S+/g) || []).length;
@@ -1358,7 +1457,7 @@
     var plate = document.querySelector(".plate-meta");
     if (plate) {
       plate.innerHTML =
-        "<div><dt>Sections</dt><dd>" + secs.length + "</dd></div>" +
+        "<div><dt>Sections</dt><dd>" + headed.length + "</dd></div>" +
         "<div><dt>Words</dt><dd>" + kw + "</dd></div>" +
         "<div><dt>Read</dt><dd>" + mins + "<small> min</small></dd></div>";
     }
@@ -1394,7 +1493,7 @@
     }
 
     var railMeta = document.querySelector(".rail-meta");
-    if (railMeta) railMeta.innerHTML = secs.length + " sections · " + kw + " words" +
+    if (railMeta) railMeta.innerHTML = headed.length + " sections · " + kw + " words" +
       "<b>~" + mins + " min read</b>";
 
     // The hero pulse travels the height of the stack it is drawn beside, and
@@ -1426,12 +1525,7 @@
     var byHref = {};
     Object.keys(META).forEach(function (id) { byHref[docHref(id, META[id])] = id; });
 
-    function docHref(id, m) {
-      var mine = META[DOC_ID] || { role: root.dataset.gsRole };
-      if (mine && mine.role === m.role) return m.file;
-      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
-      return "../../../GameStore/docs/" + m.file;
-    }
+    function docHref(id, m) { return gsDocHref(m); }
 
     var card = null, timer = 0;
     function build() {
@@ -1610,10 +1704,7 @@
     var META = window.GS_SEARCH_META || {};
     if (!last || !last.id || !META[last.doc]) return;
     var m = META[last.doc];
-    var mine = META[DOC_ID] || { role: root.dataset.gsRole };
-    var href = (mine && mine.role === m.role) ? m.file
-             : (m.role === "backend" ? "../../GameStoreBackEnd/Bino/docs/" + m.file
-                                     : "../../../GameStore/docs/" + m.file);
+    var href = gsDocHref(m);
     var a = document.createElement("a");
     a.className = "fd-resume";
     a.href = href + "#" + last.id;

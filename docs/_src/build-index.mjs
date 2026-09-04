@@ -29,7 +29,8 @@
 
 import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { DOCS, docPath, docById } from "./docs.manifest.mjs";
+import { basename } from "node:path";
+import { DOCS, docPath, docById, repoById } from "./docs.manifest.mjs";
 
 const TEXT_CAP = 380;
 
@@ -130,7 +131,16 @@ for (const doc of DOCS) {
   const path = docPath(doc);
   if (!existsSync(path)) { console.warn(`  skip ${doc.id}: file not found`); continue; }
   const html = await readFile(path, "utf8");
-  meta[doc.id] = { title: doc.title, role: doc.role, file: doc.file.replace(/^docs\//, "") };
+  // `dir` is the repo's directory name, taken from the manifest rather than
+  // written into chrome.js. It is what lets the runtime build a cross-repo
+  // href without a second, hand-maintained copy of the checkout layout —
+  // which is how the old links came to point at two folders that had been
+  // renamed away years earlier.
+  meta[doc.id] = {
+    title: doc.title, role: doc.role, repo: doc.repo,
+    dir: basename(repoById(doc.repo).root),
+    file: doc.file.replace(/^docs\//, ""),
+  };
 
   const s = sections(html, doc);
   const t = tasks(html, doc);

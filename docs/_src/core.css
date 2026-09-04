@@ -434,6 +434,23 @@ footer > .wrap > * { grid-column: prose-s / prose-e; min-width: 0; }
       [rail-s] var(--rail-w) [rail-e] var(--rail-gap)
       [prose-s] minmax(0, var(--prose-w)) [prose-e] minmax(0, 1fr) [bleed-e];
   }
+  /* ...except the footer, which is the one piece of the shell hand-authored
+     in every document -- and therefore the one place a bare text node really
+     turns up. A run of text between elements becomes an ANONYMOUS grid item:
+     no selector can reach it, so the `> *` rule above never applies to it and
+     it auto-places into the FIRST track. When that track is the rail, the
+     footer's own prose prints underneath the fixed outline.
+
+     So the footer is given no leading rail track at all, and reserves the
+     rail's width with padding instead. Same outer box (border-box), same two
+     tracks at the same widths, same named lines -- but the first track is now
+     prose, so anything that auto-places lands where it belongs. The invariant
+     to keep: the first track is always the prose track. */
+  footer > .wrap {
+    grid-template-columns:
+      [prose-s] minmax(0, var(--prose-w)) [prose-e] minmax(0, 1fr) [bleed-e];
+    padding-left: calc(var(--shell-pad) + var(--rail-w) + var(--rail-gap));
+  }
   /* A document short enough not to need an outline does not hold a track
      open for one. Declared in the markup rather than discovered from the
      section count, so the first paint is already the right shape. */
@@ -444,6 +461,8 @@ footer > .wrap > * { grid-column: prose-s / prose-e; min-width: 0; }
       [rail-s rail-e prose-s] minmax(0, var(--prose-w))
       [prose-e] minmax(0, 1fr) [bleed-e];
   }
+  /* ...and with no rail, the footer has nothing to reserve. */
+  :root[data-gs-rail="off"] footer > .wrap { padding-left: var(--shell-pad); }
   /* Wide furniture opts out of the prose measure and takes the bleed with it.
      Listed here rather than on each component so the set of things allowed to
      break the measure is visible in one place — and reviewable as a decision
@@ -805,28 +824,62 @@ summary:focus-visible, [tabindex]:focus-visible {
    the list, with a filled portion that tracks progress through the
    document. It is the answer to "how much of this is left", which a
    3,000-line brief otherwise refuses to tell you. */
+/* The rail itself never scrolls -- the list inside it does. That matters for
+   more than tidiness: an absolutely-positioned child of a SCROLL container is
+   sized against the visible padding box and scrolls away with the content, so
+   while this box was the scroller the spine stopped at whatever happened to be
+   on screen (494px of a 786px list) and slid out of view. `position: fixed`
+   already establishes the containing block the spine needs; taking the
+   overflow off is the whole fix, and it must stay `fixed` for that to hold. */
 .doc-rail {
   display: none;
+  flex-direction: column;
   position: fixed; z-index: 15;
   left: var(--rail-left); width: var(--rail-w);
   top: calc(var(--bar-h) + 40px);
   max-height: calc(100vh - var(--bar-h) - 80px);
   padding-left: 15px;
-  overflow-y: auto; overscroll-behavior: contain;
-  scrollbar-width: none;
 }
-.doc-rail::-webkit-scrollbar { display: none; }
 @media (min-width: 1180px) {
-  .doc-rail.ready { display: block; }
+  .doc-rail.ready { display: flex; }
   .subnav, nav.toc { display: none; }
 }
 
 .doc-rail .rail-h {
+  flex: none;
   font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
   text-transform: uppercase; color: var(--ink-faint);
   margin: 0 0 12px;
 }
-.doc-rail ol { list-style: none; margin: 0; padding: 0; }
+/* The list is the only part that scrolls, so the heading above it and the
+   meta line below it stay put and the spine spans the whole rail.
+
+   Its scrollbar stays hidden -- 12px of chrome inside a 226px column reads as
+   damage -- so the affordance is a fade at whichever edge still has content
+   behind it, sized by chrome.js. Masked rather than scrimmed because the rail
+   sits over the page's dot grid and colour washes: an opaque gradient would
+   paint a visible rectangle across them, where a mask fades the text and lets
+   the ground show through.
+
+   No `overscroll-behavior: contain` here. This strip is the full height of the
+   left margin -- the natural place to park a cursor -- and containing the
+   scroll meant the wheel died there once the list hit its end, freezing the
+   page for as long as the pointer stayed in the column. Chaining is correct:
+   scroll the list, then the document. */
+.doc-rail ol {
+  list-style: none; margin: 0; padding: 0;
+  flex: 1 1 auto; min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  --fade-t: 0px; --fade-b: 0px;
+  -webkit-mask-image: linear-gradient(180deg,
+    transparent 0, #000 var(--fade-t),
+    #000 calc(100% - var(--fade-b)), transparent 100%);
+          mask-image: linear-gradient(180deg,
+    transparent 0, #000 var(--fade-t),
+    #000 calc(100% - var(--fade-b)), transparent 100%);
+}
+.doc-rail ol::-webkit-scrollbar { display: none; }
 
 /* The spine. Track and fill are two gradients on the same element so the
    rail keeps a single box; the fill is scaled rather than resized, for the
@@ -860,6 +913,7 @@ summary:focus-visible, [tabindex]:focus-visible {
 
 /* Rail footer — the honest numbers for the document you are in. */
 .doc-rail .rail-meta {
+  flex: none;
   margin: 16px 0 0; padding: 10px 0 0 10px;
   border-top: 1px solid var(--line);
   font-family: var(--mono); font-size: 10px; line-height: 1.8;
@@ -1676,9 +1730,10 @@ footer .f-next:hover { color: var(--ink); border-color: var(--accent); text-deco
   .gs-search-btn, .gs-keys-btn, .gs-keys, .gs-cmdk, .gs-toast, .gs-peek,
   .gs-copy, .h-anchor, .schema::after { display: none !important; }
 
-  /* The shell's rail track and bleed only make sense next to a rail. */
+  /* The shell's rail track and bleed only make sense next to a rail -- and so
+     does the space the footer holds open for one. */
   header.hero > .wrap, section > .wrap, footer > .wrap {
-    display: block; max-width: none;
+    display: block; max-width: none; padding-left: var(--shell-pad);
   }
   section[id] > .wrap::before { display: none; }
   .hero-plate { padding-left: 0; margin-top: 24px; }

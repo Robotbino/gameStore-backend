@@ -26,11 +26,11 @@
    ═══════════════════════════════════════════════════════════════════════════ */
 
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));       // <backend>/docs/_src
 const backend = resolve(here, "..", "..");                   // <backend>
-const frontend = resolve(backend, "..", "..", "GameStore");   // sibling checkout
+const frontend = resolve(backend, "..", "gameStore");        // sibling checkout
 
 export const REPOS = [
   { id: "backend",  root: backend,  label: "backend"  },
@@ -136,9 +136,11 @@ export const docPath = (doc) => resolve(repoById(doc.repo).root, doc.file);
 export function hrefBetween(from, to) {
   const file = to.file.replace(/^docs\//, "");
   if (from.repo === to.repo) return file;
-  // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
-  // From frontend → backend needs ../../GameStoreBackEnd/Bino/docs/
-  // From backend → frontend needs ../../../GameStore/docs/  (one extra level)
-  if (to.repo === "backend") return `../../GameStoreBackEnd/Bino/docs/${file}`;
-  return `../../../GameStore/docs/${file}`;
+  // Both checkouts sit as siblings under one parent, so the hop out of
+  // <repo>/docs/ and into the other repo's is symmetric: up two, across one.
+  // The directory name is read from the repo root above rather than written
+  // out here, so a rename needs the one path at the top of this file changed
+  // and nothing else. The previous hardcoded pair outlived two renames and
+  // pointed nine links at folders that no longer existed.
+  return `../../${basename(repoById(to.repo).root)}/docs/${file}`;
 }
