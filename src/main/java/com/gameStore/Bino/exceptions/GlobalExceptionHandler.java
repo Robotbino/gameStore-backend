@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.FieldError;
@@ -33,9 +34,17 @@ public class GlobalExceptionHandler {
     // A duplicate email/username is a client mistake -> 400. Kept as 400 (not the more
     // correct 409) because the frontend's error catalog keys on 400 for this case;
     // §8 of the architecture doc documents that contract.
-    @ExceptionHandler({DuplicateResourceException.class, EmailAlreadyExistsException.class, InvalidPasswordException.class})
+    @ExceptionHandler({DuplicateResourceException.class, EmailAlreadyExistsException.class,
+            InvalidPasswordException.class, InvalidCheckoutException.class})
     public ResponseEntity<Map<String, String>> handleClientError(RuntimeException exception) {
         return new ResponseEntity<>(Map.of("message", exception.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
+    // A body Jackson cannot bind (malformed JSON, an unknown enum value such as a bad
+    // paymentMethod) is the client's fault, not a 500.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, String>> handleUnreadable(HttpMessageNotReadableException exception) {
+        return new ResponseEntity<>(Map.of("message", "Malformed request body"), HttpStatus.BAD_REQUEST);
     }
 
     // Bean Validation failures (@Valid on a request body). Keeps the {"message": ...}

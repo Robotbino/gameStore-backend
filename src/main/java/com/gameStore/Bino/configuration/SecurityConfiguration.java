@@ -50,6 +50,8 @@ public class SecurityConfiguration {
                         //MUST come before the /users/** ADMIN rule (first match wins).
                         .requestMatchers("/users/me", "/users/me/**").authenticated()
                         .requestMatchers("/users/**").hasRole("ADMIN")
+                        //Checkout, order history and the points ledger belong to the caller
+                        .requestMatchers("/orders/**", "/rewards/**").authenticated()
                         .anyRequest()
                         .authenticated()
                 )
