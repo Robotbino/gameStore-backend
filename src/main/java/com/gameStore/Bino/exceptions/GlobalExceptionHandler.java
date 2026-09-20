@@ -11,6 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -60,6 +61,13 @@ public class GlobalExceptionHandler {
         body.put("message", "Validation failed");
         body.put("errors", fieldErrors);
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    // An unmapped path (typically a client built against a newer API than the running
+    // server) is a 404, not a server fault.
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNoRoute(NoResourceFoundException exception) {
+        return new ResponseEntity<>(Map.of("message", "No such endpoint"), HttpStatus.NOT_FOUND);
     }
 
     // Backstop. Previously RuntimeException -> 400, which blamed the client for genuine
