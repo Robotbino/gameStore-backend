@@ -33,8 +33,8 @@ public class GlobalExceptionHandler {
     // A duplicate email/username is a client mistake -> 400. Kept as 400 (not the more
     // correct 409) because the frontend's error catalog keys on 400 for this case;
     // §8 of the architecture doc documents that contract.
-    @ExceptionHandler({DuplicateResourceException.class, EmailAlreadyExistsException.class})
-    public ResponseEntity<Map<String, String>> handleDuplicate(RuntimeException exception) {
+    @ExceptionHandler({DuplicateResourceException.class, EmailAlreadyExistsException.class, InvalidPasswordException.class})
+    public ResponseEntity<Map<String, String>> handleClientError(RuntimeException exception) {
         return new ResponseEntity<>(Map.of("message", exception.getMessage()), HttpStatus.BAD_REQUEST);
     }
 

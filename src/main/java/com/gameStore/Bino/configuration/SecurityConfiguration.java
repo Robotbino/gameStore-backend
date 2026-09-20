@@ -46,9 +46,9 @@ public class SecurityConfiguration {
                         //Browsing the catalog is public; managing it is admin-only
                         .requestMatchers(HttpMethod.GET, "/games/**").permitAll()
                         .requestMatchers("/games/**").hasRole("ADMIN")
-                        //Self-service: any authenticated user reads their own record.
+                        //Self-service: any authenticated user reads and edits their own record.
                         //MUST come before the /users/** ADMIN rule (first match wins).
-                        .requestMatchers("/users/me").authenticated()
+                        .requestMatchers("/users/me", "/users/me/**").authenticated()
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .anyRequest()
                         .authenticated()

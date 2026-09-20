@@ -1,7 +1,9 @@
 package com.gameStore.Bino.controllers;
 
+import com.gameStore.Bino.dto.ChangePasswordRequest;
 import com.gameStore.Bino.dto.CreateUserRequest;
 import com.gameStore.Bino.dto.PagedResponse;
+import com.gameStore.Bino.dto.UpdateProfileRequest;
 import com.gameStore.Bino.dto.UpdateUserRequest;
 import com.gameStore.Bino.dto.UserResponse;
 import com.gameStore.Bino.models.Role;
@@ -46,6 +48,23 @@ public class UsersController {
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMe(@AuthenticationPrincipal Users user) {
         return ResponseEntity.ok(UserResponse.from(user));
+    }
+
+    // A username change never invalidates the caller's JWT: the token subject is the email.
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMe(
+            @AuthenticationPrincipal Users user,
+            @Valid @RequestBody UpdateProfileRequest request) {
+        Users updated = usersService.updateProfile(user.getId(), request.userName());
+        return ResponseEntity.ok(UserResponse.from(updated));
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<Void> changeMyPassword(
+            @AuthenticationPrincipal Users user,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        usersService.changePassword(user.getId(), request.currentPassword(), request.newPassword());
+        return ResponseEntity.noContent().build();
     }
 
     // Map entities -> DTOs at the controller edge. That single change stops the hash

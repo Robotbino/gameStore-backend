@@ -1,6 +1,7 @@
 package com.gameStore.Bino.service;
 
 import com.gameStore.Bino.exceptions.DuplicateResourceException;
+import com.gameStore.Bino.exceptions.InvalidPasswordException;
 import com.gameStore.Bino.exceptions.ResourceNotFoundException;
 import com.gameStore.Bino.models.Users;
 import com.gameStore.Bino.repositories.UserRepository;
@@ -74,5 +75,24 @@ public class UsersService {
         }
 
         return userRepository.save(existing);
+    }
+
+    public Users updateProfile(Integer id, String newUserName) {
+        Users existing = findUserByID(id);
+        boolean nameChanged = !existing.getUserName().equals(newUserName);
+        if (nameChanged && userRepository.existsByUserName(newUserName)) {
+            throw new DuplicateResourceException("Username already in use");
+        }
+        existing.setUserName(newUserName);
+        return userRepository.save(existing);
+    }
+
+    public void changePassword(Integer id, String currentPassword, String newPassword) {
+        Users existing = findUserByID(id);
+        if (!passwordEncoder.matches(currentPassword, existing.getPassword())) {
+            throw new InvalidPasswordException("Current password is incorrect");
+        }
+        existing.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(existing);
     }
 }
