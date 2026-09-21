@@ -1,13 +1,17 @@
 package com.gameStore.Bino.controllers;
 
+import com.gameStore.Bino.dto.AccountUpdateResponse;
 import com.gameStore.Bino.dto.ChangePasswordRequest;
 import com.gameStore.Bino.dto.CreateUserRequest;
 import com.gameStore.Bino.dto.PagedResponse;
+import com.gameStore.Bino.dto.UpdateAccountRequest;
+import com.gameStore.Bino.dto.UpdateProfileDetailsRequest;
 import com.gameStore.Bino.dto.UpdateProfileRequest;
 import com.gameStore.Bino.dto.UpdateUserRequest;
 import com.gameStore.Bino.dto.UserResponse;
 import com.gameStore.Bino.models.Role;
 import com.gameStore.Bino.models.Users;
+import com.gameStore.Bino.service.JwtService;
 import com.gameStore.Bino.service.UsersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 public class UsersController {
 
     private final UsersService usersService;
+    private final JwtService jwtService;
 
     // GET /users/me — the caller's own record, identified by the token, never a param.
     // The principal IS a Users: ApplicationConfig.userDetailsService() returns the entity
@@ -57,6 +62,30 @@ public class UsersController {
             @Valid @RequestBody UpdateProfileRequest request) {
         Users updated = usersService.updateProfile(user.getId(), request.userName());
         return ResponseEntity.ok(UserResponse.from(updated));
+    }
+
+    // PUT /users/me/profile — presentation fields only (displayName, avatarKey,
+    // bio, country). Blank/null clears the column; see UpdateProfileDetailsRequest.
+    @PutMapping("/me/profile")
+    public ResponseEntity<UserResponse> updateMyProfile(
+            @AuthenticationPrincipal Users user,
+            @Valid @RequestBody UpdateProfileDetailsRequest request) {
+        Users updated = usersService.updateOwnProfile(
+                user.getId(), request.displayName(), request.avatarKey(), request.bio(), request.country());
+        return ResponseEntity.ok(UserResponse.from(updated));
+    }
+
+    // PUT /users/me/account — userName AND email. Unlike updateMe above, this CAN
+    // change the email, which is the JWT subject: every token the caller holds
+    // stops resolving the moment it is saved. A freshly minted token comes back
+    // in the body so the client swaps it in and stays signed in.
+    @PutMapping("/me/account")
+    public ResponseEntity<AccountUpdateResponse> updateMyAccount(
+            @AuthenticationPrincipal Users user,
+            @Valid @RequestBody UpdateAccountRequest request) {
+        Users updated = usersService.updateOwnAccount(user.getId(), request.userName(), request.email());
+        String freshToken = jwtService.generateToken(updated);
+        return ResponseEntity.ok(new AccountUpdateResponse(UserResponse.from(updated), freshToken));
     }
 
     @PutMapping("/me/password")

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -55,6 +56,22 @@ class UsersEndpointsIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.email", is("grace@example.com")))
                 .andExpect(jsonPath("$.role", is("USER")))
                 .andExpect(jsonPath("$.password").doesNotExist());
+    }
+
+    @Test
+    void usersMe_newAccount_carriesTheProfileContractWithCreatedAtSet() throws Exception {
+        // The V4 profile fields are part of UserResponse, so the frontend can rely
+        // on them being present (as null) rather than absent. createdAt is the one
+        // that must never be null — "member since" has no fallback.
+        String token = userToken("hugo", "hugo@example.com");
+        mockMvc.perform(get("/users/me").header(HttpHeaders.AUTHORIZATION, bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.createdAt").exists())
+                .andExpect(jsonPath("$.points", is(0)))
+                .andExpect(jsonPath("$.displayName", is(nullValue())))
+                .andExpect(jsonPath("$.avatarKey", is(nullValue())))
+                .andExpect(jsonPath("$.bio", is(nullValue())))
+                .andExpect(jsonPath("$.country", is(nullValue())));
     }
 
     @Test

@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -47,6 +48,40 @@ public class Users implements UserDetails{
     @Column(name = "is_enabled")
     @Builder.Default
     private boolean enabled = true;
+
+    // ---------------------------------------------------------------
+    // Profile fields (V4). Deliberately flat on `users` rather than a
+    // 1:1 profile table — see the migration header for why.
+    // ---------------------------------------------------------------
+
+    // The free-form label the UI prefers when it's set. NOT unique, and
+    // that's the whole point: userName above is the unique handle, so
+    // renaming yourself here can never collide with another account.
+    @Column(name = "display_name", length = 50)
+    private String displayName;
+
+    // An id into the frontend's preset catalogue — not a URL, not a file.
+    // Nothing is uploaded or served; the client renders the mark from the
+    // key and falls back to the initial circle on an unknown one.
+    @Column(name = "avatar_key", length = 32)
+    private String avatarKey;
+
+    @Column(length = 280)
+    private String bio;
+
+    // ISO 3166-1 alpha-2. The code, not the name — the display language
+    // is the client's problem and a stored code never goes stale.
+    @Column(length = 2)
+    private String country;
+
+    // Same @Builder.Default idiom as Purchases.purchaseDate. Every path
+    // that creates a Users goes through the builder (AuthenticationService
+    // .register, UsersController.addUser, the BinoApplication seed), so
+    // this is always populated. updatable=false keeps updateUser's
+    // save(existing) from ever rewriting it.
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     // ---------------------------------------------------------------
     // Relationship: One User -> Many Purchases

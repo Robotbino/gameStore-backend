@@ -54,8 +54,77 @@ public class UsersService {
         userRepository.deleteById(id);
     }
 
+    // =================================================================
+    // Self-service. Everything below acts on the CALLER, whose id comes
+    // from the @AuthenticationPrincipal, never from the request body.
+    //
+    // The principal itself is a DETACHED entity — JWTAuthenticationFilter
+    // loaded it outside any transaction — so it is re-read by id here
+    // (same as updateProfile/changePassword below) rather than mutated
+    // and saved directly.
+    // =================================================================
+
+    /**
+     * Replace the caller's presentation fields. Nulls REPLACE rather than
+     * being skipped — that's what makes "clear my bio" possible, and it's
+     * safe here because the client already holds the whole record.
+     */
+    public Users updateOwnProfile(Integer id, String displayName, String avatarKey, String bio, String country) {
+        Users existing = findUserByID(id);
+
+        existing.setDisplayName(blankToNull(displayName));
+        existing.setAvatarKey(blankToNull(avatarKey));
+        existing.setBio(blankToNull(bio));
+        existing.setCountry(blankToNull(country));
+
+        return userRepository.save(existing);
+    }
+
+    /**
+     * Change the caller's own userName and/or email.
+     *
+     * Both columns are unique, so availability is checked EXCLUDING the
+     * caller's own row: without that, saving the form without touching the
+     * email would report your own address as already in use.
+     */
+    public Users updateOwnAccount(Integer id, String newUserName, String newEmail) {
+        Users existing = findUserByID(id);
+
+        requireAvailable(existing, newUserName, newEmail);
+        existing.setUserName(newUserName);
+        existing.setEmail(newEmail);
+
+        return userRepository.save(existing);
+    }
+
+    /**
+     * Uniqueness guard for an EDIT. exists* would report the row being edited
+     * as a conflict with itself, so only check a value that actually changed.
+     */
+    private void requireAvailable(Users existing, String newUserName, String newEmail) {
+        boolean emailChanged = newEmail != null && !newEmail.equalsIgnoreCase(existing.getEmail());
+        if (emailChanged && userRepository.existsByEmail(newEmail)) {
+            throw new DuplicateResourceException("Email already in use");
+        }
+
+        boolean userNameChanged = newUserName != null && !newUserName.equals(existing.getUserName());
+        if (userNameChanged && userRepository.existsByUserName(newUserName)) {
+            throw new DuplicateResourceException("Username already in use");
+        }
+    }
+
+    /** An empty text input arrives as "", which should clear the column, not store a blank. */
+    private String blankToNull(String value) {
+        return (value == null || value.isBlank()) ? null : value.trim();
+    }
+
     public Users updateUser(Integer id, Users updatedUser) {
         Users existing = findUserByID(id);  // throws if not found
+
+        // Same guard the self-service path uses. Without it a duplicate email
+        // surfaced as a DB constraint violation — a 500 blaming the server for
+        // what is plainly a client mistake.
+        requireAvailable(existing, updatedUser.getUserName(), updatedUser.getEmail());
 
         existing.setUserName(updatedUser.getUserName());
         existing.setEmail(updatedUser.getEmail());

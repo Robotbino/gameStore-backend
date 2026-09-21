@@ -2,6 +2,8 @@ package com.gameStore.Bino.dto;
 
 import com.gameStore.Bino.models.Users;
 
+import java.time.LocalDateTime;
+
 /**
  * What the API promises, decoupled from what the DB stores (your A8 — SRP:
  * the API contract and the persistence model change for different reasons).
@@ -11,13 +13,23 @@ import com.gameStore.Bino.models.Users;
  *
  * The fields below are the WHOLE contract. What's absent from this list
  * IS the security fix — the password hash never leaves the service layer again.
+ *
+ * One record serves both /users/me and every row of the admin /users/all, so
+ * the profile fields added in V4 widen both. That's deliberate: two records
+ * with the same five identity fields would drift apart the first time one of
+ * them changed.
  */
 public record UserResponse(
         Integer id,
         String userName,
         String email,
         String role,
-        Integer points
+        Integer points,
+        String displayName,
+        String avatarKey,
+        String bio,
+        String country,
+        LocalDateTime createdAt
 ) {
     /**
      * NB: getUserName() (the entity field), NOT getUsername() — the latter is the
@@ -32,7 +44,12 @@ public record UserResponse(
                 user.getUserName(),
                 user.getEmail(),
                 user.getRole().name(),
-                user.getPoints()
+                user.getPoints(),
+                user.getDisplayName(),
+                user.getAvatarKey(),
+                user.getBio(),
+                user.getCountry(),
+                user.getCreatedAt()
         );
     }
 
