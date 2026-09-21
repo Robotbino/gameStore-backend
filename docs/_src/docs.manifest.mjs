@@ -30,7 +30,13 @@ import { dirname, resolve } from "node:path";
 
 const here = dirname(fileURLToPath(import.meta.url));       // <backend>/docs/_src
 const backend = resolve(here, "..", "..");                   // <backend>
-const frontend = resolve(backend, "..", "..", "GameStore");   // sibling checkout
+// Siblings under one parent, so exactly ONE "..": <parent>/gameStore-backend
+// and <parent>/gameStore. This had an extra "..", which walked up past the
+// parent and looked for <grandparent>/GameStore — so every frontend doc was
+// reported MISSING and dropped out of the search index, on a case-insensitive
+// filesystem silently and on a case-sensitive one loudly. Exactly the class of
+// rot the header above describes this file as existing to prevent.
+const frontend = resolve(backend, "..", "gameStore");        // sibling checkout
 
 export const REPOS = [
   { id: "backend",  root: backend,  label: "backend"  },
@@ -136,9 +142,9 @@ export const docPath = (doc) => resolve(repoById(doc.repo).root, doc.file);
 export function hrefBetween(from, to) {
   const file = to.file.replace(/^docs\//, "");
   if (from.repo === to.repo) return file;
-  // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
-  // From frontend → backend needs ../../GameStoreBackEnd/Bino/docs/
-  // From backend → frontend needs ../../../GameStore/docs/  (one extra level)
-  if (to.repo === "backend") return `../../GameStoreBackEnd/Bino/docs/${file}`;
-  return `../../../GameStore/docs/${file}`;
+  // Frontend lives at gameStore/docs/, backend at gameStore-backend/docs/.
+  // From frontend → backend needs ../../gameStore-backend/docs/
+  // From backend → frontend needs ../../gameStore/docs/  
+  if (to.repo === "backend") return `../../gameStore-backend/docs/${file}`;
+  return `../../gameStore/docs/${file}`;
 }

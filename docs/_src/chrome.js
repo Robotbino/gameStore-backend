@@ -966,16 +966,16 @@
       return (file || "") + anchor + q;
     }
     // Cross-document path. Same repo → bare file; different repo → sibling hop.
-    // Frontend lives at GameStore/docs/, backend at GameStoreBackEnd/Bino/docs/.
+    // Frontend lives at gameStore/docs/, backend at gameStore-backend/docs/.
     function crossHref(targetDocId, m) {
       // The two front doors are not themselves indexed, so they have no
       // entry to read a role out of — they declare one on <html> instead.
       // Without this they resolved every link as cross-repo and sent the
-      // reader to ../../../GameStore/docs/ from inside that very folder.
+      // reader to ../../gameStore/docs/ from inside that very folder.
       var meHere = META[DOC_ID] || (root.dataset.gsRole ? { role: root.dataset.gsRole } : null);
       if (meHere && meHere.role === m.role) return m.file;
-      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
-      return "../../../GameStore/docs/" + m.file;
+      if (m.role === "backend") return "../../gameStore-backend/docs/" + m.file;
+      return "../../gameStore/docs/" + m.file;
     }
 
     /* Scoring. Tokenise the query; each token contributes by where it lands.
@@ -1429,8 +1429,8 @@
     function docHref(id, m) {
       var mine = META[DOC_ID] || { role: root.dataset.gsRole };
       if (mine && mine.role === m.role) return m.file;
-      if (m.role === "backend") return "../../GameStoreBackEnd/Bino/docs/" + m.file;
-      return "../../../GameStore/docs/" + m.file;
+      if (m.role === "backend") return "../../gameStore-backend/docs/" + m.file;
+      return "../../gameStore/docs/" + m.file;
     }
 
     var card = null, timer = 0;
@@ -1612,8 +1612,8 @@
     var m = META[last.doc];
     var mine = META[DOC_ID] || { role: root.dataset.gsRole };
     var href = (mine && mine.role === m.role) ? m.file
-             : (m.role === "backend" ? "../../GameStoreBackEnd/Bino/docs/" + m.file
-                                     : "../../../GameStore/docs/" + m.file);
+             : (m.role === "backend" ? "../../gameStore-backend/docs/" + m.file
+                                     : "../../gameStore/docs/" + m.file);
     var a = document.createElement("a");
     a.className = "fd-resume";
     a.href = href + "#" + last.id;
