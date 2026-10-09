@@ -46,7 +46,7 @@ function card(from, doc) {
 const PATH = [
   ["be-arch", "Start with the API", "The backend holds the rules, so it is the half that explains the other one. Filter chain, then controllers, then persistence."],
   ["fe-arch", "Then the SPA", "How the browser half consumes that API — one axios instance, one auth context, two route guards."],
-  ["be-learn", "Read the code with a guide", "Patterns and annotations named as you meet them, with 21 quizzes to check yourself."],
+  ["be-learn", "Read the code with a guide", "Patterns and annotations named as you meet them, with 20 quizzes to check yourself."],
   ["fe-roadmap", "Finish on what is next", "Both roadmaps rank the remaining work and say what was deliberately dropped."],
 ];
 

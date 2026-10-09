@@ -96,7 +96,7 @@ export const DOCS = [
     file: "docs/architecture-and-learning-guide.html",
     title: "Learning Guide",
     role: "backend",
-    blurb: "How to read the codebase: patterns, annotations, and 21 quizzes.",
+    blurb: "How to read the codebase: patterns, annotations, and 20 quizzes.",
     components: ["learning", "tables", "diagram"],
   },
   {
