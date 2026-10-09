@@ -44,10 +44,10 @@ function card(from, doc) {
    order the cards happen to sit in: the half that holds the rules first, then
    the half that consumes it. */
 const PATH = [
-  ["be-arch", "Start with the API", "The backend holds the rules, so it is the half that explains the other one. Filter chain, then controllers, then persistence."],
-  ["fe-arch", "Then the SPA", "How the browser half consumes that API — one axios instance, one auth context, two route guards."],
-  ["be-learn", "Read the code with a guide", "Patterns and annotations named as you meet them, with 20 quizzes to check yourself."],
-  ["fe-roadmap", "Finish on what is next", "Both roadmaps rank the remaining work and say what was deliberately dropped."],
+  ["be-arch", "Start with the API", "The backend holds the rules, so it explains the other half. Read the filter chain, then the controllers, then persistence."],
+  ["fe-arch", "Then the SPA", "How the browser half uses that API: one axios instance, one auth context and two route guards."],
+  ["be-learn", "Read the code with a guide", "The guide names each pattern and annotation when you meet it. It has 20 quizzes to check yourself."],
+  ["fe-roadmap", "Finish on what is next", "Both roadmaps rank the work that remains and say what we dropped on purpose."],
 ];
 
 function steps(from) {
@@ -214,9 +214,9 @@ function page(repo) {
       <p class="eyebrow">Game Store · Documentation</p>
       <h1>One system, six views</h1>
       <p class="lede">
-        A full-stack Game Store: a React&nbsp;19 SPA and a Spring&nbsp;Boot API, documented as a single
-        cross-linked set. Start anywhere — the briefs explain how each half is built, the roadmaps rank
-        what's next, and the learning guide reads the codebase with you.
+        A full-stack Game Store: a React&nbsp;19 SPA and a Spring&nbsp;Boot API, documented as one
+        cross-linked set. You can start anywhere. The briefs explain how each half is built. The roadmaps
+        rank the next work, and the learning guide reads the codebase with you.
       </p>
       <div class="fd-actions">
         <a class="fd-cta" href="${start}">Start with the architecture <span aria-hidden="true">→</span></a>
@@ -228,7 +228,7 @@ function page(repo) {
     <aside class="hero-plate">
       <p class="plate-k">What the set is</p>
       <div class="schema">
-        <div class="s-node is-accent"><em>Two briefs</em>how each half is actually built</div>
+        <div class="s-node is-accent"><em>Two briefs</em>how each half is built</div>
         <div class="s-node is-auth"><em>One pivot</em>a target architecture, not the code today</div>
         <div class="s-node"><em>Two roadmaps</em>ranked work, paired across the stack</div>
         <div class="s-node is-new"><em>One learning guide</em>how to read the code, with quizzes</div>
@@ -243,8 +243,8 @@ function page(repo) {
     <p class="kicker">The set</p>
     <h2>Six documents, two repositories</h2>
     <p class="section-lede">
-      Every page is self-contained and cross-linked to the others. Hover a link into another
-      document to see what is on the other side of it before you go.
+      Each page is self-contained and has links to the others. Hover over a link to another
+      document to see what is on the other side before you go.
     </p>
 
     <div class="fd-resume-slot" data-gs-resume hidden></div>
@@ -260,10 +260,10 @@ ${backendCards}
     </div>
 
     <p class="fd-hint">
-      These pages are self-contained: open any of them straight from disk, no server required.
-      The companion repo (<code>${otherRepoName}</code>) is expected to sit next to this one for the
-      cross-repo links to resolve. Press <kbd>⌘K</kbd> to search all six at once, or
-      <kbd>?</kbd> for everything else the keyboard does.
+      These pages are self-contained. You can open each one directly from disk, and no server is
+      necessary. Put the companion repo (<code>${otherRepoName}</code>) next to this one, so that the
+      cross-repo links resolve. Press <kbd>⌘K</kbd> to search all six at once, or
+      <kbd>?</kbd> to see all the keyboard shortcuts.
     </p>
   </div>
 </section>
@@ -273,8 +273,8 @@ ${backendCards}
     <p class="kicker">Suggested order</p>
     <h2>If this is your first time here</h2>
     <p class="section-lede">
-      The six are written to be read in any order, but this one wastes the least time: the half
-      that holds the rules first, then the half that consumes it.
+      You can read the six in any order, but this order saves the most time. Read the half that
+      holds the rules first, then the half that uses them.
     </p>
     <ol class="fd-path">
 ${steps(from)}

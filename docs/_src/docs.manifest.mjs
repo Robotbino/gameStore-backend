@@ -67,7 +67,7 @@ export const DOCS = [
     id: "fe-catalog",
     repo: "frontend",
     file: "docs/catalog-architecture.html",
-    title: "Catalog Pivot",
+    title: "Catalogue Pivot",
     role: "frontend",
     blurb: "The catalogue read-path redesign: tiers, caching, and what it replaces.",
     components: ["diagram", "tables", "blocks"],
@@ -78,7 +78,7 @@ export const DOCS = [
     file: "docs/frontend-roadmap.html",
     title: "Frontend Roadmap",
     role: "frontend",
-    blurb: "Ranked frontend work, with the quick wins that were deliberately discarded.",
+    blurb: "Ranked frontend work, and the quick wins that we discarded on purpose.",
     components: ["roadmap", "diagram"],
   },
   {

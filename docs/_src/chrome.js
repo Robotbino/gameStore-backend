@@ -1505,19 +1505,19 @@
     overlay.innerHTML =
       '<div class="gs-keys-box" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts">' +
       '<h2>Keyboard shortcuts<button type="button" class="gs-keys-close">esc</button></h2>' +
-      '<p class="k-sub">Every key this document answers to.</p>' +
+      '<p class="k-sub">All the keys that this document uses.</p>' +
       '<dl class="gs-keys-grid">' +
-      "<dt>Finding things</dt>" +
+      "<dt>Find</dt>" +
       "<dd>Search all documents<kbd>" + mod + " K</kbd></dd>" +
       "<dd>Search, without the modifier<kbd>/</kbd></dd>" +
-      "<dt>Moving around</dt>" +
+      "<dt>Move</dt>" +
       "<dd>Next section<kbd>j</kbd></dd>" +
       "<dd>Previous section<kbd>k</kbd></dd>" +
       "<dd>Top of document<kbd>g g</kbd></dd>" +
       "<dt>The page itself</dt>" +
       "<dd>Light / dark<kbd>t</kbd></dd>" +
       "<dd>This list<kbd>?</kbd></dd>" +
-      "<dd>Close anything open<kbd>esc</kbd></dd>" +
+      "<dd>Close an open panel<kbd>esc</kbd></dd>" +
       "</dl></div>";
     document.body.appendChild(overlay);
 
@@ -1617,7 +1617,7 @@
     var a = document.createElement("a");
     a.className = "fd-resume";
     a.href = href + "#" + last.id;
-    a.innerHTML = '<span class="fr-k">Pick up where you left off</span>' +
+    a.innerHTML = '<span class="fr-k">Continue where you stopped</span>' +
                   '<span class="fr-t">' + m.title + " · " + last.title.replace(/</g, "&lt;") + "</span>" +
                   '<span class="fr-go" aria-hidden="true">→</span>';
     slot.appendChild(a);
